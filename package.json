@@ -1,0 +1,27 @@
+{
+  "name": "webcraft-platform",
+  "version": "1.0.0",
+  "description": "Modern Website Builder Platform with AI Integration",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:api": "cd apps/api && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "build": "npm run build:web && npm run build:api",
+    "build:web": "cd apps/web && npm run build",
+    "build:api": "cd apps/api && python -m build",
+    "test": "npm run test:web && npm run test:api",
+    "test:web": "cd apps/web && npm test",
+    "test:api": "cd apps/api && pytest",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: webcraft
+  labels:
+    name: webcraft
+    app: webcraft-platform
