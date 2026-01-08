@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useCallback, useState, useEffect, useMemo } from 'react'
 import { useWebSocket } from './websocket-context'
 import { v4 as uuidv4 } from 'uuid'
+import { apiClient } from '@/lib/api-client'
 
 export interface Element {
   id: string
@@ -15,6 +16,7 @@ export interface Element {
   locked?: boolean
   visible?: boolean
   name?: string
+  zIndex?: number
 }
 
 interface EditorState {
@@ -38,7 +40,9 @@ interface EditorContextValue {
   canRedo: boolean
   isDirty: boolean
   isSaving: boolean
+  isLoading: boolean
   zoom: number
+  appId?: string
   
   // Element actions
   addElement: (element: Omit<Element, 'id'>) => void
@@ -80,18 +84,51 @@ interface EditorProviderProps {
 
 export function EditorProvider({ children, appId, initialData }: EditorProviderProps) {
   const { sendMessage, isConnected } = useWebSocket()
+  const [isLoading, setIsLoading] = useState(!initialData && !!appId)
   
   const [state, setState] = useState<EditorState>({
-    elements: initialData?.elements || [],
+    elements: initialData?.config?.elements || initialData?.elements || [],
     selectedElementId: null,
     hoveredElementId: null,
-    history: [initialData?.elements || []],
+    history: [initialData?.config?.elements || initialData?.elements || []],
     historyIndex: 0,
     clipboard: null,
     zoom: 100,
     isDirty: false,
     isSaving: false
   })
+
+  // Load app data if not provided as initialData
+  useEffect(() => {
+    if (!appId || initialData || !isLoading) return
+
+    const loadAppData = async () => {
+      try {
+        console.log('🔄 Loading app data for:', appId)
+        const response = await apiClient.get(`/api/apps/${appId}`)
+        const appData = response.data
+        
+        console.log('📦 Loaded app data:', appData)
+        
+        const elements = appData?.config?.elements || []
+        setState(prev => ({
+          ...prev,
+          elements,
+          history: [elements],
+          historyIndex: 0,
+          isDirty: false
+        }))
+        
+        setIsLoading(false)
+        console.log('✅ App data loaded successfully')
+      } catch (error) {
+        console.error('❌ Failed to load app data:', error)
+        setIsLoading(false)
+      }
+    }
+
+    loadAppData()
+  }, [appId, initialData, isLoading])
 
   // Derived state
   const selectedElement = useMemo(() => 
@@ -294,21 +331,54 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
 
   // Save
   const saveApp = useCallback(async () => {
-    if (!appId || !state.isDirty) return
+    console.log('🔍 Save attempt:', {
+      appId,
+      isDirty: state.isDirty,
+      elementsCount: state.elements.length
+    })
+    
+    if (!appId) {
+      console.error('❌ No appId provided')
+      return
+    }
+    
+    if (!state.isDirty) {
+      console.log('⏭️ No changes to save')
+      return
+    }
     
     setState(prev => ({ ...prev, isSaving: true }))
     
     try {
-      await fetch(`/api/v1/apps/${appId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ elements: state.elements })
+      const payload = { 
+        config: { 
+          elements: state.elements,
+          lastModified: new Date().toISOString()
+        } 
+      }
+      
+      console.log('💾 Saving app:', {
+        appId,
+        elementsCount: state.elements.length,
+        payload
       })
       
+      const response = await apiClient.put(`/api/apps/${appId}`, payload)
+      
+      console.log('📡 Save response:', response.data)
       setState(prev => ({ ...prev, isDirty: false, isSaving: false }))
-    } catch (error) {
-      console.error('Failed to save:', error)
+      console.log('✅ App saved successfully')
+    } catch (error: any) {
+      console.error('❌ Failed to save app:', {
+        message: error?.message,
+        status: error?.status,
+        code: error?.code,
+        details: error?.details,
+        response: error?.response?.data,
+        originalError: error
+      })
       setState(prev => ({ ...prev, isSaving: false }))
+      throw error
     }
   }, [appId, state.isDirty, state.elements])
 
@@ -331,7 +401,9 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     canRedo,
     isDirty: state.isDirty,
     isSaving: state.isSaving,
+    isLoading,
     zoom: state.zoom,
+    appId,
     
     addElement,
     updateElement,

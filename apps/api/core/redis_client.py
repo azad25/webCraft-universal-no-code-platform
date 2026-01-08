@@ -1,482 +1,371 @@
 """
-Redis Client with Connection Pooling and Caching Utilities
-Implements cache-aside pattern with automatic serialization
+Redis client configuration for WebCraft platform
+Used for caching, sessions, and real-time features
 """
 
 import redis.asyncio as redis
-from redis.asyncio.connection import ConnectionPool
-from typing import Any, Optional, Union, List, Dict
+import os
 import json
-import pickle
-import hashlib
-from datetime import timedelta
-from functools import wraps
-import asyncio
-from contextlib import asynccontextmanager
+from typing import Optional, Any, Dict
+import logging
 
-from core.config import settings
-from core.logging import get_logger
+logger = logging.getLogger(__name__)
 
-logger = get_logger(__name__)
+# Redis configuration
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+
+# Global Redis client
+_redis_client: Optional[redis.Redis] = None
 
 
-class RedisClient:
-    """
-    Production-grade Redis client with:
-    - Connection pooling
-    - Automatic reconnection
-    - JSON/Pickle serialization
-    - Cache decorators
-    - Pub/Sub support
-    - Distributed locking
-    """
+async def init_redis():
+    """Initialize Redis connection"""
+    global _redis_client
     
-    _instance: Optional['RedisClient'] = None
-    _pool: Optional[ConnectionPool] = None
-    _client: Optional[redis.Redis] = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-    
-    async def connect(self) -> None:
-        """Initialize Redis connection pool"""
-        if self._client is not None:
-            return
+    try:
+        _redis_client = redis.from_url(
+            REDIS_URL,
+            encoding="utf-8",
+            decode_responses=True,
+            socket_connect_timeout=5,
+            socket_timeout=5,
+            retry_on_timeout=True,
+            health_check_interval=30
+        )
         
+        # Test connection
+        await _redis_client.ping()
+        logger.info("Redis connection established successfully")
+        
+    except Exception as e:
+        logger.error(f"Failed to connect to Redis: {e}")
+        raise
+
+
+def get_redis_client() -> redis.Redis:
+    """Get Redis client instance"""
+    if _redis_client is None:
+        raise RuntimeError("Redis client not initialized. Call init_redis() first.")
+    return _redis_client
+
+
+class RedisService:
+    """Redis service wrapper with common operations"""
+    
+    def __init__(self):
+        self.redis = get_redis_client()
+    
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+        """Set a key-value pair with optional TTL"""
         try:
-            self._pool = ConnectionPool.from_url(
-                settings.REDIS_URL,
-                password=settings.REDIS_PASSWORD,
-                db=settings.REDIS_DB,
-                max_connections=50,
-                decode_responses=False,  # We handle serialization ourselves
-                socket_timeout=5.0,
-                socket_connect_timeout=5.0,
-                retry_on_timeout=True,
-            )
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value)
             
-            self._client = redis.Redis(connection_pool=self._pool)
-            
-            # Test connection
-            await self._client.ping()
-            logger.info("Redis connection established successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to connect to Redis: {e}")
-            raise
-    
-    async def disconnect(self) -> None:
-        """Close Redis connection"""
-        if self._client:
-            await self._client.close()
-            self._client = None
-        if self._pool:
-            await self._pool.disconnect()
-            self._pool = None
-        logger.info("Redis connection closed")
-    
-    @property
-    def client(self) -> redis.Redis:
-        """Get Redis client instance"""
-        if self._client is None:
-            raise RuntimeError("Redis client not initialized. Call connect() first.")
-        return self._client
-    
-    # ==================== Basic Operations ====================
-    
-    async def get(self, key: str, default: Any = None) -> Any:
-        """Get value from cache with automatic deserialization"""
-        try:
-            value = await self.client.get(key)
-            if value is None:
-                return default
-            return self._deserialize(value)
-        except Exception as e:
-            logger.error(f"Redis GET error for key {key}: {e}")
-            return default
-    
-    async def set(
-        self,
-        key: str,
-        value: Any,
-        ttl: Optional[int] = None,
-        nx: bool = False,
-        xx: bool = False
-    ) -> bool:
-        """Set value in cache with automatic serialization"""
-        try:
-            serialized = self._serialize(value)
-            ttl = ttl or settings.REDIS_CACHE_TTL
-            
-            return await self.client.set(
-                key,
-                serialized,
-                ex=ttl,
-                nx=nx,
-                xx=xx
-            )
+            if ttl:
+                return await self.redis.setex(key, ttl, value)
+            else:
+                return await self.redis.set(key, value)
         except Exception as e:
             logger.error(f"Redis SET error for key {key}: {e}")
             return False
     
-    async def delete(self, *keys: str) -> int:
-        """Delete one or more keys"""
+    async def get(self, key: str) -> Optional[Any]:
+        """Get value by key"""
         try:
-            return await self.client.delete(*keys)
+            value = await self.redis.get(key)
+            if value is None:
+                return None
+            
+            # Try to parse as JSON
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                return value
         except Exception as e:
-            logger.error(f"Redis DELETE error: {e}")
-            return 0
+            logger.error(f"Redis GET error for key {key}: {e}")
+            return None
     
-    async def exists(self, *keys: str) -> int:
-        """Check if keys exist"""
+    async def delete(self, key: str) -> bool:
+        """Delete a key"""
         try:
-            return await self.client.exists(*keys)
+            result = await self.redis.delete(key)
+            return result > 0
         except Exception as e:
-            logger.error(f"Redis EXISTS error: {e}")
-            return 0
+            logger.error(f"Redis DELETE error for key {key}: {e}")
+            return False
+    
+    async def exists(self, key: str) -> bool:
+        """Check if key exists"""
+        try:
+            return await self.redis.exists(key) > 0
+        except Exception as e:
+            logger.error(f"Redis EXISTS error for key {key}: {e}")
+            return False
     
     async def expire(self, key: str, ttl: int) -> bool:
-        """Set expiration on a key"""
+        """Set TTL for existing key"""
         try:
-            return await self.client.expire(key, ttl)
+            return await self.redis.expire(key, ttl)
         except Exception as e:
             logger.error(f"Redis EXPIRE error for key {key}: {e}")
             return False
     
     async def ttl(self, key: str) -> int:
-        """Get TTL of a key"""
+        """Get TTL for key"""
         try:
-            return await self.client.ttl(key)
+            return await self.redis.ttl(key)
         except Exception as e:
             logger.error(f"Redis TTL error for key {key}: {e}")
-            return -2
+            return -1
     
-    # ==================== Hash Operations ====================
-    
-    async def hget(self, name: str, key: str) -> Any:
-        """Get hash field value"""
+    async def incr(self, key: str, amount: int = 1) -> Optional[int]:
+        """Increment counter"""
         try:
-            value = await self.client.hget(name, key)
-            if value is None:
-                return None
-            return self._deserialize(value)
+            return await self.redis.incrby(key, amount)
         except Exception as e:
-            logger.error(f"Redis HGET error: {e}")
+            logger.error(f"Redis INCR error for key {key}: {e}")
             return None
     
-    async def hset(self, name: str, key: str, value: Any) -> int:
-        """Set hash field value"""
+    async def decr(self, key: str, amount: int = 1) -> Optional[int]:
+        """Decrement counter"""
         try:
-            serialized = self._serialize(value)
-            return await self.client.hset(name, key, serialized)
+            return await self.redis.decrby(key, amount)
         except Exception as e:
-            logger.error(f"Redis HSET error: {e}")
-            return 0
+            logger.error(f"Redis DECR error for key {key}: {e}")
+            return None
     
-    async def hgetall(self, name: str) -> Dict[str, Any]:
+    # Hash operations
+    async def hset(self, key: str, field: str, value: Any) -> bool:
+        """Set hash field"""
+        try:
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value)
+            return await self.redis.hset(key, field, value)
+        except Exception as e:
+            logger.error(f"Redis HSET error for key {key}, field {field}: {e}")
+            return False
+    
+    async def hget(self, key: str, field: str) -> Optional[Any]:
+        """Get hash field"""
+        try:
+            value = await self.redis.hget(key, field)
+            if value is None:
+                return None
+            
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                return value
+        except Exception as e:
+            logger.error(f"Redis HGET error for key {key}, field {field}: {e}")
+            return None
+    
+    async def hgetall(self, key: str) -> Dict[str, Any]:
         """Get all hash fields"""
         try:
-            data = await self.client.hgetall(name)
-            return {
-                k.decode() if isinstance(k, bytes) else k: self._deserialize(v)
-                for k, v in data.items()
-            }
+            data = await self.redis.hgetall(key)
+            result = {}
+            for field, value in data.items():
+                try:
+                    result[field] = json.loads(value)
+                except (json.JSONDecodeError, TypeError):
+                    result[field] = value
+            return result
         except Exception as e:
-            logger.error(f"Redis HGETALL error: {e}")
+            logger.error(f"Redis HGETALL error for key {key}: {e}")
             return {}
     
-    async def hdel(self, name: str, *keys: str) -> int:
-        """Delete hash fields"""
+    async def hdel(self, key: str, field: str) -> bool:
+        """Delete hash field"""
         try:
-            return await self.client.hdel(name, *keys)
+            result = await self.redis.hdel(key, field)
+            return result > 0
         except Exception as e:
-            logger.error(f"Redis HDEL error: {e}")
-            return 0
+            logger.error(f"Redis HDEL error for key {key}, field {field}: {e}")
+            return False
     
-    # ==================== List Operations ====================
-    
-    async def lpush(self, key: str, *values: Any) -> int:
-        """Push values to list head"""
+    # List operations
+    async def lpush(self, key: str, *values) -> Optional[int]:
+        """Push to left of list"""
         try:
-            serialized = [self._serialize(v) for v in values]
-            return await self.client.lpush(key, *serialized)
+            serialized_values = []
+            for value in values:
+                if isinstance(value, (dict, list)):
+                    serialized_values.append(json.dumps(value))
+                else:
+                    serialized_values.append(value)
+            return await self.redis.lpush(key, *serialized_values)
         except Exception as e:
-            logger.error(f"Redis LPUSH error: {e}")
-            return 0
+            logger.error(f"Redis LPUSH error for key {key}: {e}")
+            return None
     
-    async def rpush(self, key: str, *values: Any) -> int:
-        """Push values to list tail"""
+    async def rpush(self, key: str, *values) -> Optional[int]:
+        """Push to right of list"""
         try:
-            serialized = [self._serialize(v) for v in values]
-            return await self.client.rpush(key, *serialized)
+            serialized_values = []
+            for value in values:
+                if isinstance(value, (dict, list)):
+                    serialized_values.append(json.dumps(value))
+                else:
+                    serialized_values.append(value)
+            return await self.redis.rpush(key, *serialized_values)
         except Exception as e:
-            logger.error(f"Redis RPUSH error: {e}")
-            return 0
+            logger.error(f"Redis RPUSH error for key {key}: {e}")
+            return None
     
-    async def lrange(self, key: str, start: int, end: int) -> List[Any]:
+    async def lpop(self, key: str) -> Optional[Any]:
+        """Pop from left of list"""
+        try:
+            value = await self.redis.lpop(key)
+            if value is None:
+                return None
+            
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                return value
+        except Exception as e:
+            logger.error(f"Redis LPOP error for key {key}: {e}")
+            return None
+    
+    async def rpop(self, key: str) -> Optional[Any]:
+        """Pop from right of list"""
+        try:
+            value = await self.redis.rpop(key)
+            if value is None:
+                return None
+            
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                return value
+        except Exception as e:
+            logger.error(f"Redis RPOP error for key {key}: {e}")
+            return None
+    
+    async def lrange(self, key: str, start: int = 0, end: int = -1) -> list:
         """Get list range"""
         try:
-            values = await self.client.lrange(key, start, end)
-            return [self._deserialize(v) for v in values]
+            values = await self.redis.lrange(key, start, end)
+            result = []
+            for value in values:
+                try:
+                    result.append(json.loads(value))
+                except (json.JSONDecodeError, TypeError):
+                    result.append(value)
+            return result
         except Exception as e:
-            logger.error(f"Redis LRANGE error: {e}")
+            logger.error(f"Redis LRANGE error for key {key}: {e}")
             return []
     
-    async def llen(self, key: str) -> int:
-        """Get list length"""
+    # Set operations
+    async def sadd(self, key: str, *members) -> Optional[int]:
+        """Add to set"""
         try:
-            return await self.client.llen(key)
+            serialized_members = []
+            for member in members:
+                if isinstance(member, (dict, list)):
+                    serialized_members.append(json.dumps(member))
+                else:
+                    serialized_members.append(member)
+            return await self.redis.sadd(key, *serialized_members)
         except Exception as e:
-            logger.error(f"Redis LLEN error: {e}")
-            return 0
+            logger.error(f"Redis SADD error for key {key}: {e}")
+            return None
     
-    # ==================== Set Operations ====================
-    
-    async def sadd(self, key: str, *values: Any) -> int:
-        """Add values to set"""
+    async def srem(self, key: str, *members) -> Optional[int]:
+        """Remove from set"""
         try:
-            serialized = [self._serialize(v) for v in values]
-            return await self.client.sadd(key, *serialized)
+            serialized_members = []
+            for member in members:
+                if isinstance(member, (dict, list)):
+                    serialized_members.append(json.dumps(member))
+                else:
+                    serialized_members.append(member)
+            return await self.redis.srem(key, *serialized_members)
         except Exception as e:
-            logger.error(f"Redis SADD error: {e}")
-            return 0
+            logger.error(f"Redis SREM error for key {key}: {e}")
+            return None
     
     async def smembers(self, key: str) -> set:
         """Get all set members"""
         try:
-            values = await self.client.smembers(key)
-            return {self._deserialize(v) for v in values}
+            members = await self.redis.smembers(key)
+            result = set()
+            for member in members:
+                try:
+                    result.add(json.loads(member))
+                except (json.JSONDecodeError, TypeError):
+                    result.add(member)
+            return result
         except Exception as e:
-            logger.error(f"Redis SMEMBERS error: {e}")
+            logger.error(f"Redis SMEMBERS error for key {key}: {e}")
             return set()
     
-    async def sismember(self, key: str, value: Any) -> bool:
-        """Check if value is in set"""
+    async def sismember(self, key: str, member: Any) -> bool:
+        """Check if member in set"""
         try:
-            serialized = self._serialize(value)
-            return await self.client.sismember(key, serialized)
+            if isinstance(member, (dict, list)):
+                member = json.dumps(member)
+            return await self.redis.sismember(key, member)
         except Exception as e:
-            logger.error(f"Redis SISMEMBER error: {e}")
+            logger.error(f"Redis SISMEMBER error for key {key}: {e}")
             return False
     
-    # ==================== Sorted Set Operations ====================
-    
-    async def zadd(self, key: str, mapping: Dict[Any, float]) -> int:
-        """Add values to sorted set"""
-        try:
-            serialized_mapping = {
-                self._serialize(k): v for k, v in mapping.items()
-            }
-            return await self.client.zadd(key, serialized_mapping)
-        except Exception as e:
-            logger.error(f"Redis ZADD error: {e}")
-            return 0
-    
-    async def zrange(
-        self,
-        key: str,
-        start: int,
-        end: int,
-        withscores: bool = False
-    ) -> Union[List[Any], List[tuple]]:
-        """Get sorted set range"""
-        try:
-            values = await self.client.zrange(key, start, end, withscores=withscores)
-            if withscores:
-                return [(self._deserialize(v), s) for v, s in values]
-            return [self._deserialize(v) for v in values]
-        except Exception as e:
-            logger.error(f"Redis ZRANGE error: {e}")
-            return []
-    
-    # ==================== Pub/Sub ====================
-    
-    async def publish(self, channel: str, message: Any) -> int:
+    # Pub/Sub operations
+    async def publish(self, channel: str, message: Any) -> Optional[int]:
         """Publish message to channel"""
         try:
-            serialized = self._serialize(message)
-            return await self.client.publish(channel, serialized)
+            if isinstance(message, (dict, list)):
+                message = json.dumps(message)
+            return await self.redis.publish(channel, message)
         except Exception as e:
-            logger.error(f"Redis PUBLISH error: {e}")
-            return 0
+            logger.error(f"Redis PUBLISH error for channel {channel}: {e}")
+            return None
     
-    async def subscribe(self, *channels: str):
-        """Subscribe to channels"""
-        try:
-            pubsub = self.client.pubsub()
-            await pubsub.subscribe(*channels)
-            return pubsub
-        except Exception as e:
-            logger.error(f"Redis SUBSCRIBE error: {e}")
-            raise
-    
-    # ==================== Distributed Locking ====================
-    
-    @asynccontextmanager
-    async def lock(
-        self,
-        name: str,
-        timeout: int = 10,
-        blocking: bool = True,
-        blocking_timeout: Optional[float] = None
-    ):
-        """
-        Distributed lock context manager
-        
-        Usage:
-            async with redis_client.lock("my-lock"):
-                # Critical section
-                pass
-        """
-        lock = self.client.lock(
-            f"lock:{name}",
-            timeout=timeout,
-            blocking=blocking,
-            blocking_timeout=blocking_timeout
-        )
-        
-        try:
-            acquired = await lock.acquire()
-            if not acquired:
-                raise RuntimeError(f"Could not acquire lock: {name}")
-            yield lock
-        finally:
-            try:
-                await lock.release()
-            except Exception:
-                pass
-    
-    # ==================== Cache Patterns ====================
-    
-    async def get_or_set(
-        self,
-        key: str,
-        factory,
-        ttl: Optional[int] = None
-    ) -> Any:
-        """
-        Cache-aside pattern: Get from cache or compute and store
-        
-        Args:
-            key: Cache key
-            factory: Async function to compute value if not cached
-            ttl: Time to live in seconds
-        """
+    # Cache helpers
+    async def cache_get_or_set(self, key: str, func, ttl: int = 3600, *args, **kwargs):
+        """Get from cache or set if not exists"""
         value = await self.get(key)
         if value is not None:
             return value
         
-        # Compute value
-        if asyncio.iscoroutinefunction(factory):
-            value = await factory()
+        # Generate value
+        if callable(func):
+            if asyncio.iscoroutinefunction(func):
+                value = await func(*args, **kwargs)
+            else:
+                value = func(*args, **kwargs)
         else:
-            value = factory()
+            value = func
         
-        # Store in cache
-        await self.set(key, value, ttl=ttl)
+        # Cache the value
+        await self.set(key, value, ttl)
         return value
     
     async def invalidate_pattern(self, pattern: str) -> int:
-        """Invalidate all keys matching pattern"""
+        """Delete keys matching pattern"""
         try:
-            keys = []
-            async for key in self.client.scan_iter(match=pattern):
-                keys.append(key)
-            
+            keys = await self.redis.keys(pattern)
             if keys:
-                return await self.client.delete(*keys)
+                return await self.redis.delete(*keys)
             return 0
         except Exception as e:
-            logger.error(f"Redis invalidate pattern error: {e}")
+            logger.error(f"Redis pattern invalidation error for {pattern}: {e}")
             return 0
+
+
+# Import asyncio for cache helper
+import asyncio
+
+# Create a global redis client instance for backward compatibility
+class RedisClientWrapper:
+    def __init__(self):
+        self._client = None
     
-    # ==================== Serialization ====================
-    
-    def _serialize(self, value: Any) -> bytes:
-        """Serialize value for storage"""
-        try:
-            # Try JSON first for simple types
-            return json.dumps(value).encode('utf-8')
-        except (TypeError, ValueError):
-            # Fall back to pickle for complex objects
-            return pickle.dumps(value)
-    
-    def _deserialize(self, value: bytes) -> Any:
-        """Deserialize value from storage"""
-        try:
-            return json.loads(value.decode('utf-8'))
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            return pickle.loads(value)
-    
-    # ==================== Key Generation ====================
-    
-    @staticmethod
-    def make_key(*parts: str, prefix: str = "webcraft") -> str:
-        """Generate cache key from parts"""
-        return f"{prefix}:{':'.join(str(p) for p in parts)}"
-    
-    @staticmethod
-    def hash_key(data: Any) -> str:
-        """Generate hash-based cache key"""
-        serialized = json.dumps(data, sort_keys=True, default=str)
-        return hashlib.md5(serialized.encode()).hexdigest()
+    def __getattr__(self, name):
+        if self._client is None:
+            self._client = get_redis_client()
+        return getattr(self._client, name)
 
-
-# Cache decorator
-def cached(
-    key_prefix: str,
-    ttl: Optional[int] = None,
-    key_builder: Optional[callable] = None
-):
-    """
-    Decorator for caching function results
-    
-    Usage:
-        @cached("user", ttl=3600)
-        async def get_user(user_id: str):
-            return await db.get_user(user_id)
-    """
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            redis_client = RedisClient()
-            
-            # Build cache key
-            if key_builder:
-                cache_key = key_builder(*args, **kwargs)
-            else:
-                key_parts = [key_prefix]
-                key_parts.extend(str(arg) for arg in args)
-                key_parts.extend(f"{k}={v}" for k, v in sorted(kwargs.items()))
-                cache_key = RedisClient.make_key(*key_parts)
-            
-            # Try to get from cache
-            cached_value = await redis_client.get(cache_key)
-            if cached_value is not None:
-                return cached_value
-            
-            # Execute function
-            result = await func(*args, **kwargs)
-            
-            # Store in cache
-            await redis_client.set(cache_key, result, ttl=ttl)
-            
-            return result
-        return wrapper
-    return decorator
-
-
-# Global instance
-redis_client = RedisClient()
-
-
-async def init_redis():
-    """Initialize Redis connection"""
-    await redis_client.connect()
-
-
-async def close_redis():
-    """Close Redis connection"""
-    await redis_client.disconnect()
+redis_client = RedisClientWrapper()

@@ -29,6 +29,7 @@ export { MarqueeWidget } from './marquee-widget'
 
 // Interactive widgets
 export { ButtonWidget } from './button-widget'
+export { EnhancedButtonWidget } from './enhanced-button-widget'
 export { FormWidget } from './form-widget'
 export { ContactWidget } from './contact-widget'
 export { NewsletterWidget } from './newsletter-widget'
@@ -38,6 +39,7 @@ export { CountdownWidget } from './countdown-widget'
 // Data widgets
 export { ChartWidget } from './chart-widget'
 export { DataWidget } from './data-widget'
+export { TableWidget } from './table-widget'
 export { StatsWidget } from './stats-widget'
 export { MetricWidget } from './metric-widget'
 export { ProgressWidget } from './progress-widget'
@@ -56,10 +58,15 @@ export { TeamWidget } from './team-widget'
 export { LogoCloudWidget } from './logo-cloud-widget'
 export { AlertWidget } from './alert-widget'
 
-// Social widgets
+// Advanced widgets
+export { MapWidget } from './map-widget'
+export { CalendarWidget } from './calendar-widget'
+export { SearchWidget } from './search-widget'
 export { SocialWidget } from './social-widget'
 export { AvatarGroupWidget } from './avatar-group-widget'
-export { MapWidget } from './map-widget'
 
 // E-commerce widgets
 export { EcommerceWidget } from './ecommerce-widget'
+export { ProductWidget } from './product-widget'
+export { CartWidget } from './cart-widget'
+export { CheckoutWidget } from './checkout-widget'

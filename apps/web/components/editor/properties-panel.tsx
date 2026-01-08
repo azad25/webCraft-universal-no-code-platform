@@ -27,7 +27,10 @@ import {
   Lock,
   Unlock,
   Copy,
-  Trash2
+  Trash2,
+  Upload,
+  Edit3,
+  Database
 } from 'lucide-react'
 
 import { Input } from '@/components/ui/input'
@@ -52,6 +55,9 @@ import {
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
 import { useEditor } from '@/contexts/editor-context'
+import { MediaUpload } from './media-upload'
+import { DataSourceConfig } from '@/components/data-sources/data-source-config'
+import { DataSourceConfig } from '@/components/data-sources/data-source-config'
 
 interface PropertiesPanelProps {
   selectedElement: any
@@ -163,9 +169,10 @@ function ColorPicker({
 }
 
 export function PropertiesPanel({ selectedElement }: PropertiesPanelProps) {
-  const { updateElement, deleteElement, duplicateElement } = useEditor()
+  const { updateElement, deleteElement, duplicateElement, appId } = useEditor()
   const [localProps, setLocalProps] = useState<any>({})
   const [localStyle, setLocalStyle] = useState<any>({})
+  const [showMediaUpload, setShowMediaUpload] = useState(false)
 
   useEffect(() => {
     if (selectedElement) {
@@ -235,8 +242,9 @@ export function PropertiesPanel({ selectedElement }: PropertiesPanelProps) {
 
         {/* Tabs for different property categories */}
         <Tabs defaultValue="content" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="content" className="text-xs">Content</TabsTrigger>
+            <TabsTrigger value="data" className="text-xs">Data</TabsTrigger>
             <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
             <TabsTrigger value="layout" className="text-xs">Layout</TabsTrigger>
           </TabsList>
@@ -279,31 +287,161 @@ export function PropertiesPanel({ selectedElement }: PropertiesPanelProps) {
               </PropertySection>
             )}
 
+            {/* Hero Content */}
+            {selectedElement.type === 'hero' && (
+              <PropertySection title="Hero Content" icon={Type}>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs">Title</Label>
+                    <Input
+                      value={localProps.title || ''}
+                      onChange={(e) => handlePropChange('title', e.target.value)}
+                      className="h-8 text-xs"
+                      placeholder="Hero title..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Subtitle</Label>
+                    <Input
+                      value={localProps.subtitle || ''}
+                      onChange={(e) => handlePropChange('subtitle', e.target.value)}
+                      className="h-8 text-xs"
+                      placeholder="Hero subtitle..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Description</Label>
+                    <textarea
+                      value={localProps.description || ''}
+                      onChange={(e) => handlePropChange('description', e.target.value)}
+                      className="w-full h-20 px-3 py-2 text-xs border rounded-md resize-none"
+                      placeholder="Hero description..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Badge Text</Label>
+                    <Input
+                      value={localProps.badgeText || ''}
+                      onChange={(e) => handlePropChange('badgeText', e.target.value)}
+                      className="h-8 text-xs"
+                      placeholder="Badge text..."
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Show Badge</Label>
+                    <Switch
+                      checked={localProps.showBadge !== false}
+                      onCheckedChange={(checked) => handlePropChange('showBadge', checked)}
+                    />
+                  </div>
+                </div>
+              </PropertySection>
+            )}
+
+            {/* Card Content */}
+            {selectedElement.type === 'card' && (
+              <PropertySection title="Card Content" icon={Type}>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs">Title</Label>
+                    <Input
+                      value={localProps.title || ''}
+                      onChange={(e) => handlePropChange('title', e.target.value)}
+                      className="h-8 text-xs"
+                      placeholder="Card title..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Description</Label>
+                    <textarea
+                      value={localProps.description || ''}
+                      onChange={(e) => handlePropChange('description', e.target.value)}
+                      className="w-full h-16 px-3 py-2 text-xs border rounded-md resize-none"
+                      placeholder="Card description..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Button Text</Label>
+                    <Input
+                      value={localProps.buttonText || ''}
+                      onChange={(e) => handlePropChange('buttonText', e.target.value)}
+                      className="h-8 text-xs"
+                      placeholder="Button text..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Button URL</Label>
+                    <Input
+                      value={localProps.buttonUrl || ''}
+                      onChange={(e) => handlePropChange('buttonUrl', e.target.value)}
+                      className="h-8 text-xs"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </PropertySection>
+            )}
+
             {/* Image Content */}
             {selectedElement.type === 'image' && (
               <PropertySection title="Image" icon={Image}>
-                <div className="space-y-2">
-                  <Label className="text-xs">Image URL</Label>
-                  <Input
-                    value={localProps.src || ''}
-                    onChange={(e) => handlePropChange('src', e.target.value)}
-                    className="h-8 text-xs"
-                    placeholder="https://..."
-                  />
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs">Image URL</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={localProps.src || ''}
+                        onChange={(e) => handlePropChange('src', e.target.value)}
+                        className="h-8 text-xs flex-1"
+                        placeholder="https://..."
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setShowMediaUpload(true)}
+                        className="h-8 px-2"
+                      >
+                        <Upload className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {localProps.src && (
+                    <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                      <img 
+                        src={localProps.src} 
+                        alt={localProps.alt || 'Preview'} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs">Alt Text</Label>
+                    <Input
+                      value={localProps.alt || ''}
+                      onChange={(e) => handlePropChange('alt', e.target.value)}
+                      className="h-8 text-xs"
+                      placeholder="Image description"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 text-xs"
+                      onClick={() => setShowMediaUpload(true)}
+                    >
+                      <Upload className="w-3 h-3 mr-2" />
+                      Upload Image
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1 text-xs">
+                      <Sparkles className="w-3 h-3 mr-2" />
+                      AI Generate
+                    </Button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Alt Text</Label>
-                  <Input
-                    value={localProps.alt || ''}
-                    onChange={(e) => handlePropChange('alt', e.target.value)}
-                    className="h-8 text-xs"
-                    placeholder="Image description"
-                  />
-                </div>
-                <Button variant="outline" size="sm" className="w-full text-xs">
-                  <Sparkles className="w-3 h-3 mr-2" />
-                  Generate with AI
-                </Button>
               </PropertySection>
             )}
 
@@ -325,6 +463,112 @@ export function PropertiesPanel({ selectedElement }: PropertiesPanelProps) {
                     checked={localProps.target === '_blank'}
                     onCheckedChange={(checked) => handlePropChange('target', checked ? '_blank' : '_self')}
                   />
+                </div>
+              </PropertySection>
+            )}
+          </TabsContent>
+
+          {/* Data Tab */}
+          <TabsContent value="data" className="space-y-4">
+            {/* Data Source Connection */}
+            <PropertySection title="Data Source" icon={Database}>
+              <div className="space-y-3">
+                <DataSourceConfig
+                  selectedSourceId={localProps.dataSourceId}
+                  selectedEndpointId={localProps.dataEndpointId}
+                  onSelect={(sourceId, endpointId, sourceType) => {
+                    handlePropChange('dataSourceId', sourceId)
+                    handlePropChange('dataEndpointId', endpointId)
+                    handlePropChange('dataSourceType', sourceType)
+                  }}
+                  appId={appId || 'current-app'}
+                />
+                
+                {localProps.dataSourceId && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs">Auto Refresh</Label>
+                      <Switch
+                        checked={localProps.autoRefresh || false}
+                        onCheckedChange={(checked) => handlePropChange('autoRefresh', checked)}
+                      />
+                    </div>
+                    
+                    {localProps.autoRefresh && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Refresh Interval (seconds)</Label>
+                        <Input
+                          type="number"
+                          value={localProps.refreshInterval || 60}
+                          onChange={(e) => handlePropChange('refreshInterval', parseInt(e.target.value))}
+                          className="h-8 text-xs"
+                          min="10"
+                          max="3600"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </PropertySection>
+
+            {/* Display Options for Data Widgets */}
+            {['data', 'table', 'chart', 'list'].includes(selectedElement.type) && localProps.dataSourceId && (
+              <PropertySection title="Display Options" icon={Layout}>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs">Display Mode</Label>
+                    <Select
+                      value={localProps.displayMode || 'cards'}
+                      onValueChange={(value) => handlePropChange('displayMode', value)}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="table">Table</SelectItem>
+                        <SelectItem value="cards">Cards</SelectItem>
+                        <SelectItem value="list">List</SelectItem>
+                        <SelectItem value="chart">Chart</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {localProps.displayMode === 'cards' && (
+                    <div className="space-y-2">
+                      <Label className="text-xs">Columns</Label>
+                      <Select
+                        value={localProps.columns?.toString() || '2'}
+                        onValueChange={(value) => handlePropChange('columns', parseInt(value))}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 Column</SelectItem>
+                          <SelectItem value="2">2 Columns</SelectItem>
+                          <SelectItem value="3">3 Columns</SelectItem>
+                          <SelectItem value="4">4 Columns</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Show Header</Label>
+                    <Switch
+                      checked={localProps.showHeader !== false}
+                      onCheckedChange={(checked) => handlePropChange('showHeader', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Show Refresh Button</Label>
+                    <Switch
+                      checked={localProps.showRefresh !== false}
+                      onCheckedChange={(checked) => handlePropChange('showRefresh', checked)}
+                    />
+                  </div>
                 </div>
               </PropertySection>
             )}
@@ -459,6 +703,68 @@ export function PropertiesPanel({ selectedElement }: PropertiesPanelProps) {
                 value={localStyle.backgroundColor || '#ffffff'}
                 onChange={(color) => handleStyleChange('backgroundColor', color)}
               />
+              
+              {/* Background Image */}
+              <div className="space-y-2">
+                <Label className="text-xs">Background Image</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={localStyle.backgroundImage?.replace('url(', '').replace(')', '') || ''}
+                    onChange={(e) => handleStyleChange('backgroundImage', e.target.value ? `url(${e.target.value})` : '')}
+                    className="h-8 text-xs flex-1"
+                    placeholder="Image URL..."
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowMediaUpload(true)}
+                    className="h-8 px-2"
+                  >
+                    <Upload className="w-3 h-3" />
+                  </Button>
+                </div>
+                
+                {localStyle.backgroundImage && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Size</Label>
+                        <Select
+                          value={localStyle.backgroundSize || 'cover'}
+                          onValueChange={(value) => handleStyleChange('backgroundSize', value)}
+                        >
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cover">Cover</SelectItem>
+                            <SelectItem value="contain">Contain</SelectItem>
+                            <SelectItem value="auto">Auto</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Position</Label>
+                        <Select
+                          value={localStyle.backgroundPosition || 'center'}
+                          onValueChange={(value) => handleStyleChange('backgroundPosition', value)}
+                        >
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="center">Center</SelectItem>
+                            <SelectItem value="top">Top</SelectItem>
+                            <SelectItem value="bottom">Bottom</SelectItem>
+                            <SelectItem value="left">Left</SelectItem>
+                            <SelectItem value="right">Right</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </PropertySection>
 
             {/* Border */}
@@ -666,6 +972,21 @@ export function PropertiesPanel({ selectedElement }: PropertiesPanelProps) {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Media Upload Dialog */}
+      <MediaUpload
+        open={showMediaUpload}
+        onOpenChange={setShowMediaUpload}
+        onSelect={(url) => {
+          if (selectedElement.type === 'image') {
+            handlePropChange('src', url)
+          } else {
+            // For background images
+            handleStyleChange('backgroundImage', `url(${url})`)
+          }
+          setShowMediaUpload(false)
+        }}
+      />
     </ScrollArea>
   )
 }

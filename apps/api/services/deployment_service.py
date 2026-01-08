@@ -67,15 +67,17 @@ class DeploymentService:
         app: App,
         custom_domain: Optional[str] = None,
         subdomain: Optional[str] = None,
+        directory_path: Optional[str] = None,
         platform: str = "kubernetes"
     ) -> Dict[str, Any]:
         """
-        Deploy an app to the specified platform
+        Deploy an app to the specified platform with various hosting options
         
         Args:
             app: The app to deploy
-            custom_domain: Custom domain for the app
-            subdomain: Subdomain under webcraft.dev
+            custom_domain: Custom domain for the app (e.g., johnspizza.com)
+            subdomain: Subdomain under webcraft.dev (e.g., johnspizza.webcraft.dev)
+            directory_path: Deploy under a directory (e.g., mysite.com/johnspizza)
             platform: Deployment platform (kubernetes, vercel, netlify, aws)
         
         Returns:
@@ -86,57 +88,79 @@ class DeploymentService:
             # Generate deployment configuration
             deployment_config = await self._generate_deployment_config(app)
             
+            # Determine deployment URL strategy
+            if custom_domain:
+                primary_url = f"https://{custom_domain}"
+                if directory_path:
+                    primary_url = f"https://{custom_domain}/{directory_path.strip('/')}"
+            elif subdomain:
+                primary_url = f"https://{subdomain}.webcraft.dev"
+            else:
+                # Default subdomain based on app slug
+                primary_url = f"https://{app.slug}.webcraft.dev"
+                subdomain = app.slug
+            
             # Choose deployment strategy based on platform
             if platform == "kubernetes":
-                result = await self._deploy_to_kubernetes(app, deployment_config)
+                result = await self._deploy_to_kubernetes(app, deployment_config, custom_domain, subdomain, directory_path)
             elif platform == "vercel":
-                result = await self._deploy_to_vercel(app, deployment_config)
+                result = await self._deploy_to_vercel(app, deployment_config, custom_domain, subdomain)
             elif platform == "netlify":
-                result = await self._deploy_to_netlify(app, deployment_config)
+                result = await self._deploy_to_netlify(app, deployment_config, custom_domain, subdomain)
             elif platform == "aws":
-                result = await self._deploy_to_aws(app, deployment_config)
+                result = await self._deploy_to_aws(app, deployment_config, custom_domain, subdomain)
             else:
                 raise ValueError(f"Unsupported deployment platform: {platform}")
             
             # Set up domain and SSL
             if custom_domain:
-                await self._setup_custom_domain(app, custom_domain, result["service_url"])
+                await self._setup_custom_domain(app, custom_domain, result["service_url"], directory_path)
                 result["custom_domain"] = custom_domain
             
-            if subdomain:
+            if subdomain and not custom_domain:
                 await self._setup_subdomain(app, subdomain, result["service_url"])
                 result["subdomain"] = f"{subdomain}.webcraft.dev"
             
-            # Configure CDN
+            # Configure CDN with proper routing
             cdn_result = await self.cdn_service.setup_cdn(
                 app_id=str(app.id),
                 origin_url=result["service_url"],
-                custom_domain=custom_domain or f"{subdomain}.webcraft.dev"
+                custom_domain=custom_domain or f"{subdomain}.webcraft.dev",
+                directory_path=directory_path
             )
             result["cdn_url"] = cdn_result["cdn_url"]
             
             # Set up SSL certificate
-            ssl_result = await self.ssl_service.setup_ssl(
-                domain=custom_domain or f"{subdomain}.webcraft.dev"
-            )
+            ssl_domain = custom_domain or f"{subdomain}.webcraft.dev"
+            ssl_result = await self.ssl_service.setup_ssl(domain=ssl_domain)
             result["ssl_enabled"] = ssl_result["success"]
             
             # Update app deployment status
             app.is_published = True
             app.custom_domain = custom_domain
             app.subdomain = subdomain
-            app.config = {**app.config, "deployment": result}
+            app.config = {
+                **app.config, 
+                "deployment": {
+                    **result,
+                    "directory_path": directory_path,
+                    "primary_url": primary_url
+                }
+            }
             app.updated_at = datetime.utcnow()
             self.db.commit()
             
             return {
                 "success": True,
                 "deployment_id": result["deployment_id"],
-                "url": result.get("cdn_url", result["service_url"]),
+                "url": primary_url,
                 "service_url": result["service_url"],
                 "platform": platform,
                 "ssl_enabled": result["ssl_enabled"],
                 "cdn_enabled": True,
+                "custom_domain": custom_domain,
+                "subdomain": f"{subdomain}.webcraft.dev" if subdomain else None,
+                "directory_path": directory_path,
                 "deployed_at": datetime.utcnow().isoformat()
             }
         
@@ -264,7 +288,7 @@ module.exports = nextConfig
         # Generate styles
         await self._generate_app_styles(app, build_dir)
     
-    async def _deploy_to_kubernetes(self, app: App, config: Dict[str, Any]) -> Dict[str, Any]:
+    async def _deploy_to_kubernetes(self, app: App, config: Dict[str, Any], custom_domain: Optional[str] = None, subdomain: Optional[str] = None, directory_path: Optional[str] = None) -> Dict[str, Any]:
         """Deploy app to Kubernetes cluster"""
         
         namespace = self.deployment_configs["kubernetes"]["namespace"]
@@ -367,39 +391,75 @@ module.exports = nextConfig
             else:
                 raise
         
-        # Create ingress
+        # Create ingress with proper routing
+        ingress_rules = []
+        tls_hosts = []
+        
+        # Add custom domain rule
+        if custom_domain:
+            host = custom_domain
+            path_prefix = f"/{directory_path.strip('/')}" if directory_path else "/"
+            
+            ingress_rules.append(
+                client.V1IngressRule(
+                    host=host,
+                    http=client.V1HTTPIngressRuleValue(
+                        paths=[
+                            client.V1HTTPIngressPath(
+                                path=path_prefix,
+                                path_type="Prefix",
+                                backend=client.V1IngressBackend(
+                                    service=client.V1IngressServiceBackend(
+                                        name=app_name,
+                                        port=client.V1ServiceBackendPort(number=80)
+                                    )
+                                )
+                            )
+                        ]
+                    )
+                )
+            )
+            tls_hosts.append(host)
+        
+        # Add subdomain rule (default or specified)
+        subdomain_host = f"{subdomain or app.slug}.webcraft.dev"
+        ingress_rules.append(
+            client.V1IngressRule(
+                host=subdomain_host,
+                http=client.V1HTTPIngressRuleValue(
+                    paths=[
+                        client.V1HTTPIngressPath(
+                            path="/",
+                            path_type="Prefix",
+                            backend=client.V1IngressBackend(
+                                service=client.V1IngressServiceBackend(
+                                    name=app_name,
+                                    port=client.V1ServiceBackendPort(number=80)
+                                )
+                            )
+                        )
+                    ]
+                )
+            )
+        )
+        tls_hosts.append(subdomain_host)
+        
         ingress = client.V1Ingress(
             metadata=client.V1ObjectMeta(
                 name=app_name,
                 namespace=namespace,
                 annotations={
                     "kubernetes.io/ingress.class": "nginx",
-                    "cert-manager.io/cluster-issuer": "letsencrypt-prod"
+                    "cert-manager.io/cluster-issuer": "letsencrypt-prod",
+                    "nginx.ingress.kubernetes.io/rewrite-target": "/$2" if directory_path else "/$1",
+                    "nginx.ingress.kubernetes.io/use-regex": "true"
                 }
             ),
             spec=client.V1IngressSpec(
-                rules=[
-                    client.V1IngressRule(
-                        host=f"{app.slug}.webcraft.dev",
-                        http=client.V1HTTPIngressRuleValue(
-                            paths=[
-                                client.V1HTTPIngressPath(
-                                    path="/",
-                                    path_type="Prefix",
-                                    backend=client.V1IngressBackend(
-                                        service=client.V1IngressServiceBackend(
-                                            name=app_name,
-                                            port=client.V1ServiceBackendPort(number=80)
-                                        )
-                                    )
-                                )
-                            ]
-                        )
-                    )
-                ],
+                rules=ingress_rules,
                 tls=[
                     client.V1IngressTLS(
-                        hosts=[f"{app.slug}.webcraft.dev"],
+                        hosts=tls_hosts,
                         secret_name=f"{app_name}-tls"
                     )
                 ]
@@ -423,10 +483,11 @@ module.exports = nextConfig
         
         return {
             "deployment_id": f"k8s-{app_name}",
-            "service_url": f"https://{app.slug}.webcraft.dev",
+            "service_url": f"https://{custom_domain or subdomain_host}",
             "platform": "kubernetes",
             "namespace": namespace,
-            "service_name": app_name
+            "service_name": app_name,
+            "ingress_hosts": tls_hosts
         }
     
     async def _deploy_to_vercel(self, app: App, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -489,6 +550,31 @@ module.exports = nextConfig
         except Exception as e:
             return {"success": False, "error": str(e)}
     
+    async def create_live_app_url(self, app: App, subdomain: Optional[str] = None, custom_domain: Optional[str] = None) -> Dict[str, Any]:
+        """Create a live URL for the deployed app"""
+        
+        if custom_domain:
+            app_url = f"https://{custom_domain}"
+        elif subdomain:
+            app_url = f"https://{subdomain}.webcraft.dev"
+        else:
+            app_url = f"https://{app.slug}.webcraft.dev"
+        
+        # Update app with deployment URLs
+        app.config = {
+            **app.config,
+            "live_url": app_url,
+            "deployment_status": "active",
+            "deployed_at": datetime.utcnow().isoformat()
+        }
+        
+        return {
+            "live_url": app_url,
+            "subdomain_url": f"https://{app.slug}.webcraft.dev",
+            "custom_domain": custom_domain,
+            "status": "active"
+        }
+
     async def create_preview(self, app: App) -> str:
         """Create a temporary preview URL for the app"""
         
@@ -554,13 +640,14 @@ module.exports = nextConfig
                 return {"status": "not_found", "platform": "kubernetes"}
             raise
     
-    async def _setup_custom_domain(self, app: App, domain: str, service_url: str):
-        """Set up custom domain for the app"""
+    async def _setup_custom_domain(self, app: App, domain: str, service_url: str, directory_path: Optional[str] = None):
+        """Set up custom domain for the app with optional directory path"""
         
         await self.domain_service.configure_domain(
             domain=domain,
             target_url=service_url,
-            app_id=str(app.id)
+            app_id=str(app.id),
+            directory_path=directory_path
         )
     
     async def _setup_subdomain(self, app: App, subdomain: str, service_url: str):

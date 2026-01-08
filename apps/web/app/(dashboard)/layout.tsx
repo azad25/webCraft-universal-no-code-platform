@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { Home, Globe, Layout, Zap, Settings, CreditCard, Users, HelpCircle, LogOut, Menu, X, Search, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,24 +11,56 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { NotificationCenter } from '@/components/notifications/notification-center'
+import { useAuth } from '@/contexts/auth-context'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'My Apps', href: '/dashboard/apps', icon: Globe },
-  { name: 'Templates', href: '/dashboard/templates', icon: Layout },
-  { name: 'Integrations', href: '/dashboard/integrations', icon: Zap }
+  { name: 'My Apps', href: '/apps', icon: Globe },
+  { name: 'Templates', href: '/templates', icon: Layout },
+  { name: 'Integrations', href: '/integrations', icon: Zap }
 ]
 
 const secondaryNav = [
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-  { name: 'Team', href: '/dashboard/team', icon: Users },
-  { name: 'Help', href: '/dashboard/help', icon: HelpCircle }
+  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Billing', href: '/billing', icon: CreditCard },
+  { name: 'Team', href: '/team', icon: Users },
+  { name: 'Help', href: '/help', icon: HelpCircle }
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isAuthenticated, isInitialized, user, logout } = useAuth()
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (isInitialized && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [isAuthenticated, isInitialized, router])
+
+  // Show loading while checking authentication
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Don't render dashboard if not authenticated (redirect is happening)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  const handleLogout = async () => {
+    await logout()
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -109,27 +141,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src="/avatar.jpg" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarImage src={user?.avatarUrl || undefined} />
+                    <AvatarFallback>
+                      {user?.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                       user?.username ? user.username.slice(0, 2).toUpperCase() : 
+                       user?.email ? user.email.slice(0, 2).toUpperCase() : 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">John Doe</p>
-                    <p className="text-xs text-muted-foreground">Pro Plan</p>
+                    <p className="text-sm font-medium">{user?.fullName || user?.username || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {user?.subscriptionTier === 'pro' ? 'Pro Plan' : 
+                       user?.subscriptionTier === 'enterprise' ? 'Enterprise Plan' : 'Free Plan'}
+                    </p>
                   </div>
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Billing
+                <DropdownMenuItem asChild>
+                  <Link href="/billing">
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Billing
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
                 </DropdownMenuItem>

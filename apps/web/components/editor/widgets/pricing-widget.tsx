@@ -1,9 +1,12 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Check, X } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Check, X, Database, RefreshCw, Loader2 } from 'lucide-react'
+import { fetchDataSourceData } from '@/lib/data-source-api'
 
 interface PricingPlan {
   name: string
@@ -17,6 +20,14 @@ interface PricingPlan {
 }
 
 interface PricingWidgetProps {
+  // Data source integration
+  dataSourceId?: string
+  dataEndpointId?: string
+  dataSourceType?: 'api' | 'scraper' | 'collection'
+  autoRefresh?: boolean
+  refreshInterval?: number
+  
+  // Pricing configuration
   title?: string
   subtitle?: string
   plans?: PricingPlan[]
@@ -26,6 +37,14 @@ interface PricingWidgetProps {
 }
 
 export function PricingWidget({
+  // Data source props
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  autoRefresh = false,
+  refreshInterval = 60,
+  
+  // Pricing props
   title = 'Simple, Transparent Pricing',
   subtitle = 'Choose the plan that works best for you',
   plans = [
@@ -83,19 +102,97 @@ export function PricingWidget({
   isPreview,
   onChange
 }: PricingWidgetProps) {
+  // Data source state
+  const [pricingData, setPricingData] = useState<PricingPlan[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Use data source data if available, otherwise use static data
+  const activePlans = dataSourceId && pricingData.length > 0 ? pricingData : plans
+
+  // Fetch data from data source
+  const fetchPricingData = async () => {
+    if (!dataSourceId || (!dataEndpointId && dataSourceType !== 'collection')) return
+
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      
+      // Transform API response to pricing format
+      let transformedData = response.data
+      if (Array.isArray(transformedData)) {
+        transformedData = transformedData.map((item: any) => ({
+          name: item.name || item.title || item.plan_name || 'Plan',
+          price: item.price || item.cost || item.amount || '$0',
+          period: item.period || item.billing_period || '/month',
+          description: item.description || item.subtitle || 'Plan description',
+          features: item.features || [],
+          buttonText: item.buttonText || item.cta || item.button || 'Get Started',
+          buttonLink: item.buttonLink || item.link || item.url || '#',
+          popular: item.popular || item.recommended || false
+        }))
+      } else {
+        transformedData = []
+      }
+      
+      setPricingData(transformedData)
+      setLastRefresh(new Date())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch pricing data')
+      console.error('Failed to fetch pricing data:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    if (dataSourceId && !isEditing) {
+      fetchPricingData()
+    }
+  }, [dataSourceId, dataEndpointId, isEditing])
+
+  // Auto refresh
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0 && dataSourceId && !isEditing) {
+      const interval = setInterval(fetchPricingData, refreshInterval * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, dataSourceId, isEditing])
+
+  const handleRefresh = () => {
+    if (dataSourceId) {
+      fetchPricingData()
+    }
+  }
   return (
     <section className="w-full py-20 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold mb-4"
-          >
-            {title}
-          </motion.h2>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-4xl font-bold"
+            >
+              {title}
+            </motion.h2>
+            {dataSourceId && (
+              <Badge variant="outline" className="text-xs">
+                <Database className="w-3 h-3 mr-1" />
+                {dataSourceType === 'collection' ? 'Collection' : 
+                 dataSourceType === 'scraper' ? 'Scraper' : 'API'}
+              </Badge>
+            )}
+            {isLoading && (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -105,11 +202,21 @@ export function PricingWidget({
           >
             {subtitle}
           </motion.p>
+          {dataSourceId && lastRefresh && (
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="text-xs text-muted-foreground">
+                Updated {lastRefresh.toLocaleTimeString()}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
+                <RefreshCw className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan, index) => (
+          {activePlans.map((plan, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}

@@ -11,8 +11,6 @@ interface Automation {
   name: string
   description?: string
   triggerType: string
-  triggerConfig: Record<string, any>
-  workflowSteps: any[]
   isEnabled: boolean
   lastExecutedAt?: string
   executionCount: number
@@ -134,8 +132,6 @@ export default function AutomationsPage() {
           name: `${automation.name} (copy)`,
           description: automation.description,
           trigger_type: automation.triggerType,
-          trigger_config: automation.triggerConfig,
-          workflow_steps: automation.workflowSteps,
           is_enabled: false
         })
       })
@@ -190,8 +186,8 @@ export default function AutomationsPage() {
             name: selectedAutomation.name,
             description: selectedAutomation.description,
             triggerType: selectedAutomation.triggerType,
-            triggerConfig: selectedAutomation.triggerConfig,
-            workflowSteps: selectedAutomation.workflowSteps,
+            triggerConfig: {},
+            workflowSteps: [],
             isEnabled: selectedAutomation.isEnabled
           } : undefined}
           onSave={handleSave}

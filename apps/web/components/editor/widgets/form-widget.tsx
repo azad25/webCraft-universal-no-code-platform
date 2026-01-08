@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { Database, RefreshCw, Loader2 } from 'lucide-react'
+import { fetchDataSourceData } from '@/lib/data-source-api'
 
 interface FormField {
   id: string
@@ -17,6 +20,14 @@ interface FormField {
 }
 
 interface FormWidgetProps {
+  // Data source integration
+  dataSourceId?: string
+  dataEndpointId?: string
+  dataSourceType?: 'api' | 'scraper' | 'collection'
+  autoRefresh?: boolean
+  refreshInterval?: number
+  
+  // Form configuration
   title?: string
   description?: string
   fields?: FormField[]
@@ -34,6 +45,14 @@ const defaultFields: FormField[] = [
 ]
 
 export function FormWidget({
+  // Data source props
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  autoRefresh = false,
+  refreshInterval = 60,
+  
+  // Form props
   title = 'Contact Us',
   description = 'Fill out the form below and we\'ll get back to you.',
   fields = defaultFields,
@@ -43,6 +62,73 @@ export function FormWidget({
   isEditing = false,
   onChange
 }: FormWidgetProps) {
+  // Data source state
+  const [formConfig, setFormConfig] = useState<any>(null)
+  const [isLoadingData, setIsLoadingData] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Use data source data if available, otherwise use static data
+  const activeTitle = (dataSourceId && formConfig?.title) || title
+  const activeDescription = (dataSourceId && formConfig?.description) || description
+  const activeFields = (dataSourceId && formConfig?.fields) || fields
+  const activeSubmitText = (dataSourceId && formConfig?.submitText) || submitText
+
+  // Fetch data from data source
+  const fetchFormConfig = async () => {
+    if (!dataSourceId || (!dataEndpointId && dataSourceType !== 'collection')) return
+
+    setIsLoadingData(true)
+    setError(null)
+    
+    try {
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      
+      // Transform API response to form config format
+      let transformedData = response.data
+      if (Array.isArray(transformedData) && transformedData.length > 0) {
+        transformedData = transformedData[0] // Use first item for form config
+      }
+      
+      if (transformedData && typeof transformedData === 'object') {
+        setFormConfig({
+          title: transformedData.title || transformedData.form_title,
+          description: transformedData.description || transformedData.form_description,
+          fields: transformedData.fields || transformedData.form_fields || [],
+          submitText: transformedData.submitText || transformedData.submit_text || transformedData.button_text
+        })
+      }
+      
+      setLastRefresh(new Date())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch form config')
+      console.error('Failed to fetch form config:', err)
+    } finally {
+      setIsLoadingData(false)
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    if (dataSourceId && !isEditing) {
+      fetchFormConfig()
+    }
+  }, [dataSourceId, dataEndpointId, isEditing])
+
+  // Auto refresh
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0 && dataSourceId && !isEditing) {
+      const interval = setInterval(fetchFormConfig, refreshInterval * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, dataSourceId, isEditing])
+
+  const handleRefresh = () => {
+    if (dataSourceId) {
+      fetchFormConfig()
+    }
+  }
+
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -84,11 +170,28 @@ export function FormWidget({
 
   return (
     <div className="w-full h-full p-6" style={{ backgroundColor }}>
-      {title && <h3 className="text-2xl font-bold mb-2">{title}</h3>}
-      {description && <p className="text-gray-600 mb-6">{description}</p>}
+      <div className="flex items-center gap-4 mb-4">
+        {activeTitle && <h3 className="text-2xl font-bold">{activeTitle}</h3>}
+        {dataSourceId && (
+          <Badge variant="outline" className="text-xs">
+            <Database className="w-3 h-3 mr-1" />
+            {dataSourceType === 'collection' ? 'Collection' : 
+             dataSourceType === 'scraper' ? 'Scraper' : 'API'}
+          </Badge>
+        )}
+        {isLoadingData && (
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+        )}
+        {dataSourceId && lastRefresh && (
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoadingData}>
+            <RefreshCw className="w-3 h-3" />
+          </Button>
+        )}
+      </div>
+      {activeDescription && <p className="text-gray-600 mb-6">{activeDescription}</p>}
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        {fields.map((field) => (
+        {activeFields.map((field) => (
           <div key={field.id}>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {field.label}
@@ -135,7 +238,7 @@ export function FormWidget({
           className="w-full"
           disabled={isEditing || isSubmitting}
         >
-          {isSubmitting ? 'Sending...' : submitText}
+          {isSubmitting ? 'Sending...' : activeSubmitText}
         </Button>
       </form>
     </div>

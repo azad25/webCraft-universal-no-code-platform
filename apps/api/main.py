@@ -19,7 +19,7 @@ from routers import widgets, seo, modules, content_api
 from routers import automations, export, pages, integrations
 from routers import data_sources, scrapers, media
 from routers import collections, analytics, payment, preview
-from routers import graphql, webhooks, notifications, sdk, setup
+from routers import graphql, webhooks, notifications, sdk, setup, live_apps
 from middleware.rate_limiting import RateLimitMiddleware
 from core.database import init_db
 from core.redis_client import init_redis
@@ -247,6 +247,9 @@ app.include_router(payment.router, prefix="/api/v1/billing", tags=["Billing"])
 # Preview
 app.include_router(preview.router, prefix="/api/v1", tags=["Preview"])
 
+# Live Apps (Deployed Apps)
+app.include_router(live_apps.router, prefix="/api/v1", tags=["Live Apps"])
+
 # GraphQL
 app.include_router(graphql.router, tags=["GraphQL"])
 
@@ -258,6 +261,9 @@ app.include_router(notifications.router, prefix="/api/v1", tags=["Notifications"
 
 # SDK Generator
 app.include_router(sdk.router, tags=["SDK"])
+
+# Setup & Installation
+app.include_router(setup.router, prefix="/api/v1", tags=["Setup"])
 
 # V2 API routes (latest features)
 app.include_router(apps.router, prefix="/api/v2/apps", tags=["App Builder v2"])

@@ -6,7 +6,7 @@
 import { ComponentType, lazy } from 'react'
 
 // Module types
-export type ModuleType = 
+export type ModuleType =
   | 'widget'
   | 'integration'
   | 'payment'
@@ -84,12 +84,12 @@ class ModuleRegistry {
     const success = await module.initialize()
     if (success) {
       this.enabledModules.add(moduleId)
-      
+
       // Register hooks
       for (const hook of module.hooks) {
         this.registerHook(hook.event, hook.handler)
       }
-      
+
       this.triggerHook('module.enabled', { moduleId, module })
     }
     return success
@@ -100,7 +100,7 @@ class ModuleRegistry {
     if (!module) return true
 
     // Check if other modules depend on this
-    for (const [id, m] of this.modules) {
+    for (const [id, m] of Array.from(this.modules)) {
       if (this.enabledModules.has(id) && m.metadata.dependencies.includes(moduleId)) {
         throw new Error(`Module ${id} depends on ${moduleId}`)
       }

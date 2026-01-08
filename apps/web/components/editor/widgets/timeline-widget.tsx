@@ -1,8 +1,12 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Check, Circle } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Check, Circle, Database, RefreshCw, Loader2 } from 'lucide-react'
+import { fetchDataSourceData } from '@/lib/data-source-api'
 
 interface TimelineItem {
   title: string
@@ -13,6 +17,14 @@ interface TimelineItem {
 }
 
 interface TimelineWidgetProps {
+  // Data source integration
+  dataSourceId?: string
+  dataEndpointId?: string
+  dataSourceType?: 'api' | 'scraper' | 'collection'
+  autoRefresh?: boolean
+  refreshInterval?: number
+  
+  // Timeline configuration
   title?: string
   items?: TimelineItem[]
   layout?: 'vertical' | 'horizontal' | 'alternating'
@@ -24,6 +36,14 @@ interface TimelineWidgetProps {
 }
 
 export function TimelineWidget({
+  // Data source props
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  autoRefresh = false,
+  refreshInterval = 60,
+  
+  // Timeline props
   title,
   items = [
     { title: 'Project Started', description: 'Initial planning and research phase', date: 'Jan 2024', status: 'completed' },
@@ -39,6 +59,70 @@ export function TimelineWidget({
   isPreview,
   onChange
 }: TimelineWidgetProps) {
+  // Data source state
+  const [timelineData, setTimelineData] = useState<TimelineItem[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Use data source data if available, otherwise use static data
+  const activeItems = dataSourceId && timelineData.length > 0 ? timelineData : items
+
+  // Fetch data from data source
+  const fetchTimelineData = async () => {
+    if (!dataSourceId || (!dataEndpointId && dataSourceType !== 'collection')) return
+
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      
+      // Transform API response to timeline format
+      let transformedData = response.data
+      if (Array.isArray(transformedData)) {
+        transformedData = transformedData.map((item: any) => ({
+          title: item.title || item.name || item.event || 'Timeline Item',
+          description: item.description || item.content || item.text || 'Timeline description',
+          date: item.date || item.time || item.when,
+          icon: item.icon || item.image,
+          status: item.status || item.state || 'upcoming'
+        }))
+      } else {
+        transformedData = []
+      }
+      
+      setTimelineData(transformedData)
+      setLastRefresh(new Date())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch timeline data')
+      console.error('Failed to fetch timeline data:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    if (dataSourceId && !isEditing) {
+      fetchTimelineData()
+    }
+  }, [dataSourceId, dataEndpointId, isEditing])
+
+  // Auto refresh
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0 && dataSourceId && !isEditing) {
+      const interval = setInterval(fetchTimelineData, refreshInterval * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, dataSourceId, isEditing])
+
+  const handleRefresh = () => {
+    if (dataSourceId) {
+      fetchTimelineData()
+    }
+  }
+
   const getStatusIcon = (status?: string) => {
     switch (status) {
       case 'completed':
@@ -67,7 +151,7 @@ export function TimelineWidget({
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted" />
       )}
       <div className="space-y-8">
-        {items.map((item, index) => (
+        {activeItems.map((item, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, x: -20 }}
@@ -104,7 +188,7 @@ export function TimelineWidget({
         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-muted -translate-x-1/2" />
       )}
       <div className="space-y-12">
-        {items.map((item, index) => {
+        {activeItems.map((item, index) => {
           const isLeft = index % 2 === 0
           return (
             <motion.div
@@ -147,7 +231,7 @@ export function TimelineWidget({
   const renderHorizontal = () => (
     <div className="relative overflow-x-auto pb-4">
       <div className="flex gap-8 min-w-max px-4">
-        {items.map((item, index) => (
+        {activeItems.map((item, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
@@ -157,7 +241,7 @@ export function TimelineWidget({
             className="relative flex flex-col items-center w-48"
           >
             {/* Connector */}
-            {showConnector && index < items.length - 1 && (
+            {showConnector && index < activeItems.length - 1 && (
               <div 
                 className="absolute top-4 left-1/2 w-full h-0.5 bg-muted"
                 style={{ left: '50%' }}
@@ -189,9 +273,26 @@ export function TimelineWidget({
   return (
     <section className="w-full py-12 px-6">
       <div className="max-w-4xl mx-auto">
-        {title && (
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">{title}</h2>
-        )}
+        <div className="flex items-center justify-center gap-4 mb-12">
+          {title && (
+            <h2 className="text-2xl md:text-3xl font-bold text-center">{title}</h2>
+          )}
+          {dataSourceId && (
+            <Badge variant="outline" className="text-xs">
+              <Database className="w-3 h-3 mr-1" />
+              {dataSourceType === 'collection' ? 'Collection' : 
+               dataSourceType === 'scraper' ? 'Scraper' : 'API'}
+            </Badge>
+          )}
+          {isLoading && (
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          )}
+          {dataSourceId && lastRefresh && (
+            <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
+              <RefreshCw className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
         
         {layout === 'vertical' && renderVertical()}
         {layout === 'alternating' && renderAlternating()}

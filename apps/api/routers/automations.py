@@ -768,7 +768,45 @@ async def webhook_endpoint(
         "hook_id": hook_id,
         "executions": executed
     }
-tionLog.status == status)
+
+
+@router.get("/apps/{app_id}/automations/{automation_id}/logs")
+async def get_automation_logs(
+    app_id: uuid.UUID,
+    automation_id: uuid.UUID,
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, le=100),
+    offset: int = Query(0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get execution logs for an automation"""
+    
+    # Verify automation exists and user has access
+    automation = db.query(Automation).filter(
+        Automation.id == automation_id,
+        Automation.app_id == app_id,
+        Automation.is_active == True
+    ).first()
+    
+    if not automation:
+        raise HTTPException(status_code=404, detail="Automation not found")
+    
+    # Verify user has access to the app
+    app = db.query(App).filter(
+        App.id == app_id,
+        App.owner_id == current_user.id,
+        App.is_active == True
+    ).first()
+    
+    if not app:
+        raise HTTPException(status_code=404, detail="App not found")
+    
+    # Build query
+    query = db.query(AutomationLog).filter(AutomationLog.automation_id == automation_id)
+    
+    if status:
+        query = query.filter(AutomationLog.status == status)
     
     total = query.count()
     logs = query.order_by(AutomationLog.created_at.desc()).offset(offset).limit(limit).all()
@@ -849,75 +887,90 @@ async def get_automation_templates(
     category: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user)
 ):
-    """Get pre-built automation templates"""
+    """Get pre-built automation templates with enhanced features"""
     templates = [
         {
-            "id": "welcome_email",
-            "name": "Welcome Email",
-            "description": "Send welcome email when user signs up",
-            "category": "onboarding",
+            "id": "welcome_email_series",
+            "name": "Welcome Email Series",
+            "description": "Multi-step onboarding email sequence with personalization",
+            "category": "marketing",
             "trigger_type": "user_signup",
+            "difficulty": "beginner",
+            "estimated_time": "5 minutes",
+            "features": ["Email automation", "Delay steps", "Personalization", "Error handling"],
             "workflow_steps": [
                 {"id": "1", "type": "action", "action_type": "delay", "config": {"minutes": 5}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
-                {"id": "2", "type": "action", "action_type": "send_email", "config": {"template": "welcome", "subject": "Welcome!"}, "next_steps": [], "position": {"x": 100, "y": 200}}
+                {"id": "2", "type": "action", "action_type": "send_email", "config": {"template": "welcome", "subject": "Welcome to {{app.name}}!"}, "next_steps": ["3"], "position": {"x": 100, "y": 200}},
+                {"id": "3", "type": "action", "action_type": "delay", "config": {"days": 3}, "next_steps": ["4"], "position": {"x": 100, "y": 300}},
+                {"id": "4", "type": "action", "action_type": "send_email", "config": {"template": "tips", "subject": "Getting started tips"}, "next_steps": ["5"], "position": {"x": 100, "y": 400}},
+                {"id": "5", "type": "action", "action_type": "error_handler", "config": {"error_action": "retry", "max_retries": 3}, "next_steps": [], "position": {"x": 100, "y": 500}}
             ]
         },
         {
-            "id": "order_confirmation",
-            "name": "Order Confirmation Flow",
-            "description": "Send confirmation and update inventory on new order",
+            "id": "ecommerce_order_flow",
+            "name": "E-commerce Order Processing",
+            "description": "Complete order fulfillment with inventory management and notifications",
             "category": "ecommerce",
             "trigger_type": "order_created",
+            "difficulty": "intermediate",
+            "estimated_time": "10 minutes",
+            "features": ["Order processing", "Inventory updates", "Multi-channel notifications", "Parallel execution"],
             "workflow_steps": [
-                {"id": "1", "type": "action", "action_type": "send_email", "config": {"template": "order_confirm"}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
-                {"id": "2", "type": "action", "action_type": "update_record", "config": {"table": "inventory"}, "next_steps": ["3"], "position": {"x": 100, "y": 200}},
-                {"id": "3", "type": "action", "action_type": "slack_message", "config": {"channel": "#orders"}, "next_steps": [], "position": {"x": 100, "y": 300}}
+                {"id": "1", "type": "action", "action_type": "parallel", "config": {"branches": ["email", "inventory"]}, "next_steps": ["2", "3"], "position": {"x": 100, "y": 100}},
+                {"id": "2", "type": "action", "action_type": "send_email", "config": {"template": "order_confirm", "to": "{{order.customer_email}}"}, "next_steps": ["4"], "position": {"x": 50, "y": 200}},
+                {"id": "3", "type": "action", "action_type": "update_record", "config": {"collection": "inventory", "data": {"quantity": "{{inventory.quantity - order.quantity}}"}}, "next_steps": ["4"], "position": {"x": 150, "y": 200}},
+                {"id": "4", "type": "action", "action_type": "slack_message", "config": {"channel": "#orders", "message": "New order #{{order.id}} received"}, "next_steps": ["5"], "position": {"x": 100, "y": 300}},
+                {"id": "5", "type": "action", "action_type": "condition", "config": {"field": "order.total", "operator": "greater_than", "value": 100}, "next_steps": ["6"], "position": {"x": 100, "y": 400}},
+                {"id": "6", "type": "action", "action_type": "discord", "config": {"webhook_url": "{{env.DISCORD_WEBHOOK}}", "message": "High-value order alert!"}, "next_steps": [], "position": {"x": 100, "y": 500}}
             ]
         },
         {
-            "id": "lead_nurture",
-            "name": "Lead Nurturing",
-            "description": "Follow up with leads over time",
-            "category": "marketing",
+            "id": "lead_nurturing_crm",
+            "name": "Advanced Lead Nurturing",
+            "description": "Intelligent lead scoring and nurturing with CRM integration",
+            "category": "sales",
             "trigger_type": "form_submit",
+            "difficulty": "advanced",
+            "estimated_time": "15 minutes",
+            "features": ["Lead scoring", "CRM integration", "Behavioral triggers", "A/B testing"],
             "workflow_steps": [
-                {"id": "1", "type": "action", "action_type": "create_record", "config": {"table": "contacts"}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
-                {"id": "2", "type": "action", "action_type": "send_email", "config": {"template": "welcome"}, "next_steps": ["3"], "position": {"x": 100, "y": 200}},
-                {"id": "3", "type": "action", "action_type": "delay", "config": {"minutes": 4320}, "next_steps": ["4"], "position": {"x": 100, "y": 300}},
-                {"id": "4", "type": "action", "action_type": "send_email", "config": {"template": "followup"}, "next_steps": [], "position": {"x": 100, "y": 400}}
+                {"id": "1", "type": "action", "action_type": "airtable", "config": {"base_id": "{{env.AIRTABLE_BASE}}", "table_name": "Leads", "fields": "{\"Name\": \"{{form.name}}\", \"Email\": \"{{form.email}}\", \"Score\": 10}"}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
+                {"id": "2", "type": "action", "action_type": "send_email", "config": {"template": "welcome_lead", "subject": "Thanks for your interest!"}, "next_steps": ["3"], "position": {"x": 100, "y": 200}},
+                {"id": "3", "type": "action", "action_type": "delay", "config": {"days": 2}, "next_steps": ["4"], "position": {"x": 100, "y": 300}},
+                {"id": "4", "type": "action", "action_type": "condition", "config": {"field": "lead.engagement", "operator": "greater_than", "value": 50}, "next_steps": ["5", "6"], "position": {"x": 100, "y": 400}},
+                {"id": "5", "type": "action", "action_type": "send_email", "config": {"template": "high_engagement", "subject": "Ready to learn more?"}, "next_steps": [], "position": {"x": 50, "y": 500}},
+                {"id": "6", "type": "action", "action_type": "send_email", "config": {"template": "nurture_sequence", "subject": "Here's what others are saying..."}, "next_steps": [], "position": {"x": 150, "y": 500}}
             ]
         },
         {
-            "id": "low_inventory",
-            "name": "Low Inventory Alert",
-            "description": "Alert when inventory falls below threshold",
-            "category": "ecommerce",
-            "trigger_type": "inventory_low",
+            "id": "google_sheets_sync",
+            "name": "Google Sheets Data Sync",
+            "description": "Automatically sync form submissions to Google Sheets with data validation",
+            "category": "productivity",
+            "trigger_type": "form_submit",
+            "difficulty": "beginner",
+            "estimated_time": "5 minutes",
+            "features": ["Google Sheets integration", "Data validation", "Error handling", "Duplicate detection"],
             "workflow_steps": [
-                {"id": "1", "type": "action", "action_type": "send_email", "config": {"to": "admin@example.com", "subject": "Low Inventory Alert"}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
-                {"id": "2", "type": "action", "action_type": "slack_message", "config": {"channel": "#inventory"}, "next_steps": [], "position": {"x": 100, "y": 200}}
+                {"id": "1", "type": "action", "action_type": "transform_data", "config": {"script": "// Validate and clean data\nconst cleanData = {\n  name: data.name.trim(),\n  email: data.email.toLowerCase(),\n  timestamp: new Date().toISOString()\n};\nreturn cleanData;"}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
+                {"id": "2", "type": "action", "action_type": "google_sheets", "config": {"spreadsheet_id": "{{env.GOOGLE_SHEETS_ID}}", "sheet_name": "Submissions", "values": "{{data.name}}, {{data.email}}, {{data.timestamp}}"}, "next_steps": ["3"], "position": {"x": 100, "y": 200}},
+                {"id": "3", "type": "action", "action_type": "error_handler", "config": {"error_action": "notify", "notification_email": "admin@example.com"}, "next_steps": [], "position": {"x": 100, "y": 300}}
             ]
         },
         {
-            "id": "webhook_integration",
-            "name": "Webhook Integration",
-            "description": "Forward data to external service via webhook",
-            "category": "integration",
+            "id": "notion_project_tracker",
+            "name": "Notion Project Tracker",
+            "description": "Create and update project tasks in Notion with team notifications",
+            "category": "productivity",
             "trigger_type": "webhook",
+            "difficulty": "intermediate",
+            "estimated_time": "8 minutes",
+            "features": ["Notion integration", "Team notifications", "Status tracking", "Due date management"],
             "workflow_steps": [
-                {"id": "1", "type": "action", "action_type": "transform_data", "config": {}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
-                {"id": "2", "type": "action", "action_type": "http_request", "config": {"method": "POST"}, "next_steps": [], "position": {"x": 100, "y": 200}}
-            ]
-        },
-        {
-            "id": "scheduled_report",
-            "name": "Scheduled Report",
-            "description": "Send daily/weekly reports via email",
-            "category": "reporting",
-            "trigger_type": "schedule",
-            "workflow_steps": [
-                {"id": "1", "type": "action", "action_type": "http_request", "config": {"method": "GET", "url": "/api/reports/generate"}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
-                {"id": "2", "type": "action", "action_type": "send_email", "config": {"subject": "Your Weekly Report"}, "next_steps": [], "position": {"x": 100, "y": 200}}
+                {"id": "1", "type": "action", "action_type": "notion", "config": {"database_id": "{{env.NOTION_DATABASE_ID}}", "title": "{{webhook.task_title}}", "properties": "{\"Status\": \"In Progress\", \"Assignee\": \"{{webhook.assignee}}\", \"Due Date\": \"{{webhook.due_date}}\"}"}, "next_steps": ["2"], "position": {"x": 100, "y": 100}},
+                {"id": "2", "type": "action", "action_type": "teams", "config": {"webhook_url": "{{env.TEAMS_WEBHOOK}}", "message": "New task assigned: {{webhook.task_title}} to {{webhook.assignee}}"}, "next_steps": ["3"], "position": {"x": 100, "y": 200}},
+                {"id": "3", "type": "action", "action_type": "delay", "config": {"days": 1}, "next_steps": ["4"], "position": {"x": 100, "y": 300}},
+                {"id": "4", "type": "action", "action_type": "send_email", "config": {"to": "{{webhook.assignee_email}}", "subject": "Task reminder: {{webhook.task_title}}", "template": "task_reminder"}, "next_steps": [], "position": {"x": 100, "y": 400}}
             ]
         }
     ]
@@ -925,7 +978,17 @@ async def get_automation_templates(
     if category:
         templates = [t for t in templates if t["category"] == category]
     
-    return {"templates": templates, "total": len(templates)}
+    # Add usage statistics
+    for template in templates:
+        template["usage_count"] = 150 + hash(template["id"]) % 500  # Mock usage data
+        template["success_rate"] = 95 + (hash(template["id"]) % 5)  # Mock success rate
+    
+    return {
+        "templates": templates, 
+        "total": len(templates),
+        "categories": ["marketing", "ecommerce", "sales", "productivity", "support"],
+        "featured": ["welcome_email_series", "ecommerce_order_flow", "lead_nurturing_crm"]
+    }
 
 
 @router.post("/webhooks/{app_id}/{hook_id}")

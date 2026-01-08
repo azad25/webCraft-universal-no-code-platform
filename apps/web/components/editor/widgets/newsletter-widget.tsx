@@ -1,13 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Mail, Loader2, CheckCircle, Sparkles } from 'lucide-react'
+import { Mail, Loader2, CheckCircle, Sparkles, Database, RefreshCw } from 'lucide-react'
+import { fetchDataSourceData } from '@/lib/data-source-api'
 
 interface NewsletterWidgetProps {
+  // Data source integration
+  dataSourceId?: string
+  dataEndpointId?: string
+  dataSourceType?: 'api' | 'scraper' | 'collection'
+  autoRefresh?: boolean
+  refreshInterval?: number
+  
+  // Newsletter configuration
   title?: string
   subtitle?: string
   placeholder?: string
@@ -22,6 +32,14 @@ interface NewsletterWidgetProps {
 }
 
 export function NewsletterWidget({
+  // Data source props
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  autoRefresh = false,
+  refreshInterval = 60,
+  
+  // Newsletter props
   title = 'Subscribe to our Newsletter',
   subtitle = 'Get the latest updates, tips, and exclusive content delivered to your inbox.',
   placeholder = 'Enter your email',
@@ -34,6 +52,75 @@ export function NewsletterWidget({
   isPreview,
   onChange
 }: NewsletterWidgetProps) {
+  // Data source state
+  const [newsletterConfig, setNewsletterConfig] = useState<any>(null)
+  const [isLoadingData, setIsLoadingData] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Use data source data if available, otherwise use static data
+  const activeTitle = (dataSourceId && newsletterConfig?.title) || title
+  const activeSubtitle = (dataSourceId && newsletterConfig?.subtitle) || subtitle
+  const activePlaceholder = (dataSourceId && newsletterConfig?.placeholder) || placeholder
+  const activeButtonText = (dataSourceId && newsletterConfig?.buttonText) || buttonText
+  const activeSuccessMessage = (dataSourceId && newsletterConfig?.successMessage) || successMessage
+
+  // Fetch data from data source
+  const fetchNewsletterConfig = async () => {
+    if (!dataSourceId || (!dataEndpointId && dataSourceType !== 'collection')) return
+
+    setIsLoadingData(true)
+    setError(null)
+    
+    try {
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      
+      // Transform API response to newsletter config format
+      let transformedData = response.data
+      if (Array.isArray(transformedData) && transformedData.length > 0) {
+        transformedData = transformedData[0] // Use first item for newsletter config
+      }
+      
+      if (transformedData && typeof transformedData === 'object') {
+        setNewsletterConfig({
+          title: transformedData.title || transformedData.newsletter_title,
+          subtitle: transformedData.subtitle || transformedData.description,
+          placeholder: transformedData.placeholder || transformedData.email_placeholder,
+          buttonText: transformedData.buttonText || transformedData.cta || transformedData.button,
+          successMessage: transformedData.successMessage || transformedData.success_text
+        })
+      }
+      
+      setLastRefresh(new Date())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch newsletter config')
+      console.error('Failed to fetch newsletter config:', err)
+    } finally {
+      setIsLoadingData(false)
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    if (dataSourceId && !isEditing) {
+      fetchNewsletterConfig()
+    }
+  }, [dataSourceId, dataEndpointId, isEditing])
+
+  // Auto refresh
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0 && dataSourceId && !isEditing) {
+      const interval = setInterval(fetchNewsletterConfig, refreshInterval * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, dataSourceId, isEditing])
+
+  const handleRefresh = () => {
+    if (dataSourceId) {
+      fetchNewsletterConfig()
+    }
+  }
+
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -53,7 +140,7 @@ export function NewsletterWidget({
     <form onSubmit={handleSubmit} className="flex gap-2 max-w-md mx-auto">
       <Input
         type="email"
-        placeholder={placeholder}
+        placeholder={activePlaceholder}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         className="flex-1"
@@ -63,7 +150,7 @@ export function NewsletterWidget({
         {isSubmitting ? (
           <Loader2 className="w-4 h-4 animate-spin" />
         ) : (
-          buttonText
+          activeButtonText
         )}
       </Button>
     </form>
@@ -73,7 +160,7 @@ export function NewsletterWidget({
     <form onSubmit={handleSubmit} className="space-y-3 max-w-md mx-auto">
       <Input
         type="email"
-        placeholder={placeholder}
+        placeholder={activePlaceholder}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         className="w-full"
@@ -88,7 +175,7 @@ export function NewsletterWidget({
         ) : (
           <>
             <Mail className="w-4 h-4 mr-2" />
-            {buttonText}
+            {activeButtonText}
           </>
         )}
       </Button>
@@ -102,12 +189,24 @@ export function NewsletterWidget({
           <Mail className="w-7 h-7 text-primary" />
         </div>
       )}
-      <h3 className="text-xl font-semibold text-center mb-2">{title}</h3>
-      <p className="text-muted-foreground text-center mb-6">{subtitle}</p>
+      <div className="flex items-center justify-center gap-4 mb-2">
+        <h3 className="text-xl font-semibold text-center">{activeTitle}</h3>
+        {dataSourceId && (
+          <Badge variant="outline" className="text-xs">
+            <Database className="w-3 h-3 mr-1" />
+            {dataSourceType === 'collection' ? 'Collection' : 
+             dataSourceType === 'scraper' ? 'Scraper' : 'API'}
+          </Badge>
+        )}
+        {isLoadingData && (
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+        )}
+      </div>
+      <p className="text-muted-foreground text-center mb-6">{activeSubtitle}</p>
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           type="email"
-          placeholder={placeholder}
+          placeholder={activePlaceholder}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="flex-1"
@@ -117,10 +216,20 @@ export function NewsletterWidget({
           {isSubmitting ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            buttonText
+            activeButtonText
           )}
         </Button>
       </form>
+      {dataSourceId && lastRefresh && (
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <span className="text-xs text-muted-foreground">
+            Updated {lastRefresh.toLocaleTimeString()}
+          </span>
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoadingData}>
+            <RefreshCw className="w-3 h-3" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 
@@ -139,7 +248,7 @@ export function NewsletterWidget({
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h3 className="text-xl font-semibold mb-2">You're Subscribed!</h3>
-          <p className="text-muted-foreground">{successMessage}</p>
+          <p className="text-muted-foreground">{activeSuccessMessage}</p>
         </motion.div>
       </section>
     )
@@ -172,7 +281,7 @@ export function NewsletterWidget({
               viewport={{ once: true }}
               className="text-2xl md:text-3xl font-bold mb-4"
             >
-              {title}
+              {activeTitle}
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -181,7 +290,7 @@ export function NewsletterWidget({
               transition={{ delay: 0.1 }}
               className="text-muted-foreground mb-8 max-w-xl mx-auto"
             >
-              {subtitle}
+              {activeSubtitle}
             </motion.p>
           </>
         )}

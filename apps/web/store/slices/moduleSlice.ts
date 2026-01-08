@@ -28,7 +28,7 @@ export const fetchModules = createAsyncThunk(
   'modules/fetchAll',
   async () => {
     const response = await api.get('/modules')
-    return response.data.modules
+    return (response.data as any).modules
   }
 )
 
@@ -36,7 +36,7 @@ export const enableModule = createAsyncThunk(
   'modules/enable',
   async ({ moduleId, config }: { moduleId: string; config?: Record<string, any> }) => {
     const response = await api.post(`/modules/${moduleId}/enable`, { config })
-    return { moduleId, success: response.data.success }
+    return { moduleId, success: (response.data as any).success }
   }
 )
 
@@ -44,7 +44,7 @@ export const disableModule = createAsyncThunk(
   'modules/disable',
   async (moduleId: string) => {
     const response = await api.post(`/modules/${moduleId}/disable`)
-    return { moduleId, success: response.data.success }
+    return { moduleId, success: (response.data as any).success }
   }
 )
 
@@ -111,6 +111,6 @@ export default moduleSlice.reducer
 // Selectors
 export const selectAvailableModules = (state: { modules: ModuleState }) => state.modules.available
 export const selectEnabledModules = (state: { modules: ModuleState }) => state.modules.enabled
-export const selectIsModuleEnabled = (moduleId: string) => 
+export const selectIsModuleEnabled = (moduleId: string) =>
   (state: { modules: ModuleState }) => state.modules.enabled.includes(moduleId)
 export const selectModulesLoading = (state: { modules: ModuleState }) => state.modules.loading

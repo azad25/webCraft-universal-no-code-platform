@@ -8,47 +8,24 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAppDispatch } from '@/store'
-import { setCredentials } from '@/store/slices/authSlice'
+import { useAuth } from '@/contexts/auth-context'
 
 export default function LoginPage() {
   const router = useRouter()
-  const dispatch = useAppDispatch()
+  const { login, isLoading, error, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    clearError()
 
     try {
-      const res = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.detail || 'Login failed')
-      }
-
-      const data = await res.json()
-      dispatch(setCredentials({
-        user: data.user,
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token
-      }))
-      
-      router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setIsLoading(false)
+      await login(email, password)
+      // The auth context will handle the redirect to dashboard
+    } catch (err) {
+      // Error is handled by the auth context
     }
   }
 

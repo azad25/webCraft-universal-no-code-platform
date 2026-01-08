@@ -3,6 +3,159 @@ Additional Templates - ERP, LMS, Management Systems, Restaurant, Shop, etc.
 """
 
 ADDITIONAL_TEMPLATES = {
+    # E-commerce Store with New Widgets
+    "ecommerce-complete": {
+        "id": "ecommerce-complete",
+        "name": "Complete E-commerce Store",
+        "description": "Full-featured online store with product catalog, shopping cart, and checkout",
+        "category": "ecommerce",
+        "thumbnail": "/templates/ecommerce-complete.png",
+        "tags": ["ecommerce", "store", "shop", "products", "cart", "checkout"],
+        "pages": [
+            {
+                "name": "Home",
+                "slug": "home",
+                "elements": [
+                    {"id": "banner-1", "type": "banner", "props": {"text": "🎉 Free shipping on orders over $50!", "variant": "info", "dismissible": True}},
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "links": [{"label": "Shop", "href": "/shop"}, {"label": "Collections", "href": "/collections"}, {"label": "About", "href": "/about"}], "showCart": True, "showSearch": True}},
+                    {"id": "hero-1", "type": "hero", "props": {"title": "New Arrivals", "subtitle": "Discover our latest collection", "primaryCta": "Shop Now", "backgroundType": "image"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search products...", "showFilters": True, "showVoiceSearch": True, "layout": "horizontal"}},
+                    {"id": "products-1", "type": "product", "props": {"name": "Premium Headphones", "price": 199.99, "originalPrice": 249.99, "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop", "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "products-2", "type": "product", "props": {"name": "Wireless Mouse", "price": 49.99, "image": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop", "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "products-3", "type": "product", "props": {"name": "Mechanical Keyboard", "price": 129.99, "originalPrice": 159.99, "image": "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop", "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "cta-1", "type": "cta", "props": {"title": "Join Our Newsletter", "subtitle": "Get 10% off your first order", "variant": "newsletter"}},
+                    {"id": "features-1", "type": "features", "props": {"columns": 4, "variant": "icons", "features": [{"icon": "Truck", "title": "Free Shipping"}, {"icon": "RefreshCw", "title": "Easy Returns"}, {"icon": "Shield", "title": "Secure Payment"}, {"icon": "Headphones", "title": "24/7 Support"}]}},
+                    {"id": "footer-1", "type": "footer", "props": {"showNewsletter": True, "showPaymentIcons": True}}
+                ]
+            },
+            {
+                "name": "Shop",
+                "slug": "shop",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "showCart": True, "showSearch": True}},
+                    {"id": "breadcrumb-1", "type": "breadcrumb", "props": {"items": [{"label": "Home", "href": "/"}, {"label": "Shop", "href": "/shop"}]}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search products...", "showFilters": True, "showRecentSearches": True, "layout": "horizontal"}},
+                    {"id": "products-grid", "type": "container", "props": {"className": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Product Detail",
+                "slug": "product",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "showCart": True, "showSearch": True}},
+                    {"id": "breadcrumb-1", "type": "breadcrumb", "props": {"items": [{"label": "Home", "href": "/"}, {"label": "Shop", "href": "/shop"}, {"label": "Product"}]}},
+                    {"id": "product-1", "type": "product", "props": {"layout": "detailed", "showVariants": True, "showQuickView": True, "showShare": True}},
+                    {"id": "related-1", "type": "container", "props": {"title": "Related Products"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Cart",
+                "slug": "cart",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "showCart": True, "showSearch": True}},
+                    {"id": "breadcrumb-1", "type": "breadcrumb", "props": {"items": [{"label": "Home", "href": "/"}, {"label": "Cart"}]}},
+                    {"id": "cart-1", "type": "cart", "props": {"layout": "page", "showShipping": True, "showTax": True, "showCoupons": True, "showRecommendations": True}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Checkout",
+                "slug": "checkout",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "variant": "minimal"}},
+                    {"id": "checkout-1", "type": "checkout", "props": {"layout": "multi-step", "showOrderSummary": True, "showShippingOptions": True, "showPaymentMethods": True, "showGuestCheckout": True}},
+                    {"id": "footer-1", "type": "footer", "props": {"variant": "minimal"}}
+                ]
+            }
+        ]
+    },
+
+    # Event Management with Calendar
+    "event-management": {
+        "id": "event-management",
+        "name": "Event Management Platform",
+        "description": "Complete event management with calendar, bookings, and attendee management",
+        "category": "event",
+        "thumbnail": "/templates/event-management.png",
+        "tags": ["event", "calendar", "booking", "management", "conference"],
+        "pages": [
+            {
+                "name": "Home",
+                "slug": "home",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "EventPro", "links": [{"label": "Events", "href": "/events"}, {"label": "Calendar", "href": "/calendar"}, {"label": "About", "href": "/about"}], "ctaText": "Create Event"}},
+                    {"id": "hero-1", "type": "hero", "props": {"title": "Manage Events Like a Pro", "subtitle": "Create, manage, and promote your events with ease", "primaryCta": "Get Started", "secondaryCta": "View Demo"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search events...", "showFilters": True, "showLocationSearch": True, "layout": "horizontal"}},
+                    {"id": "calendar-1", "type": "calendar", "props": {"title": "Upcoming Events", "view": "month", "showEventDetails": True, "allowEventClick": True}},
+                    {"id": "features-1", "type": "features", "props": {"title": "Everything You Need", "columns": 3, "features": [{"icon": "Calendar", "title": "Event Calendar", "description": "Visual calendar with all your events"}, {"icon": "Users", "title": "Attendee Management", "description": "Track registrations and check-ins"}, {"icon": "BarChart", "title": "Analytics", "description": "Detailed event performance metrics"}]}},
+                    {"id": "testimonials-1", "type": "testimonial", "props": {"title": "What Event Organizers Say"}},
+                    {"id": "cta-1", "type": "cta", "props": {"title": "Ready to Create Your Event?", "primaryCta": "Start Free Trial"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Calendar",
+                "slug": "calendar",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "EventPro"}},
+                    {"id": "calendar-1", "type": "calendar", "props": {"title": "Event Calendar", "view": "month", "showEventDetails": True, "showAddEvent": True, "allowEventClick": True}},
+                    {"id": "upcoming-1", "type": "calendar", "props": {"title": "Upcoming Events", "view": "agenda", "showEventDetails": True}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Event Dashboard",
+                "slug": "dashboard",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "EventPro", "variant": "dashboard"}},
+                    {"id": "stats-1", "type": "stats", "props": {"stats": [{"value": "24", "label": "Active Events"}, {"value": "1,250", "label": "Total Attendees"}, {"value": "$45K", "label": "Revenue"}, {"value": "95%", "label": "Satisfaction"}]}},
+                    {"id": "calendar-1", "type": "calendar", "props": {"title": "Event Calendar", "view": "week", "showAddEvent": True}},
+                    {"id": "events-1", "type": "data", "props": {"title": "Recent Events", "columns": ["Event", "Date", "Attendees", "Revenue", "Status"]}}
+                ]
+            }
+        ]
+    },
+
+    # Business Directory with Search
+    "business-directory": {
+        "id": "business-directory",
+        "name": "Business Directory",
+        "description": "Local business directory with advanced search and listings",
+        "category": "business",
+        "thumbnail": "/templates/business-directory.png",
+        "tags": ["directory", "business", "search", "local", "listings"],
+        "pages": [
+            {
+                "name": "Home",
+                "slug": "home",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "LocalBiz", "links": [{"label": "Browse", "href": "/browse"}, {"label": "Categories", "href": "/categories"}, {"label": "Add Business", "href": "/add"}], "ctaText": "List Your Business"}},
+                    {"id": "hero-1", "type": "hero", "props": {"title": "Find Local Businesses", "subtitle": "Discover the best businesses in your area", "primaryCta": "Search Now", "secondaryCta": "Browse Categories"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search businesses, services, or locations...", "showFilters": True, "showLocationSearch": True, "showRecentSearches": True, "layout": "horizontal"}},
+                    {"id": "categories-1", "type": "features", "props": {"title": "Popular Categories", "columns": 6, "variant": "icons"}},
+                    {"id": "featured-1", "type": "card", "props": {"title": "Featured Businesses", "layout": "grid", "columns": 4}},
+                    {"id": "map-1", "type": "map", "props": {"title": "Explore Local Area", "showControls": True, "height": "400px"}},
+                    {"id": "stats-1", "type": "stats", "props": {"stats": [{"value": "10K+", "label": "Businesses"}, {"value": "50+", "label": "Categories"}, {"value": "100K+", "label": "Reviews"}, {"value": "25", "label": "Cities"}]}},
+                    {"id": "cta-1", "type": "cta", "props": {"title": "Grow Your Business", "subtitle": "List your business and reach more customers", "primaryCta": "Get Started"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Search Results",
+                "slug": "search",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "LocalBiz"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search businesses...", "showFilters": True, "showLocationSearch": True, "layout": "horizontal"}},
+                    {"id": "results-1", "type": "container", "props": {"className": "grid grid-cols-1 lg:grid-cols-3 gap-6"}},
+                    {"id": "map-1", "type": "map", "props": {"title": "Map View", "showControls": True}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            }
+        ]
+    },
+
     # ERP System Template
     "erp-dashboard": {
         "id": "erp-dashboard",
@@ -182,7 +335,7 @@ ADDITIONAL_TEMPLATES = {
                     {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "links": [{"label": "Products", "href": "/products"}, {"label": "Categories", "href": "/categories"}, {"label": "Deals", "href": "/deals"}, {"label": "About", "href": "/about"}], "showCart": True, "showSearch": True}},
                     {"id": "hero-1", "type": "hero", "props": {"title": "Quality Products, Great Prices", "subtitle": "Shop the latest trends", "primaryCta": "Shop Now"}},
                     {"id": "categories-1", "type": "features", "props": {"title": "Shop by Category", "columns": 6, "variant": "icons"}},
-                    {"id": "products-1", "type": "ecommerce", "props": {"title": "Featured Products", "layout": "grid", "columns": 4}},
+                    {"id": "products-1", "type": "container", "props": {"title": "Featured Products", "layout": "grid", "columns": 4, "className": "product-grid"}},
                     {"id": "deals-1", "type": "card", "props": {"title": "Hot Deals", "layout": "grid", "columns": 3}},
                     {"id": "features-1", "type": "features", "props": {"columns": 4, "features": [{"icon": "Truck", "title": "Free Delivery"}, {"icon": "Shield", "title": "Secure Payment"}, {"icon": "RefreshCw", "title": "Easy Returns"}, {"icon": "Headphones", "title": "24/7 Support"}]}},
                     {"id": "newsletter-1", "type": "newsletter", "props": {"title": "Subscribe & Save 10%"}},
@@ -632,6 +785,159 @@ ADDITIONAL_TEMPLATES = {
                     {"id": "chart-1", "type": "chart", "props": {"title": "Enrollment Trends", "chartType": "line"}},
                     {"id": "announcements-1", "type": "card", "props": {"title": "Announcements"}},
                     {"id": "calendar-1", "type": "calendar", "props": {"title": "School Calendar"}}
+                ]
+            }
+        ]
+    },
+
+    # E-commerce Store with New Widgets
+    "ecommerce-complete": {
+        "id": "ecommerce-complete",
+        "name": "Complete E-commerce Store",
+        "description": "Full-featured online store with product catalog, shopping cart, and checkout",
+        "category": "ecommerce",
+        "thumbnail": "/templates/ecommerce-complete.png",
+        "tags": ["ecommerce", "store", "shop", "products", "cart", "checkout"],
+        "pages": [
+            {
+                "name": "Home",
+                "slug": "home",
+                "elements": [
+                    {"id": "banner-1", "type": "banner", "props": {"text": "🎉 Free shipping on orders over $50!", "variant": "info", "dismissible": True}},
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "links": [{"label": "Shop", "href": "/shop"}, {"label": "Collections", "href": "/collections"}, {"label": "About", "href": "/about"}], "showCart": True, "showSearch": True}},
+                    {"id": "hero-1", "type": "hero", "props": {"title": "New Arrivals", "subtitle": "Discover our latest collection", "primaryCta": "Shop Now", "backgroundType": "image"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search products...", "showFilters": True, "showVoiceSearch": True, "layout": "horizontal"}},
+                    {"id": "products-1", "type": "product", "props": {"name": "Premium Headphones", "price": 199.99, "originalPrice": 249.99, "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop", "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "products-2", "type": "product", "props": {"name": "Wireless Mouse", "price": 49.99, "image": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop", "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "products-3", "type": "product", "props": {"name": "Mechanical Keyboard", "price": 129.99, "originalPrice": 159.99, "image": "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop", "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "cta-1", "type": "cta", "props": {"title": "Join Our Newsletter", "subtitle": "Get 10% off your first order", "variant": "newsletter"}},
+                    {"id": "features-1", "type": "features", "props": {"columns": 4, "variant": "icons", "features": [{"icon": "Truck", "title": "Free Shipping"}, {"icon": "RefreshCw", "title": "Easy Returns"}, {"icon": "Shield", "title": "Secure Payment"}, {"icon": "Headphones", "title": "24/7 Support"}]}},
+                    {"id": "footer-1", "type": "footer", "props": {"showNewsletter": True, "showPaymentIcons": True}}
+                ]
+            },
+            {
+                "name": "Shop",
+                "slug": "shop",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "showCart": True, "showSearch": True}},
+                    {"id": "breadcrumb-1", "type": "breadcrumb", "props": {"items": [{"label": "Home", "href": "/"}, {"label": "Shop", "href": "/shop"}]}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search products...", "showFilters": True, "showRecentSearches": True, "layout": "horizontal"}},
+                    {"id": "products-grid", "type": "container", "props": {"className": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Product Detail",
+                "slug": "product",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "showCart": True, "showSearch": True}},
+                    {"id": "breadcrumb-1", "type": "breadcrumb", "props": {"items": [{"label": "Home", "href": "/"}, {"label": "Shop", "href": "/shop"}, {"label": "Product"}]}},
+                    {"id": "product-1", "type": "product", "props": {"layout": "detailed", "showVariants": True, "showQuickView": True, "showShare": True}},
+                    {"id": "related-1", "type": "container", "props": {"title": "Related Products"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Cart",
+                "slug": "cart",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "showCart": True, "showSearch": True}},
+                    {"id": "breadcrumb-1", "type": "breadcrumb", "props": {"items": [{"label": "Home", "href": "/"}, {"label": "Cart"}]}},
+                    {"id": "cart-1", "type": "cart", "props": {"layout": "page", "showShipping": True, "showTax": True, "showCoupons": True, "showRecommendations": True}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Checkout",
+                "slug": "checkout",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "variant": "minimal"}},
+                    {"id": "checkout-1", "type": "checkout", "props": {"layout": "multi-step", "showOrderSummary": True, "showShippingOptions": True, "showPaymentMethods": True, "showGuestCheckout": True}},
+                    {"id": "footer-1", "type": "footer", "props": {"variant": "minimal"}}
+                ]
+            }
+        ]
+    },
+
+    # Event Management with Calendar
+    "event-management": {
+        "id": "event-management",
+        "name": "Event Management Platform",
+        "description": "Complete event management with calendar, bookings, and attendee management",
+        "category": "event",
+        "thumbnail": "/templates/event-management.png",
+        "tags": ["event", "calendar", "booking", "management", "conference"],
+        "pages": [
+            {
+                "name": "Home",
+                "slug": "home",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "EventPro", "links": [{"label": "Events", "href": "/events"}, {"label": "Calendar", "href": "/calendar"}, {"label": "About", "href": "/about"}], "ctaText": "Create Event"}},
+                    {"id": "hero-1", "type": "hero", "props": {"title": "Manage Events Like a Pro", "subtitle": "Create, manage, and promote your events with ease", "primaryCta": "Get Started", "secondaryCta": "View Demo"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search events...", "showFilters": True, "showLocationSearch": True, "layout": "horizontal"}},
+                    {"id": "calendar-1", "type": "calendar", "props": {"title": "Upcoming Events", "view": "month", "showEventDetails": True, "allowEventClick": True}},
+                    {"id": "features-1", "type": "features", "props": {"title": "Everything You Need", "columns": 3, "features": [{"icon": "Calendar", "title": "Event Calendar", "description": "Visual calendar with all your events"}, {"icon": "Users", "title": "Attendee Management", "description": "Track registrations and check-ins"}, {"icon": "BarChart", "title": "Analytics", "description": "Detailed event performance metrics"}]}},
+                    {"id": "testimonials-1", "type": "testimonial", "props": {"title": "What Event Organizers Say"}},
+                    {"id": "cta-1", "type": "cta", "props": {"title": "Ready to Create Your Event?", "primaryCta": "Start Free Trial"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Calendar",
+                "slug": "calendar",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "EventPro"}},
+                    {"id": "calendar-1", "type": "calendar", "props": {"title": "Event Calendar", "view": "month", "showEventDetails": True, "showAddEvent": True, "allowEventClick": True}},
+                    {"id": "upcoming-1", "type": "calendar", "props": {"title": "Upcoming Events", "view": "agenda", "showEventDetails": True}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Event Dashboard",
+                "slug": "dashboard",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "EventPro", "variant": "dashboard"}},
+                    {"id": "stats-1", "type": "stats", "props": {"stats": [{"value": "24", "label": "Active Events"}, {"value": "1,250", "label": "Total Attendees"}, {"value": "$45K", "label": "Revenue"}, {"value": "95%", "label": "Satisfaction"}]}},
+                    {"id": "calendar-1", "type": "calendar", "props": {"title": "Event Calendar", "view": "week", "showAddEvent": True}},
+                    {"id": "events-1", "type": "data", "props": {"title": "Recent Events", "columns": ["Event", "Date", "Attendees", "Revenue", "Status"]}}
+                ]
+            }
+        ]
+    },
+
+    # Business Directory with Search
+    "business-directory": {
+        "id": "business-directory",
+        "name": "Business Directory",
+        "description": "Local business directory with advanced search and listings",
+        "category": "business",
+        "thumbnail": "/templates/business-directory.png",
+        "tags": ["directory", "business", "search", "local", "listings"],
+        "pages": [
+            {
+                "name": "Home",
+                "slug": "home",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "LocalBiz", "links": [{"label": "Browse", "href": "/browse"}, {"label": "Categories", "href": "/categories"}, {"label": "Add Business", "href": "/add"}], "ctaText": "List Your Business"}},
+                    {"id": "hero-1", "type": "hero", "props": {"title": "Find Local Businesses", "subtitle": "Discover the best businesses in your area", "primaryCta": "Search Now", "secondaryCta": "Browse Categories"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search businesses, services, or locations...", "showFilters": True, "showLocationSearch": True, "showRecentSearches": True, "layout": "horizontal"}},
+                    {"id": "categories-1", "type": "features", "props": {"title": "Popular Categories", "columns": 6, "variant": "icons"}},
+                    {"id": "featured-1", "type": "card", "props": {"title": "Featured Businesses", "layout": "grid", "columns": 4}},
+                    {"id": "map-1", "type": "map", "props": {"title": "Explore Local Area", "showControls": True, "height": "400px"}},
+                    {"id": "stats-1", "type": "stats", "props": {"stats": [{"value": "10K+", "label": "Businesses"}, {"value": "50+", "label": "Categories"}, {"value": "100K+", "label": "Reviews"}, {"value": "25", "label": "Cities"}]}},
+                    {"id": "cta-1", "type": "cta", "props": {"title": "Grow Your Business", "subtitle": "List your business and reach more customers", "primaryCta": "Get Started"}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
+                ]
+            },
+            {
+                "name": "Search Results",
+                "slug": "search",
+                "elements": [
+                    {"id": "nav-1", "type": "navbar", "props": {"logo": "LocalBiz"}},
+                    {"id": "search-1", "type": "search", "props": {"placeholder": "Search businesses...", "showFilters": True, "showLocationSearch": True, "layout": "horizontal"}},
+                    {"id": "results-1", "type": "container", "props": {"className": "grid grid-cols-1 lg:grid-cols-3 gap-6"}},
+                    {"id": "map-1", "type": "map", "props": {"title": "Map View", "showControls": True}},
+                    {"id": "footer-1", "type": "footer", "props": {}}
                 ]
             }
         ]

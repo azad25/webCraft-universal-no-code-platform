@@ -1,8 +1,12 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Twitter, Linkedin, Github } from 'lucide-react'
+import { Twitter, Linkedin, Github, Database, RefreshCw, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { fetchDataSourceData } from '@/lib/data-source-api'
 
 interface TeamMember {
   name: string
@@ -13,6 +17,14 @@ interface TeamMember {
 }
 
 interface TeamWidgetProps {
+  // Data source integration
+  dataSourceId?: string
+  dataEndpointId?: string
+  dataSourceType?: 'api' | 'scraper' | 'collection'
+  autoRefresh?: boolean
+  refreshInterval?: number
+  
+  // Team configuration
   title?: string
   subtitle?: string
   members?: TeamMember[]
@@ -29,6 +41,14 @@ const SOCIAL_ICONS: Record<string, any> = {
 }
 
 export function TeamWidget({
+  // Data source props
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  autoRefresh = false,
+  refreshInterval = 60,
+  
+  // Team props
   title = 'Meet Our Team',
   subtitle = 'The people behind the product',
   members = [
@@ -42,19 +62,94 @@ export function TeamWidget({
   isPreview,
   onChange
 }: TeamWidgetProps) {
+  // Data source state
+  const [teamData, setTeamData] = useState<TeamMember[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Use data source data if available, otherwise use static data
+  const activeMembers = dataSourceId && teamData.length > 0 ? teamData : members
+
+  // Fetch data from data source
+  const fetchTeamData = async () => {
+    if (!dataSourceId || (!dataEndpointId && dataSourceType !== 'collection')) return
+
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      
+      // Transform API response to team format
+      let transformedData = response.data
+      if (Array.isArray(transformedData)) {
+        transformedData = transformedData.map((item: any) => ({
+          name: item.name || item.full_name || 'Team Member',
+          role: item.role || item.position || item.title || 'Team Member',
+          image: item.image || item.photo || item.avatar || item.picture,
+          bio: item.bio || item.description || item.about,
+          social: item.social || []
+        }))
+      } else {
+        transformedData = []
+      }
+      
+      setTeamData(transformedData)
+      setLastRefresh(new Date())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch team data')
+      console.error('Failed to fetch team data:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    if (dataSourceId && !isEditing) {
+      fetchTeamData()
+    }
+  }, [dataSourceId, dataEndpointId, isEditing])
+
+  // Auto refresh
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0 && dataSourceId && !isEditing) {
+      const interval = setInterval(fetchTeamData, refreshInterval * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, dataSourceId, isEditing])
+
+  const handleRefresh = () => {
+    if (dataSourceId) {
+      fetchTeamData()
+    }
+  }
   return (
     <section className="w-full py-20 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold mb-4"
-          >
-            {title}
-          </motion.h2>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-4xl font-bold"
+            >
+              {title}
+            </motion.h2>
+            {dataSourceId && (
+              <Badge variant="outline" className="text-xs">
+                <Database className="w-3 h-3 mr-1" />
+                {dataSourceType === 'collection' ? 'Collection' : 
+                 dataSourceType === 'scraper' ? 'Scraper' : 'API'}
+              </Badge>
+            )}
+            {isLoading && (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -64,6 +159,16 @@ export function TeamWidget({
           >
             {subtitle}
           </motion.p>
+          {dataSourceId && lastRefresh && (
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="text-xs text-muted-foreground">
+                Updated {lastRefresh.toLocaleTimeString()}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
+                <RefreshCw className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Team Grid */}
@@ -75,7 +180,7 @@ export function TeamWidget({
             columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
           )}
         >
-          {members.map((member, index) => (
+          {activeMembers.map((member, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}

@@ -23,7 +23,7 @@ class AppCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     app_type: str = Field(..., description="Type of app: website, ecommerce, crm, erp, etc.")
-    template_id: Optional[uuid.UUID] = None
+    template_id: Optional[str] = None
     config: Dict[str, Any] = Field(default_factory=dict)
     theme_config: Dict[str, Any] = Field(default_factory=dict)
 
@@ -168,7 +168,7 @@ async def get_app(
 
 @router.put("/{app_id}", response_model=AppResponse)
 async def update_app(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     app_data: AppUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -180,25 +180,37 @@ async def update_app(
     Only the provided fields will be updated.
     """
     
+    print(f"🔄 Updating app {app_id} for user {current_user.email}")
+    print(f"📦 Update data: {app_data.dict(exclude_unset=True)}")
+    
     app = db.query(App).filter(
         App.id == app_id,
         App.owner_id == current_user.id
     ).first()
     
     if not app:
+        print(f"❌ App {app_id} not found for user {current_user.id}")
         raise HTTPException(status_code=404, detail="App not found")
     
     # Update fields
     update_data = app_data.dict(exclude_unset=True)
+    print(f"📝 Applying updates: {update_data}")
+    
     for field, value in update_data.items():
         setattr(app, field, value)
+        print(f"✅ Updated {field}")
     
     app.updated_at = datetime.utcnow()
     
-    db.commit()
-    db.refresh(app)
-    
-    return app
+    try:
+        db.commit()
+        db.refresh(app)
+        print(f"💾 App {app_id} saved successfully")
+        return app
+    except Exception as e:
+        print(f"❌ Failed to save app: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to save app: {str(e)}")
 
 
 @router.delete("/{app_id}")
@@ -234,7 +246,7 @@ async def delete_app(
 
 @router.post("/{app_id}/publish")
 async def publish_app(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     publish_data: PublishRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -265,28 +277,89 @@ async def publish_app(
             subdomain=publish_data.subdomain
         )
         
+        # Create live app URL
+        live_url_result = await deployment_service.create_live_app_url(
+            app=app,
+            subdomain=publish_data.subdomain,
+            custom_domain=publish_data.custom_domain
+        )
+        
         # Optimize SEO
         await seo_service.optimize_app_seo(app)
         
         # Update app status
         app.is_published = True
         app.custom_domain = publish_data.custom_domain
-        app.subdomain = publish_data.subdomain or deployment_result.get("subdomain")
+        app.subdomain = publish_data.subdomain or app.slug
         app.updated_at = datetime.utcnow()
         
         db.commit()
         
         return {
+            "success": True,
             "message": "App published successfully",
-            "url": deployment_result.get("url"),
+            "url": live_url_result["live_url"],
             "subdomain": app.subdomain,
             "custom_domain": app.custom_domain,
-            "ssl_enabled": True,
-            "cdn_enabled": True
+            "ssl_enabled": deployment_result.get("ssl_enabled", True),
+            "cdn_enabled": deployment_result.get("cdn_enabled", True),
+            "deployed_at": datetime.utcnow().isoformat()
         }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to publish app: {str(e)}")
+
+
+@router.get("/{app_id}/deployment/status")
+async def get_deployment_status(
+    app_id: uuid.UUID = Path(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get the deployment status of an app
+    
+    Returns current deployment information including URLs, SSL status,
+    and deployment health.
+    """
+    
+    app = db.query(App).filter(
+        App.id == app_id,
+        App.owner_id == current_user.id
+    ).first()
+    
+    if not app:
+        raise HTTPException(status_code=404, detail="App not found")
+    
+    if not app.is_published:
+        return {
+            "status": "not_deployed",
+            "message": "App is not published"
+        }
+    
+    deployment_service = DeploymentService(db)
+    
+    try:
+        status = await deployment_service.get_deployment_status(app)
+        
+        # Add live URLs
+        live_url = f"https://{app.custom_domain}" if app.custom_domain else f"https://{app.subdomain}.webcraft.dev"
+        subdomain_url = f"https://{app.subdomain}.webcraft.dev" if app.subdomain else None
+        
+        return {
+            **status,
+            "live_url": live_url,
+            "subdomain_url": subdomain_url,
+            "custom_domain": app.custom_domain,
+            "ssl_enabled": True,
+            "deployed_at": app.updated_at.isoformat() if app.updated_at else None
+        }
+    
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
 
 
 @router.post("/{app_id}/unpublish")
@@ -329,14 +402,15 @@ async def unpublish_app(
 @router.get("/{app_id}/preview")
 async def preview_app(
     app_id: uuid.UUID = Path(...),
+    device: Optional[str] = Query("desktop", regex="^(mobile|tablet|desktop)$"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Get app preview URL
     
-    Returns a temporary preview URL for testing the app before publishing.
-    Preview URLs are valid for 24 hours.
+    Returns a preview URL for testing the app before publishing.
+    Preview URLs are valid for 24 hours and support different device types.
     """
     
     app = db.query(App).filter(
@@ -347,17 +421,13 @@ async def preview_app(
     if not app:
         raise HTTPException(status_code=404, detail="App not found")
     
-    deployment_service = DeploymentService(db)
-    
     try:
-        preview_url = await deployment_service.create_preview(app)
+        from services.preview_service import PreviewService
+        preview_service = PreviewService(db)
         
-        return {
-            "preview_url": preview_url,
-            "expires_in": "24 hours",
-            "mobile_preview": f"{preview_url}?device=mobile",
-            "tablet_preview": f"{preview_url}?device=tablet"
-        }
+        preview_data = await preview_service.create_preview_url(app, device)
+        
+        return preview_data
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create preview: {str(e)}")

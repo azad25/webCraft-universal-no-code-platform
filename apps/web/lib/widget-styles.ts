@@ -221,10 +221,10 @@ export interface WidgetStyle {
     textDecoration?: 'none' | 'underline' | 'line-through';
     color?: string;
   };
-  
+
   // Background
   background?: BackgroundStyle;
-  
+
   // Border
   border?: {
     width?: string;
@@ -232,14 +232,14 @@ export interface WidgetStyle {
     color?: string;
     radius?: string | { topLeft?: string; topRight?: string; bottomRight?: string; bottomLeft?: string };
   };
-  
+
   // Shadow
   shadow?: string;
-  
+
   // Spacing
   padding?: string | { top?: string; right?: string; bottom?: string; left?: string };
   margin?: string | { top?: string; right?: string; bottom?: string; left?: string };
-  
+
   // Size
   width?: string;
   height?: string;
@@ -247,16 +247,16 @@ export interface WidgetStyle {
   maxWidth?: string;
   minHeight?: string;
   maxHeight?: string;
-  
+
   // Position
   position?: 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
   zIndex?: number;
-  
+
   // Display
   display?: string;
   opacity?: number;
   overflow?: 'visible' | 'hidden' | 'scroll' | 'auto';
-  
+
   // Animation
   animation?: {
     type?: string;
@@ -264,10 +264,10 @@ export interface WidgetStyle {
     delay?: string;
     easing?: string;
   };
-  
+
   // Hover state
   hover?: Partial<WidgetStyle>;
-  
+
   // Responsive overrides
   responsive?: {
     tablet?: Partial<WidgetStyle>;
@@ -278,7 +278,7 @@ export interface WidgetStyle {
 // Convert WidgetStyle to CSS object
 export function widgetStyleToCSS(style: WidgetStyle): React.CSSProperties {
   const css: React.CSSProperties = {};
-  
+
   // Typography
   if (style.typography) {
     if (style.typography.fontFamily) css.fontFamily = style.typography.fontFamily;
@@ -291,7 +291,7 @@ export function widgetStyleToCSS(style: WidgetStyle): React.CSSProperties {
     if (style.typography.textDecoration) css.textDecoration = style.typography.textDecoration;
     if (style.typography.color) css.color = style.typography.color;
   }
-  
+
   // Background
   if (style.background) {
     switch (style.background.type) {
@@ -312,7 +312,7 @@ export function widgetStyleToCSS(style: WidgetStyle): React.CSSProperties {
         break;
     }
   }
-  
+
   // Border
   if (style.border) {
     if (style.border.width && style.border.style && style.border.color) {
@@ -329,10 +329,10 @@ export function widgetStyleToCSS(style: WidgetStyle): React.CSSProperties {
       }
     }
   }
-  
+
   // Shadow
   if (style.shadow) css.boxShadow = style.shadow;
-  
+
   // Spacing
   if (style.padding) {
     if (typeof style.padding === 'string') {
@@ -354,7 +354,7 @@ export function widgetStyleToCSS(style: WidgetStyle): React.CSSProperties {
       css.marginLeft = style.margin.left;
     }
   }
-  
+
   // Size
   if (style.width) css.width = style.width;
   if (style.height) css.height = style.height;
@@ -362,22 +362,22 @@ export function widgetStyleToCSS(style: WidgetStyle): React.CSSProperties {
   if (style.maxWidth) css.maxWidth = style.maxWidth;
   if (style.minHeight) css.minHeight = style.minHeight;
   if (style.maxHeight) css.maxHeight = style.maxHeight;
-  
+
   // Position
   if (style.position) css.position = style.position;
   if (style.zIndex !== undefined) css.zIndex = style.zIndex;
-  
+
   // Display
   if (style.display) css.display = style.display;
   if (style.opacity !== undefined) css.opacity = style.opacity;
   if (style.overflow) css.overflow = style.overflow;
-  
+
   return css;
 }
 
 // Generate Google Fonts URL
 export function generateGoogleFontsUrl(fonts: string[]): string {
-  const uniqueFonts = [...new Set(fonts)];
+  const uniqueFonts = Array.from(new Set(fonts));
   const fontParams = uniqueFonts
     .map(font => `family=${font.replace(/ /g, '+')}:wght@100;200;300;400;500;600;700;800;900`)
     .join('&');

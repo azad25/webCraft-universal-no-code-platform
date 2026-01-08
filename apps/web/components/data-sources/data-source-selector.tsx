@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,91 +33,155 @@ import {
   RefreshCw,
   Plus,
   Settings,
-  Zap
+  Zap,
+  Loader2,
+  Table,
+  FileText
 } from 'lucide-react';
+import { getDataSources, getDataSourceEndpoints } from '@/lib/data-source-api';
+import { CollectionManager } from './collection-manager';
+import { RecordManager } from './record-manager';
 
 interface DataSource {
   id: string;
   name: string;
-  type: 'api' | 'scraper';
+  type?: 'api' | 'scraper' | 'collection'; // Added collection type
   description: string;
   endpoints?: { id: string; name: string; path: string }[];
-  isConnected: boolean;
+  isConnected?: boolean; // Legacy property for mock data
+  
+  // New properties from API
+  base_url?: string;
+  auth_type?: string;
+  is_connected?: boolean;
+  last_tested?: string | null;
+  last_error?: string | null;
+  endpoint_count?: number;
+  created_at?: string;
+  
+  // Collection properties
+  schema?: any[];
+  record_count?: number;
+  color?: string;
+  icon?: string;
 }
 
-interface DataSourceSelectorProps {
+interface DataSourceConfigProps {
   selectedSourceId?: string;
   selectedEndpointId?: string;
-  onSelect: (sourceId: string, endpointId?: string, sourceType?: 'api' | 'scraper') => void;
+  onSelect: (sourceId: string, endpointId?: string, sourceType?: 'api' | 'scraper' | 'collection') => void;
   appId: string;
 }
 
-// Mock data sources
-const mockSources: DataSource[] = [
-  {
-    id: 'ds-1',
-    name: 'Weather API',
-    type: 'api',
-    description: 'OpenWeather API',
-    isConnected: true,
-    endpoints: [
-      { id: 'ep-1', name: 'Current Weather', path: '/weather' },
-      { id: 'ep-2', name: 'Forecast', path: '/forecast' },
-      { id: 'ep-3', name: 'Alerts', path: '/alerts' },
-    ]
-  },
-  {
-    id: 'ds-2',
-    name: 'News API',
-    type: 'api',
-    description: 'Latest news headlines',
-    isConnected: true,
-    endpoints: [
-      { id: 'ep-4', name: 'Top Headlines', path: '/top-headlines' },
-      { id: 'ep-5', name: 'Everything', path: '/everything' },
-    ]
-  },
-  {
-    id: 'ds-3',
-    name: 'Product Scraper',
-    type: 'scraper',
-    description: 'Competitor product prices',
-    isConnected: true,
-  },
-  {
-    id: 'ds-4',
-    name: 'Job Listings',
-    type: 'scraper',
-    description: 'Job board scraper',
-    isConnected: true,
-  },
-];
-
-export function DataSourceSelector({
+export function DataSourceConfig({
   selectedSourceId,
   selectedEndpointId,
   onSelect,
   appId
-}: DataSourceSelectorProps) {
+}: DataSourceConfigProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [dataSources, setDataSources] = useState<DataSource[]>([]);
+  const [collections, setCollections] = useState<DataSource[]>([]);
+  const [endpoints, setEndpoints] = useState<Record<string, any[]>>({});
   const [selectedSource, setSelectedSource] = useState<DataSource | null>(
-    mockSources.find(s => s.id === selectedSourceId) || null
+    dataSources.find(s => s.id === selectedSourceId) || null
   );
+  
+  // View states
+  const [currentView, setCurrentView] = useState<'selector' | 'collections' | 'records'>('selector');
+  const [selectedCollection, setSelectedCollection] = useState<DataSource | null>(null);
 
-  const filteredSources = mockSources.filter(s =>
+  // Load data sources when dialog opens
+  useEffect(() => {
+    if (open && appId) {
+      loadDataSources();
+      loadCollections();
+    }
+  }, [open, appId]);
+
+  const loadDataSources = async () => {
+    setLoading(true);
+    try {
+      const sources = await getDataSources(appId);
+      setDataSources(sources);
+      
+      // Load endpoints for API sources
+      const endpointPromises = sources
+        .filter(s => s.auth_type !== 'scraper') // Assuming scrapers don't have endpoints
+        .map(async (source) => {
+          try {
+            const sourceEndpoints = await getDataSourceEndpoints(source.id);
+            return { sourceId: source.id, endpoints: sourceEndpoints };
+          } catch (error) {
+            console.warn(`Failed to load endpoints for source ${source.id}:`, error);
+            return { sourceId: source.id, endpoints: [] };
+          }
+        });
+      
+      const endpointResults = await Promise.all(endpointPromises);
+      const endpointMap: Record<string, any[]> = {};
+      endpointResults.forEach(({ sourceId, endpoints }) => {
+        endpointMap[sourceId] = endpoints;
+      });
+      setEndpoints(endpointMap);
+      
+    } catch (error) {
+      console.error('Failed to load data sources:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCollections = async () => {
+    try {
+      const response = await fetch(`/api/apps/${appId}/collections`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const collectionsAsDataSources = data.collections.map((collection: any) => ({
+          id: collection.id,
+          name: collection.name,
+          type: 'collection' as const,
+          description: collection.description || `Custom data collection with ${collection.record_count} records`,
+          schema: collection.schema,
+          record_count: collection.record_count,
+          color: collection.color,
+          icon: collection.icon,
+          isConnected: true,
+          is_connected: true
+        }));
+        setCollections(collectionsAsDataSources);
+      }
+    } catch (error) {
+      console.error('Failed to load collections:', error);
+    }
+  };
+
+  const allSources = [...dataSources, ...collections];
+  const filteredSources = allSources.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.description.toLowerCase().includes(search.toLowerCase())
   );
 
-  const apiSources = filteredSources.filter(s => s.type === 'api');
-  const scraperSources = filteredSources.filter(s => s.type === 'scraper');
+  const apiSources = filteredSources.filter(s => (s.auth_type && s.auth_type !== 'scraper') || s.type === 'api');
+  const scraperSources = filteredSources.filter(s => s.auth_type === 'scraper' || s.type === 'scraper');
+  const collectionSources = filteredSources.filter(s => s.type === 'collection');
 
   const handleSourceSelect = (source: DataSource) => {
     setSelectedSource(source);
-    if (source.type === 'scraper') {
+    if (source.auth_type === 'scraper' || source.type === 'scraper') {
       // Scrapers don't have endpoints
       onSelect(source.id, undefined, 'scraper');
+      setOpen(false);
+    } else if (source.type === 'collection') {
+      // Collections are direct data sources
+      onSelect(source.id, undefined, 'collection');
       setOpen(false);
     }
   };
@@ -131,16 +195,59 @@ export function DataSourceSelector({
 
   const getSelectedLabel = () => {
     if (!selectedSourceId) return 'Select data source';
-    const source = mockSources.find(s => s.id === selectedSourceId);
+    const source = allSources.find(s => s.id === selectedSourceId);
     if (!source) return 'Select data source';
     
-    if (source.type === 'scraper') {
-      return source.name;
+    if (source.type === 'collection') {
+      return `📊 ${source.name}`;
     }
     
-    const endpoint = source.endpoints?.find(e => e.id === selectedEndpointId);
-    return endpoint ? `${source.name} → ${endpoint.name}` : source.name;
+    if (source.auth_type === 'scraper' || source.type === 'scraper') {
+      return `🌐 ${source.name}`;
+    }
+    
+    const sourceEndpoints = endpoints[source.id] || [];
+    const endpoint = sourceEndpoints.find(e => e.id === selectedEndpointId);
+    return endpoint ? `🔗 ${source.name} → ${endpoint.name}` : `🔗 ${source.name}`;
   };
+
+  const openCollectionManager = () => {
+    setCurrentView('collections');
+  };
+
+  const openRecordManager = (collection: DataSource) => {
+    setSelectedCollection(collection);
+    setCurrentView('records');
+  };
+
+  const backToSelector = () => {
+    setCurrentView('selector');
+    setSelectedCollection(null);
+  };
+
+  if (currentView === 'collections') {
+    return (
+      <Dialog open={true} onOpenChange={() => setCurrentView('selector')}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+          <CollectionManager appId={appId} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (currentView === 'records' && selectedCollection) {
+    return (
+      <Dialog open={true} onOpenChange={() => setCurrentView('selector')}>
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
+          <RecordManager 
+            appId={appId} 
+            collection={selectedCollection as any}
+            onBack={backToSelector}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -149,11 +256,6 @@ export function DataSourceSelector({
           <span className="flex items-center gap-2 truncate">
             {selectedSourceId ? (
               <>
-                {mockSources.find(s => s.id === selectedSourceId)?.type === 'api' ? (
-                  <Database className="w-4 h-4 text-blue-500" />
-                ) : (
-                  <Globe className="w-4 h-4 text-green-500" />
-                )}
                 {getSelectedLabel()}
               </>
             ) : (
@@ -166,11 +268,11 @@ export function DataSourceSelector({
           <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Connect Data Source</DialogTitle>
           <DialogDescription>
-            Select an API endpoint or web scraper to bind to this widget
+            Select an API endpoint, web scraper, or custom collection to bind to this widget
           </DialogDescription>
         </DialogHeader>
 
@@ -181,26 +283,108 @@ export function DataSourceSelector({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            disabled={loading}
           />
         </div>
 
-        <Tabs defaultValue="apis" className="flex-1">
-          <TabsList className="w-full">
-            <TabsTrigger value="apis" className="flex-1 gap-2">
-              <Database className="w-4 h-4" />
-              API Sources ({apiSources.length})
-            </TabsTrigger>
-            <TabsTrigger value="scrapers" className="flex-1 gap-2">
-              <Globe className="w-4 h-4" />
-              Web Scrapers ({scraperSources.length})
-            </TabsTrigger>
-          </TabsList>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <Tabs defaultValue="collections" className="flex-1">
+            <TabsList className="w-full">
+              <TabsTrigger value="collections" className="flex-1 gap-2">
+                <Database className="w-4 h-4" />
+                Custom Data ({collectionSources.length})
+              </TabsTrigger>
+              <TabsTrigger value="apis" className="flex-1 gap-2">
+                <Zap className="w-4 h-4" />
+                APIs ({apiSources.length})
+              </TabsTrigger>
+              <TabsTrigger value="scrapers" className="flex-1 gap-2">
+                <Globe className="w-4 h-4" />
+                Scrapers ({scraperSources.length})
+              </TabsTrigger>
+            </TabsList>
 
           <ScrollArea className="h-[400px] mt-4">
+            <TabsContent value="collections" className="mt-0 space-y-2">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-muted-foreground">
+                  Custom data collections created for this app
+                </p>
+                <Button variant="outline" size="sm" onClick={openCollectionManager}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Manage Collections
+                </Button>
+              </div>
+              
+              {collectionSources.length === 0 ? (
+                <div className="text-center py-8">
+                  <Database className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-sm text-muted-foreground mb-4">No custom collections yet</p>
+                  <Button variant="outline" size="sm" onClick={openCollectionManager}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create First Collection
+                  </Button>
+                </div>
+              ) : (
+                collectionSources.map((source) => (
+                  <Card
+                    key={source.id}
+                    className={`cursor-pointer transition-colors ${
+                      selectedSource?.id === source.id ? 'border-primary' : 'hover:border-primary/50'
+                    }`}
+                    onClick={() => handleSourceSelect(source)}
+                  >
+                    <CardHeader className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-10 h-10 rounded flex items-center justify-center text-white"
+                            style={{ backgroundColor: source.color || '#6366f1' }}
+                          >
+                            <Database className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-base">{source.name}</CardTitle>
+                            <CardDescription>
+                              {source.record_count} records • {source.schema?.length || 0} fields
+                            </CardDescription>
+                          </div>
+                          <Badge variant="outline" className="text-green-600 border-green-600">
+                            <Check className="w-3 h-3 mr-1" />
+                            Ready
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openRecordManager(source);
+                            }}
+                          >
+                            <Table className="w-4 h-4 mr-2" />
+                            View Data
+                          </Button>
+                          {selectedSourceId === source.id && (
+                            <Check className="w-5 h-5 text-primary" />
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+
             <TabsContent value="apis" className="mt-0 space-y-2">
               {apiSources.length === 0 ? (
                 <div className="text-center py-8">
-                  <Database className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                  <Zap className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
                   <p className="text-sm text-muted-foreground mb-4">No API sources found</p>
                   <Button variant="outline" size="sm">
                     <Plus className="w-4 h-4 mr-2" />
@@ -219,9 +403,9 @@ export function DataSourceSelector({
                     <CardHeader className="p-4 pb-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Database className="w-5 h-5 text-blue-500" />
+                          <Zap className="w-5 h-5 text-blue-500" />
                           <CardTitle className="text-base">{source.name}</CardTitle>
-                          {source.isConnected && (
+                          {(source.is_connected || source.isConnected) && (
                             <Badge variant="outline" className="text-green-600 border-green-600">
                               <Check className="w-3 h-3 mr-1" />
                               Connected
@@ -234,13 +418,13 @@ export function DataSourceSelector({
                       </div>
                       <CardDescription>{source.description}</CardDescription>
                     </CardHeader>
-                    {selectedSource?.id === source.id && source.endpoints && (
+                    {selectedSource?.id === source.id && (endpoints[source.id] || []).length > 0 && (
                       <CardContent className="p-4 pt-0">
                         <Label className="text-xs text-muted-foreground mb-2 block">
                           Select Endpoint
                         </Label>
                         <div className="space-y-1">
-                          {source.endpoints.map((endpoint) => (
+                          {(endpoints[source.id] || []).map((endpoint) => (
                             <Button
                               key={endpoint.id}
                               variant={selectedEndpointId === endpoint.id ? 'default' : 'ghost'}
@@ -290,7 +474,7 @@ export function DataSourceSelector({
                         <div className="flex items-center gap-2">
                           <Globe className="w-5 h-5 text-green-500" />
                           <CardTitle className="text-base">{source.name}</CardTitle>
-                          {source.isConnected && (
+                          {(source.is_connected || source.isConnected) && (
                             <Badge variant="outline" className="text-green-600 border-green-600">
                               <Check className="w-3 h-3 mr-1" />
                               Active
@@ -309,6 +493,7 @@ export function DataSourceSelector({
             </TabsContent>
           </ScrollArea>
         </Tabs>
+        )}
 
         <div className="flex items-center justify-between pt-4 border-t">
           <Button variant="ghost" size="sm" asChild>

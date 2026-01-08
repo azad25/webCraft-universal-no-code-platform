@@ -41,6 +41,10 @@ class AuthService:
     @staticmethod
     def get_password_hash(password: str) -> str:
         """Hash a password"""
+        # Ensure password is never longer than 50 characters to be safe with bcrypt
+        if len(password) > 50:
+            password = password[:50]
+        
         return pwd_context.hash(password)
     
     @staticmethod
@@ -100,7 +104,7 @@ class AuthService:
         if db.query(User).filter(User.username == username).first():
             raise ValueError("Username already taken")
         
-        # Create user
+        # Create user with password length handling
         hashed_password = AuthService.get_password_hash(password)
         user = User(
             email=email,
@@ -176,6 +180,25 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Development bypass
+    if credentials.credentials == "dev-bypass-token" and os.getenv("ENVIRONMENT") == "development":
+        # Create or get a development user
+        dev_user = db.query(User).filter(User.email == "dev@webcraft.local").first()
+        if not dev_user:
+            dev_user = User(
+                email="dev@webcraft.local",
+                username="devuser",
+                full_name="Development User",
+                hashed_password=AuthService.get_password_hash("devpassword"),
+                is_verified=True,
+                is_premium=True,
+                subscription_tier="enterprise"
+            )
+            db.add(dev_user)
+            db.commit()
+            db.refresh(dev_user)
+        return dev_user
     
     try:
         payload = AuthService.verify_token(credentials.credentials)

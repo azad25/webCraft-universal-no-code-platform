@@ -108,7 +108,7 @@ async def get_mobile_apps(
 
 @router.get("/apps/{app_id}", response_model=MobileAppResponse)
 async def get_mobile_app(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     platform: str = Query("ios", description="Target platform: ios or android"),
     version: Optional[str] = Query(None, description="API version for compatibility"),
     db: Session = Depends(get_db),
@@ -140,7 +140,7 @@ async def get_mobile_app(
 
 @router.get("/apps/{app_id}/content", response_model=List[MobileContentResponse])
 async def get_mobile_content(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     content_type: Optional[str] = Query(None, description="Filter by content type"),
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=200),
@@ -175,7 +175,7 @@ async def get_mobile_content(
 
 @router.post("/apps/{app_id}/sync")
 async def sync_mobile_app(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     last_sync: Optional[datetime] = Query(None, description="Last sync timestamp"),
     device_id: str = Header(..., alias="X-Device-ID"),
     platform: str = Header(..., alias="X-Platform"),
@@ -221,7 +221,7 @@ async def sync_mobile_app(
 
 @router.post("/apps/{app_id}/push-notification")
 async def send_push_notification(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     notification: PushNotificationRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -269,7 +269,7 @@ async def send_push_notification(
 
 @router.get("/apps/{app_id}/analytics", response_model=MobileAnalyticsResponse)
 async def get_mobile_analytics(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     platform: Optional[str] = Query(None, description="Filter by platform"),
     days: int = Query(30, ge=1, le=365),
     db: Session = Depends(get_db),
@@ -301,7 +301,7 @@ async def get_mobile_analytics(
 
 @router.post("/apps/{app_id}/feedback")
 async def submit_mobile_feedback(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     feedback_data: Dict[str, Any],
     device_id: str = Header(..., alias="X-Device-ID"),
     platform: str = Header(..., alias="X-Platform"),

@@ -1,23 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  Card,
-  CardContent,
-} from '@/components/ui/card'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { 
-  Search,
-  Mail,
-  ShoppingCart,
-  UserPlus,
-  Package,
-  Zap,
-  ArrowRight
+  Search, Star, Clock, Users, Zap, Bot, Target, Shield, 
+  TrendingUp, CheckCircle, Play, Copy, Eye, Filter,
+  Mail, ShoppingCart, Database, Globe, MessageSquare,
+  Calendar, BarChart3, Settings, Sparkles
 } from 'lucide-react'
 
 interface AutomationTemplate {
@@ -25,30 +27,62 @@ interface AutomationTemplate {
   name: string
   description: string
   category: string
-  triggerType: string
-  workflowSteps: any[]
+  trigger_type: string
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  estimated_time: string
+  features: string[]
+  workflow_steps: any[]
+  usage_count: number
+  success_rate: number
 }
 
-const CATEGORY_ICONS: Record<string, any> = {
-  onboarding: UserPlus,
-  ecommerce: ShoppingCart,
+const categoryIcons: Record<string, any> = {
   marketing: Mail,
-  inventory: Package,
+  ecommerce: ShoppingCart,
+  sales: Target,
+  productivity: Database,
+  support: Shield,
+  integration: Globe,
+  reporting: BarChart3,
+}
+
+const difficultyColors = {
+  beginner: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  intermediate: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  advanced: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 }
 
 interface AutomationTemplatesProps {
-  onSelect: (template: AutomationTemplate) => void
+  onSelectTemplate: (template: AutomationTemplate) => void
+  onClose: () => void
 }
 
-export function AutomationTemplates({ onSelect }: AutomationTemplatesProps) {
+export function AutomationTemplates({ onSelectTemplate, onClose }: AutomationTemplatesProps) {
   const [templates, setTemplates] = useState<AutomationTemplate[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [filteredTemplates, setFilteredTemplates] = useState<AutomationTemplate[]>([])
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all')
+  const [search, setSearch] = useState('')
+  const [selectedTemplate, setSelectedTemplate] = useState<AutomationTemplate | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+
+  const categories = [
+    { id: 'all', name: 'All Templates', icon: Sparkles },
+    { id: 'marketing', name: 'Marketing', icon: Mail },
+    { id: 'ecommerce', name: 'E-commerce', icon: ShoppingCart },
+    { id: 'sales', name: 'Sales', icon: Target },
+    { id: 'productivity', name: 'Productivity', icon: Database },
+    { id: 'support', name: 'Support', icon: Shield },
+  ]
 
   useEffect(() => {
     fetchTemplates()
   }, [])
+
+  useEffect(() => {
+    filterTemplates()
+  }, [templates, selectedCategory, selectedDifficulty, search])
 
   const fetchTemplates = async () => {
     try {
@@ -57,175 +91,324 @@ export function AutomationTemplates({ onSelect }: AutomationTemplatesProps) {
       setTemplates(data.templates || [])
     } catch (error) {
       console.error('Failed to fetch templates:', error)
-      // Use fallback templates
-      setTemplates([
-        {
-          id: 'welcome_email',
-          name: 'Welcome Email',
-          description: 'Send welcome email when user signs up',
-          category: 'onboarding',
-          triggerType: 'user_signup',
-          workflowSteps: [
-            { id: '1', type: 'action', actionType: 'delay', config: { minutes: 5 } },
-            { id: '2', type: 'action', actionType: 'send_email', config: { template: 'welcome' } }
-          ]
-        },
-        {
-          id: 'order_confirmation',
-          name: 'Order Confirmation Flow',
-          description: 'Send confirmation and update inventory on new order',
-          category: 'ecommerce',
-          triggerType: 'order_created',
-          workflowSteps: [
-            { id: '1', type: 'action', actionType: 'send_email', config: { template: 'order_confirm' } },
-            { id: '2', type: 'action', actionType: 'update_record', config: { table: 'inventory' } }
-          ]
-        },
-        {
-          id: 'lead_nurture',
-          name: 'Lead Nurturing',
-          description: 'Follow up with leads over time',
-          category: 'marketing',
-          triggerType: 'form_submit',
-          workflowSteps: [
-            { id: '1', type: 'action', actionType: 'create_record', config: { table: 'contacts' } },
-            { id: '2', type: 'action', actionType: 'send_email', config: { template: 'welcome' } },
-            { id: '3', type: 'action', actionType: 'delay', config: { days: 3 } },
-            { id: '4', type: 'action', actionType: 'send_email', config: { template: 'followup' } }
-          ]
-        },
-        {
-          id: 'low_inventory',
-          name: 'Low Inventory Alert',
-          description: 'Alert when inventory falls below threshold',
-          category: 'inventory',
-          triggerType: 'inventory_low',
-          workflowSteps: [
-            { id: '1', type: 'action', actionType: 'send_email', config: { to: 'admin' } },
-            { id: '2', type: 'action', actionType: 'slack_message', config: { channel: '#inventory' } }
-          ]
-        }
-      ])
     } finally {
       setIsLoading(false)
     }
   }
 
-  const categories = [...new Set(templates.map(t => t.category))]
+  const filterTemplates = () => {
+    let filtered = templates
 
-  const filteredTemplates = templates.filter(t => {
-    const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = !selectedCategory || t.category === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(t => t.category === selectedCategory)
+    }
+
+    if (selectedDifficulty !== 'all') {
+      filtered = filtered.filter(t => t.difficulty === selectedDifficulty)
+    }
+
+    if (search) {
+      filtered = filtered.filter(t => 
+        t.name.toLowerCase().includes(search.toLowerCase()) ||
+        t.description.toLowerCase().includes(search.toLowerCase()) ||
+        t.features.some(f => f.toLowerCase().includes(search.toLowerCase()))
+      )
+    }
+
+    setFilteredTemplates(filtered)
+  }
+
+  const handlePreview = (template: AutomationTemplate) => {
+    setSelectedTemplate(template)
+    setShowPreview(true)
+  }
+
+  const handleUseTemplate = (template: AutomationTemplate) => {
+    onSelectTemplate(template)
+    onClose()
+  }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="h-96 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading templates...</p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Search & Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Bot className="w-6 h-6 text-primary" />
+            Automation Templates
+          </h2>
+          <p className="text-muted-foreground">Choose from pre-built workflows to get started quickly</p>
+        </div>
+        <Button variant="outline" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="space-y-4">
+        {/* Search */}
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
-      </div>
 
-      {/* Category Pills */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={selectedCategory === null ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSelectedCategory(null)}
-        >
-          All
-        </Button>
-        {categories.map((category) => {
-          const Icon = CATEGORY_ICONS[category] || Zap
-          return (
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2">
+          {categories.map((category) => (
             <Button
-              key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
+              key={category.id}
+              variant={selectedCategory === category.id ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedCategory(category)}
+              onClick={() => setSelectedCategory(category.id)}
+              className="flex items-center gap-2"
+            >
+              <category.icon className="w-4 h-4" />
+              {category.name}
+            </Button>
+          ))}
+        </div>
+
+        {/* Difficulty Filter */}
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Difficulty:</span>
+          {['all', 'beginner', 'intermediate', 'advanced'].map((difficulty) => (
+            <Button
+              key={difficulty}
+              variant={selectedDifficulty === difficulty ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedDifficulty(difficulty)}
               className="capitalize"
             >
-              <Icon className="w-4 h-4 mr-2" />
-              {category}
+              {difficulty}
             </Button>
-          )
-        })}
+          ))}
+        </div>
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredTemplates.map((template) => {
-          const Icon = CATEGORY_ICONS[template.category] || Zap
-          return (
-            <motion.div
-              key={template.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card className="cursor-pointer hover:shadow-md transition-all hover:border-primary">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <Icon className="w-5 h-5 text-primary" />
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <AnimatePresence>
+          {filteredTemplates.map((template, index) => {
+            const CategoryIcon = categoryIcons[template.category] || Bot
+            
+            return (
+              <motion.div
+                key={template.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <CategoryIcon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{template.name}</CardTitle>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {template.category}
+                            </Badge>
+                            <Badge 
+                              variant="outline" 
+                              className={cn("text-xs", difficultyColors[template.difficulty])}
+                            >
+                              {template.difficulty}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Star className="w-3 h-3 fill-current text-yellow-500" />
+                        {template.success_rate}%
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold truncate">{template.name}</h3>
-                        <Badge variant="secondary" className="capitalize text-xs">
-                          {template.category}
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {template.description}
+                    </p>
+
+                    {/* Features */}
+                    <div className="flex flex-wrap gap-1">
+                      {template.features.slice(0, 3).map((feature) => (
+                        <Badge key={feature} variant="secondary" className="text-xs">
+                          {feature}
                         </Badge>
+                      ))}
+                      {template.features.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{template.features.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {template.estimated_time}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {template.description}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
-                          {template.workflowSteps.length} steps
-                        </span>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => onSelect(template)}
-                        >
-                          Use Template
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {template.usage_count} uses
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )
-        })}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      <Button 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleUseTemplate(template)}
+                      >
+                        <Zap className="w-4 h-4 mr-1" />
+                        Use Template
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handlePreview(template)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </AnimatePresence>
       </div>
 
       {filteredTemplates.length === 0 && (
         <div className="text-center py-12">
-          <Zap className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-          <h3 className="font-semibold mb-2">No templates found</h3>
-          <p className="text-sm text-muted-foreground">
-            Try adjusting your search or filters
-          </p>
+          <Bot className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">No templates found</h3>
+          <p className="text-muted-foreground">Try adjusting your filters or search terms</p>
         </div>
       )}
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedTemplate && (
+                <>
+                  {React.createElement(categoryIcons[selectedTemplate.category] || Bot, { 
+                    className: "w-5 h-5 text-primary" 
+                  })}
+                  {selectedTemplate.name}
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedTemplate?.description}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedTemplate && (
+            <div className="space-y-4">
+              {/* Template Info */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium">Category</p>
+                  <p className="text-sm text-muted-foreground capitalize">{selectedTemplate.category}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Difficulty</p>
+                  <Badge 
+                    variant="outline" 
+                    className={cn("text-xs", difficultyColors[selectedTemplate.difficulty])}
+                  >
+                    {selectedTemplate.difficulty}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Estimated Time</p>
+                  <p className="text-sm text-muted-foreground">{selectedTemplate.estimated_time}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Success Rate</p>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-sm text-muted-foreground">{selectedTemplate.success_rate}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div>
+                <p className="text-sm font-medium mb-2">Features</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedTemplate.features.map((feature) => (
+                    <Badge key={feature} variant="secondary">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Workflow Preview */}
+              <div>
+                <p className="text-sm font-medium mb-2">Workflow Steps</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {selectedTemplate.workflow_steps.map((step, index) => (
+                    <div key={step.id} className="flex items-center gap-3 p-2 bg-muted/30 rounded">
+                      <div className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center text-xs font-medium">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium capitalize">
+                          {step.action_type?.replace('_', ' ') || step.type}
+                        </p>
+                        {step.config && Object.keys(step.config).length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {Object.entries(step.config).slice(0, 2).map(([key, value]) => 
+                              `${key}: ${String(value).slice(0, 30)}${String(value).length > 30 ? '...' : ''}`
+                            ).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Close
+            </Button>
+            <Button onClick={() => selectedTemplate && handleUseTemplate(selectedTemplate)}>
+              <Zap className="w-4 h-4 mr-2" />
+              Use This Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

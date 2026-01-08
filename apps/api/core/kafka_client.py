@@ -136,7 +136,6 @@ class KafkaProducerClient:
                 key_serializer=lambda k: k.encode('utf-8') if k else None,
                 compression_type='gzip',
                 acks='all',  # Wait for all replicas
-                retries=3,
                 retry_backoff_ms=100,
                 max_batch_size=16384,
                 linger_ms=10,  # Batch for 10ms
@@ -170,6 +169,10 @@ class KafkaProducerClient:
         partition: Optional[int] = None
     ) -> None:
         """Send event to Kafka topic"""
+        if self._producer is None:
+            logger.debug(f"Kafka not available, skipping event: {event.event_type}")
+            return
+            
         try:
             await self.producer.send_and_wait(
                 topic=topic,
@@ -421,7 +424,12 @@ event_publisher = EventPublisher()
 
 async def init_kafka():
     """Initialize Kafka connections"""
-    await kafka_producer.connect()
+    try:
+        await kafka_producer.connect()
+        logger.info("Kafka producer initialized successfully")
+    except Exception as e:
+        logger.warning(f"Kafka not available, running without event streaming: {e}")
+        # Continue without Kafka for development
 
 
 async def close_kafka():

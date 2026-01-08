@@ -1,8 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Database, RefreshCw, Loader2 } from 'lucide-react'
+import { fetchDataSourceData } from '@/lib/data-source-api'
 
 interface ProgressItem {
   label: string
@@ -11,6 +15,14 @@ interface ProgressItem {
 }
 
 interface ProgressWidgetProps {
+  // Data source integration
+  dataSourceId?: string
+  dataEndpointId?: string
+  dataSourceType?: 'api' | 'scraper' | 'collection'
+  autoRefresh?: boolean
+  refreshInterval?: number
+  
+  // Progress configuration
   title?: string
   items?: ProgressItem[]
   style?: 'bar' | 'circle' | 'semicircle'
@@ -22,6 +34,14 @@ interface ProgressWidgetProps {
 }
 
 export function ProgressWidget({
+  // Data source props
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  autoRefresh = false,
+  refreshInterval = 60,
+  
+  // Progress props
   title,
   items = [
     { label: 'Web Development', value: 95, color: '#3b82f6' },
@@ -36,6 +56,68 @@ export function ProgressWidget({
   isPreview,
   onChange
 }: ProgressWidgetProps) {
+  // Data source state
+  const [progressData, setProgressData] = useState<ProgressItem[]>([])
+  const [isLoadingData, setIsLoadingData] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Use data source data if available, otherwise use static data
+  const activeItems = dataSourceId && progressData.length > 0 ? progressData : items
+
+  // Fetch data from data source
+  const fetchProgressData = async () => {
+    if (!dataSourceId || (!dataEndpointId && dataSourceType !== 'collection')) return
+
+    setIsLoadingData(true)
+    setError(null)
+    
+    try {
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      
+      // Transform API response to progress format
+      let transformedData = response.data
+      if (Array.isArray(transformedData)) {
+        transformedData = transformedData.map((item: any) => ({
+          label: item.label || item.name || item.title || 'Progress Item',
+          value: typeof item.value === 'number' ? item.value : parseFloat(item.value) || 0,
+          color: item.color || item.colour || '#3b82f6'
+        }))
+      } else {
+        transformedData = []
+      }
+      
+      setProgressData(transformedData)
+      setLastRefresh(new Date())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch progress data')
+      console.error('Failed to fetch progress data:', err)
+    } finally {
+      setIsLoadingData(false)
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    if (dataSourceId && !isEditing) {
+      fetchProgressData()
+    }
+  }, [dataSourceId, dataEndpointId, isEditing])
+
+  // Auto refresh
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0 && dataSourceId && !isEditing) {
+      const interval = setInterval(fetchProgressData, refreshInterval * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, dataSourceId, isEditing])
+
+  const handleRefresh = () => {
+    if (dataSourceId) {
+      fetchProgressData()
+    }
+  }
+
   const [isVisible, setIsVisible] = useState(!animated)
 
   useEffect(() => {
@@ -148,25 +230,42 @@ export function ProgressWidget({
   return (
     <section className="w-full py-12 px-6">
       <div className="max-w-4xl mx-auto">
-        {title && (
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">{title}</h2>
-        )}
+        <div className="flex items-center justify-center gap-4 mb-8">
+          {title && (
+            <h2 className="text-2xl md:text-3xl font-bold text-center">{title}</h2>
+          )}
+          {dataSourceId && (
+            <Badge variant="outline" className="text-xs">
+              <Database className="w-3 h-3 mr-1" />
+              {dataSourceType === 'collection' ? 'Collection' : 
+               dataSourceType === 'scraper' ? 'Scraper' : 'API'}
+            </Badge>
+          )}
+          {isLoadingData && (
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          )}
+          {dataSourceId && lastRefresh && (
+            <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoadingData}>
+              <RefreshCw className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
         
         {style === 'bar' && (
           <div className="space-y-6">
-            {items.map((item, index) => renderBar(item, index))}
+            {activeItems.map((item, index) => renderBar(item, index))}
           </div>
         )}
         
         {style === 'circle' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {items.map((item, index) => renderCircle(item, index))}
+            {activeItems.map((item, index) => renderCircle(item, index))}
           </div>
         )}
         
         {style === 'semicircle' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {items.map((item, index) => renderSemicircle(item, index))}
+            {activeItems.map((item, index) => renderSemicircle(item, index))}
           </div>
         )}
       </div>

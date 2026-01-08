@@ -11,7 +11,7 @@ from pydantic import BaseModel
 import json
 
 from core.database import get_db, App, Page, Template, Widget, User, Automation
-from core.auth import get_current_user, get_optional_user
+from core.auth import get_current_user, get_current_user_optional
 
 router = APIRouter()
 
@@ -396,7 +396,7 @@ def parse_simple_graphql(query: str) -> Dict:
 async def graphql_endpoint(
     request: GraphQLRequest,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_optional_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """GraphQL endpoint"""
     try:

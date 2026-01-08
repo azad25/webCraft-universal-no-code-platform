@@ -8,18 +8,19 @@ import { Mail, Lock, User, Eye, EyeOff, Loader2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useAuth } from '@/contexts/auth-context'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { register, isLoading, error, clearError } = useAuth()
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
   const [agreed, setAgreed] = useState(false)
 
   const passwordRequirements = [
@@ -30,39 +31,27 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    clearError()
+    
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      // You might want to add a local error state for this
       return
     }
     if (!agreed) {
-      setError('Please agree to the terms')
+      // You might want to add a local error state for this
       return
     }
 
-    setIsLoading(true)
-    setError('')
-
     try {
-      const res = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name: formData.name,
-          email: formData.email,
-          password: formData.password
-        })
+      await register({
+        email: formData.email,
+        username: formData.username || formData.email.split('@')[0],
+        password: formData.password,
+        fullName: formData.name
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.detail || 'Registration failed')
-      }
-
-      router.push('/login?registered=true')
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setIsLoading(false)
+      // The auth context will handle the redirect to dashboard
+    } catch (err) {
+      // Error is handled by the auth context
     }
   }
 
@@ -101,6 +90,21 @@ export default function RegisterPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="username"
+                  placeholder="johndoe"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className="pl-10"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Leave empty to use email prefix</p>
             </div>
 
             <div className="space-y-2">

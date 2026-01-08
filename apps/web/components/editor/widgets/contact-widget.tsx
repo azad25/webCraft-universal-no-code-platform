@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { 
   Mail, 
@@ -12,8 +13,11 @@ import {
   Clock, 
   Send,
   Loader2,
-  CheckCircle
+  CheckCircle,
+  Database,
+  RefreshCw
 } from 'lucide-react'
+import { fetchDataSourceData } from '@/lib/data-source-api'
 
 interface ContactInfo {
   email?: string
@@ -23,6 +27,14 @@ interface ContactInfo {
 }
 
 interface ContactWidgetProps {
+  // Data source integration
+  dataSourceId?: string
+  dataEndpointId?: string
+  dataSourceType?: 'api' | 'scraper' | 'collection'
+  autoRefresh?: boolean
+  refreshInterval?: number
+  
+  // Contact configuration
   title?: string
   subtitle?: string
   contactInfo?: ContactInfo
@@ -36,6 +48,14 @@ interface ContactWidgetProps {
 }
 
 export function ContactWidget({
+  // Data source props
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  autoRefresh = false,
+  refreshInterval = 60,
+  
+  // Contact props
   title = 'Get in Touch',
   subtitle = 'We would love to hear from you. Send us a message and we will respond as soon as possible.',
   contactInfo = {
@@ -52,6 +72,70 @@ export function ContactWidget({
   isPreview,
   onChange
 }: ContactWidgetProps) {
+  // Data source state
+  const [contactData, setContactData] = useState<ContactInfo | null>(null)
+  const [isLoadingData, setIsLoadingData] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Use data source data if available, otherwise use static data
+  const activeContactInfo = (dataSourceId && contactData) || contactInfo
+
+  // Fetch data from data source
+  const fetchContactData = async () => {
+    if (!dataSourceId || (!dataEndpointId && dataSourceType !== 'collection')) return
+
+    setIsLoadingData(true)
+    setError(null)
+    
+    try {
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      
+      // Transform API response to contact format
+      let transformedData = response.data
+      if (Array.isArray(transformedData) && transformedData.length > 0) {
+        transformedData = transformedData[0] // Use first item for contact info
+      }
+      
+      if (transformedData && typeof transformedData === 'object') {
+        setContactData({
+          email: transformedData.email || transformedData.contact_email || transformedData.mail,
+          phone: transformedData.phone || transformedData.telephone || transformedData.contact_phone,
+          address: transformedData.address || transformedData.location || transformedData.contact_address,
+          hours: transformedData.hours || transformedData.business_hours || transformedData.operating_hours
+        })
+      }
+      
+      setLastRefresh(new Date())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch contact data')
+      console.error('Failed to fetch contact data:', err)
+    } finally {
+      setIsLoadingData(false)
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    if (dataSourceId && !isEditing) {
+      fetchContactData()
+    }
+  }, [dataSourceId, dataEndpointId, isEditing])
+
+  // Auto refresh
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0 && dataSourceId && !isEditing) {
+      const interval = setInterval(fetchContactData, refreshInterval * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, dataSourceId, isEditing])
+
+  const handleRefresh = () => {
+    if (dataSourceId) {
+      fetchContactData()
+    }
+  }
+
   const [formState, setFormState] = useState({
     name: '',
     email: '',
@@ -73,10 +157,10 @@ export function ContactWidget({
   }
 
   const contactItems = [
-    { icon: Mail, label: 'Email', value: contactInfo.email },
-    { icon: Phone, label: 'Phone', value: contactInfo.phone },
-    { icon: MapPin, label: 'Address', value: contactInfo.address },
-    { icon: Clock, label: 'Hours', value: contactInfo.hours }
+    { icon: Mail, label: 'Email', value: activeContactInfo.email },
+    { icon: Phone, label: 'Phone', value: activeContactInfo.phone },
+    { icon: MapPin, label: 'Address', value: activeContactInfo.address },
+    { icon: Clock, label: 'Hours', value: activeContactInfo.hours }
   ].filter(item => item.value)
 
   return (
@@ -84,14 +168,26 @@ export function ContactWidget({
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold mb-4"
-          >
-            {title}
-          </motion.h2>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-4xl font-bold"
+            >
+              {title}
+            </motion.h2>
+            {dataSourceId && (
+              <Badge variant="outline" className="text-xs">
+                <Database className="w-3 h-3 mr-1" />
+                {dataSourceType === 'collection' ? 'Collection' : 
+                 dataSourceType === 'scraper' ? 'Scraper' : 'API'}
+              </Badge>
+            )}
+            {isLoadingData && (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -101,6 +197,16 @@ export function ContactWidget({
           >
             {subtitle}
           </motion.p>
+          {dataSourceId && lastRefresh && (
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="text-xs text-muted-foreground">
+                Updated {lastRefresh.toLocaleTimeString()}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoadingData}>
+                <RefreshCw className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className={cn(

@@ -48,7 +48,7 @@ class SitemapConfig(BaseModel):
 
 @router.get("/apps/{app_id}/analysis", response_model=SEOAnalysisResponse)
 async def analyze_app_seo(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -121,7 +121,7 @@ async def analyze_app_seo(
 
 @router.put("/apps/{app_id}/config")
 async def update_seo_config(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     config: SEOConfigUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -158,7 +158,7 @@ async def update_seo_config(
 
 @router.get("/apps/{app_id}/sitemap")
 async def generate_sitemap(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -206,7 +206,7 @@ async def generate_sitemap(
 
 @router.get("/apps/{app_id}/structured-data")
 async def get_structured_data(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -242,7 +242,7 @@ async def get_structured_data(
 
 @router.post("/apps/{app_id}/robots-txt")
 async def generate_robots_txt(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -293,7 +293,7 @@ Disallow: /_next/
 
 @router.get("/apps/{app_id}/core-web-vitals")
 async def get_core_web_vitals(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

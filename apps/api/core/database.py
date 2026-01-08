@@ -17,6 +17,9 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://webcraft:password@localho
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Alias for backward compatibility
+Session = SessionLocal
+
 Base = declarative_base()
 
 # Multi-tenant base model
@@ -553,7 +556,7 @@ class StaticExport(BaseModel):
     
     # Output
     file_path = Column(String(500), nullable=True)
-    file_size_bytes = Column(Integer, nullable=True)
+    file_size_bytes = Column(Integer, default=0)
     download_url = Column(String(500), nullable=True)
     
     # Metrics
@@ -571,6 +574,34 @@ class StaticExport(BaseModel):
     __table_args__ = (
         Index('idx_export_app', 'app_id'),
         Index('idx_export_status', 'status'),
+    )
+
+
+class PreviewSession(BaseModel):
+    """Preview sessions for app testing"""
+    __tablename__ = "preview_sessions"
+    
+    # Preview token
+    token = Column(String(36), unique=True, index=True, nullable=False)
+    
+    # Device type for preview
+    device_type = Column(String(20), default="desktop")  # desktop, tablet, mobile
+    
+    # Expiration
+    expires_at = Column(DateTime, nullable=False)
+    
+    # Usage tracking
+    access_count = Column(Integer, default=0)
+    last_accessed = Column(DateTime, nullable=True)
+    
+    # App relationship
+    app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    app = relationship("App")
+    
+    __table_args__ = (
+        Index('idx_preview_app', 'app_id'),
+        Index('idx_preview_token', 'token'),
+        Index('idx_preview_expires', 'expires_at'),
     )
 
 

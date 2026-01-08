@@ -17,6 +17,7 @@ import {
   List,
   MoreVertical
 } from 'lucide-react';
+import { fetchDataSourceData } from '@/lib/data-source-api';
 
 interface DataItem {
   [key: string]: any;
@@ -27,6 +28,11 @@ interface DataWidgetProps {
   sourceType?: 'api' | 'scraper' | 'static';
   sourceId?: string;
   endpointId?: string;
+  
+  // New data source props from properties panel
+  dataSourceId?: string;
+  dataEndpointId?: string;
+  dataSourceType?: 'api' | 'scraper';
   
   // Display configuration
   displayMode?: 'table' | 'cards' | 'list' | 'custom';
@@ -49,6 +55,9 @@ interface DataWidgetProps {
   // Editor
   isEditing?: boolean;
   onChange?: (props: any) => void;
+  
+  // Additional props
+  [key: string]: any;
 }
 
 // Mock data for preview
@@ -80,12 +89,22 @@ export function DataWidget({
   autoRefresh = false,
   refreshInterval = 60,
   isEditing = false,
-  onChange
+  onChange,
+  // New props from properties panel
+  dataSourceId,
+  dataEndpointId,
+  dataSourceType,
+  ...props
 }: DataWidgetProps) {
   const [data, setData] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Use new data source props if available, fallback to legacy props
+  const activeSourceType = dataSourceType || sourceType;
+  const activeSourceId = dataSourceId || sourceId;
+  const activeEndpointId = dataEndpointId || endpointId;
 
   // Simulate data fetching
   useEffect(() => {
@@ -94,12 +113,25 @@ export function DataWidget({
       setError(null);
       
       try {
-        // Simulate API delay
+        // If we have a real data source ID, fetch from API
+        if (activeSourceId && activeEndpointId && activeSourceType === 'api') {
+          try {
+            const response = await fetchDataSourceData(activeSourceId, activeEndpointId);
+            setData(Array.isArray(response.data) ? response.data : [response.data]);
+            setLastUpdated(new Date());
+            return;
+          } catch (apiError) {
+            console.warn('Failed to fetch from API, falling back to mock data:', apiError);
+            // Fall through to mock data
+          }
+        }
+        
+        // Fallback to mock data for preview/development
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        if (sourceType === 'api') {
+        if (activeSourceType === 'api') {
           setData(mockApiData);
-        } else if (sourceType === 'scraper') {
+        } else if (activeSourceType === 'scraper') {
           setData(mockScraperData);
         } else if (staticData) {
           setData(staticData);
@@ -110,6 +142,7 @@ export function DataWidget({
         setLastUpdated(new Date());
       } catch (err) {
         setError('Failed to fetch data');
+        console.error('Data fetch error:', err);
       } finally {
         setLoading(false);
       }
@@ -122,7 +155,7 @@ export function DataWidget({
       const interval = setInterval(fetchData, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
-  }, [sourceType, sourceId, endpointId, staticData, autoRefresh, refreshInterval]);
+  }, [activeSourceType, activeSourceId, activeEndpointId, staticData, autoRefresh, refreshInterval]);
 
   const handleRefresh = () => {
     setLoading(true);
@@ -133,7 +166,7 @@ export function DataWidget({
   };
 
   const getSourceIcon = () => {
-    switch (sourceType) {
+    switch (activeSourceType) {
       case 'api': return <Database className="w-4 h-4" />;
       case 'scraper': return <Globe className="w-4 h-4" />;
       default: return <Table className="w-4 h-4" />;
@@ -141,7 +174,7 @@ export function DataWidget({
   };
 
   const getSourceLabel = () => {
-    switch (sourceType) {
+    switch (activeSourceType) {
       case 'api': return 'API';
       case 'scraper': return 'Scraper';
       default: return 'Static';
@@ -248,7 +281,7 @@ export function DataWidget({
   };
 
   // Empty state for editor
-  if (isEditing && !sourceId && sourceType !== 'static') {
+  if (isEditing && !activeSourceId && activeSourceType !== 'static') {
     return (
       <div className="w-full h-full min-h-[200px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center">
         <Database className="w-12 h-12 text-muted-foreground mb-4" />

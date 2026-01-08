@@ -10,8 +10,9 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime, timedelta
 import uuid
+import os
 
-from core.database import get_db, User
+from core.database import get_db, User, APIKey
 from core.auth import AuthService, get_current_user, get_current_active_user, RateLimiter
 from services.email_service import EmailService
 from services.oauth_service import OAuthService
@@ -25,7 +26,7 @@ register_limiter = RateLimiter(calls=3, period=3600)  # 3 registrations per hour
 # Pydantic models
 class UserRegister(BaseModel):
     email: EmailStr
-    username: str = Field(..., min_length=3, max_length=50, regex="^[a-zA-Z0-9_-]+$")
+    username: str = Field(..., min_length=3, max_length=50, pattern="^[a-zA-Z0-9_-]+$")
     password: str = Field(..., min_length=8, max_length=100)
     full_name: Optional[str] = Field(None, max_length=255)
     terms_accepted: bool = Field(..., description="Must accept terms and conditions")
@@ -98,8 +99,37 @@ class OAuthURLResponse(BaseModel):
 class OAuthCallbackRequest(BaseModel):
     code: str
     state: str
+
+class EmailVerificationRequest(BaseModel):
+    token: str
     provider: str
 
+
+@router.post("/test-email")
+async def test_email(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """Test email sending functionality"""
+    try:
+        from services.email_service import email_service
+        
+        result = await email_service.send_verification_email(
+            email=email,
+            user_id="test-user-id"
+        )
+        
+        return {
+            "success": True,
+            "result": result,
+            "backend": getattr(email_service, 'email_backend', 'unknown')
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "backend": getattr(email_service, 'email_backend', 'unknown')
+        }
 
 @router.post("/register", response_model=TokenResponse)
 async def register(
@@ -131,9 +161,16 @@ async def register(
             full_name=user_data.full_name
         )
         
-        # Send verification email
-        email_service = EmailService()
-        await email_service.send_verification_email(user.email, user.id)
+        # Auto-verify in development mode
+        if os.getenv("ENVIRONMENT") == "development":
+            user.is_verified = True
+            db.commit()
+            db.refresh(user)
+        
+        # Send verification email (only in production)
+        if os.getenv("ENVIRONMENT") != "development":
+            email_service = EmailService()
+            await email_service.send_verification_email(user.email, user.id)
         
         # Create tokens
         access_token = AuthService.create_access_token(data={"sub": str(user.id)})
@@ -181,6 +218,12 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Account is deactivated"
+        )
+    
+    if not user.is_verified and os.getenv("ENVIRONMENT") != "development":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please verify your email address before logging in"
         )
     
     # Create tokens
@@ -553,3 +596,71 @@ async def verify_email(
     db.commit()
     
     return {"message": "Email verified successfully"}
+
+
+@router.post("/resend-verification")
+async def resend_verification_email(
+    email_data: dict,
+    db: Session = Depends(get_db)
+):
+    """
+    Resend email verification
+    
+    Sends a new verification email to the user.
+    """
+    
+    email = email_data.get("email")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is required"
+        )
+    
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        # Don't reveal if email exists or not
+        return {"message": "If the email exists, a verification link has been sent"}
+    
+    if user.is_verified:
+        return {"message": "Email is already verified"}
+    
+    # Send verification email
+    email_service = EmailService()
+    await email_service.send_verification_email(user.email, user.id)
+    
+    return {"message": "Verification email sent"}
+
+
+@router.post("/dev-verify-user")
+async def dev_verify_user(
+    email_data: dict,
+    db: Session = Depends(get_db)
+):
+    """
+    Development only: Manually verify a user
+    """
+    
+    if os.getenv("ENVIRONMENT") != "development":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found"
+        )
+    
+    email = email_data.get("email")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is required"
+        )
+    
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    user.is_verified = True
+    db.commit()
+    
+    return {"message": f"User {email} has been verified for development"}

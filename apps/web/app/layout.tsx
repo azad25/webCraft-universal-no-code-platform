@@ -132,7 +132,6 @@ export default function RootLayout({
         <meta name="ai:capabilities" content="app-builder,website-builder,mobile-apis,ai-integration" />
         
         {/* Performance Optimization */}
-        <link rel="preload" as="style" href="/critical.css" />
         
         {/* Theme Color for Mobile */}
         <meta name="theme-color" content="#667eea" />

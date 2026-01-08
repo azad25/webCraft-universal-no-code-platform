@@ -9,7 +9,7 @@ from typing import Optional
 from enum import Enum
 
 from services.sdk_generator import SDKGenerator
-from core.auth import get_current_user, get_optional_user
+from core.auth import get_current_user, get_current_user_optional
 
 router = APIRouter()
 

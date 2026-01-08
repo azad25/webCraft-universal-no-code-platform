@@ -30,7 +30,8 @@ PREMADE_TEMPLATES = {
                         "id": "nav-1",
                         "type": "navbar",
                         "props": {
-                            "logo": "YourBrand",
+                            "logo": "StartupPro",
+                            "logoImage": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=40&h=40&fit=crop",
                             "links": [
                                 {"label": "Features", "href": "#features"},
                                 {"label": "Pricing", "href": "#pricing"},
@@ -39,7 +40,8 @@ PREMADE_TEMPLATES = {
                             ],
                             "ctaText": "Get Started",
                             "ctaHref": "/signup",
-                            "variant": "transparent"
+                            "variant": "transparent",
+                            "sticky": True
                         }
                     },
                     {
@@ -47,11 +49,14 @@ PREMADE_TEMPLATES = {
                         "type": "hero",
                         "props": {
                             "title": "Build Something Amazing",
-                            "subtitle": "The all-in-one platform to launch your next big idea. Start building today.",
+                            "subtitle": "The all-in-one platform to launch your next big idea. Start building today with our powerful tools and seamless integrations.",
                             "primaryCta": "Start Free Trial",
                             "secondaryCta": "Watch Demo",
                             "backgroundType": "gradient",
-                            "alignment": "center"
+                            "alignment": "center",
+                            "backgroundImage": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&h=1080&fit=crop",
+                            "showArrow": True,
+                            "size": "large"
                         }
                     },
                     {
@@ -59,7 +64,14 @@ PREMADE_TEMPLATES = {
                         "type": "logo-cloud",
                         "props": {
                             "title": "Trusted by leading companies",
-                            "logos": []
+                            "logos": [
+                                {"name": "TechCorp", "image": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop"},
+                                {"name": "InnovateLab", "image": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop"},
+                                {"name": "FutureWorks", "image": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop"},
+                                {"name": "CloudTech", "image": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop"},
+                                {"name": "DataFlow", "image": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop"}
+                            ],
+                            "variant": "grayscale"
                         }
                     },
                     {
@@ -67,12 +79,40 @@ PREMADE_TEMPLATES = {
                         "type": "features",
                         "props": {
                             "title": "Everything you need",
-                            "subtitle": "Powerful features to help you build faster",
+                            "subtitle": "Powerful features to help you build faster and scale effortlessly",
                             "columns": 3,
+                            "variant": "cards",
                             "features": [
-                                {"icon": "Zap", "title": "Lightning Fast", "description": "Built for speed and performance"},
-                                {"icon": "Shield", "title": "Secure by Default", "description": "Enterprise-grade security"},
-                                {"icon": "Puzzle", "title": "Easy Integration", "description": "Connect with your favorite tools"}
+                                {
+                                    "icon": "Zap", 
+                                    "title": "Lightning Fast", 
+                                    "description": "Built for speed and performance with optimized infrastructure and global CDN"
+                                },
+                                {
+                                    "icon": "Shield", 
+                                    "title": "Secure by Default", 
+                                    "description": "Enterprise-grade security with end-to-end encryption and compliance certifications"
+                                },
+                                {
+                                    "icon": "Puzzle", 
+                                    "title": "Easy Integration", 
+                                    "description": "Connect with your favorite tools through our extensive API and webhook system"
+                                },
+                                {
+                                    "icon": "Users", 
+                                    "title": "Team Collaboration", 
+                                    "description": "Work together seamlessly with real-time collaboration and role-based permissions"
+                                },
+                                {
+                                    "icon": "BarChart", 
+                                    "title": "Advanced Analytics", 
+                                    "description": "Get deep insights with comprehensive analytics and custom reporting dashboards"
+                                },
+                                {
+                                    "icon": "Headphones", 
+                                    "title": "24/7 Support", 
+                                    "description": "Round-the-clock expert support to help you succeed at every step"
+                                }
                             ]
                         }
                     },
@@ -80,12 +120,15 @@ PREMADE_TEMPLATES = {
                         "id": "stats-1",
                         "type": "stats",
                         "props": {
+                            "title": "Trusted by thousands worldwide",
                             "stats": [
-                                {"value": "10K+", "label": "Active Users"},
-                                {"value": "99.9%", "label": "Uptime"},
-                                {"value": "24/7", "label": "Support"},
-                                {"value": "50+", "label": "Integrations"}
-                            ]
+                                {"value": "10,000+", "label": "Active Users", "icon": "Users"},
+                                {"value": "99.9%", "label": "Uptime", "icon": "Activity"},
+                                {"value": "24/7", "label": "Support", "icon": "Headphones"},
+                                {"value": "50+", "label": "Integrations", "icon": "Puzzle"}
+                            ],
+                            "variant": "centered",
+                            "animated": True
                         }
                     },
                     {
@@ -93,11 +136,60 @@ PREMADE_TEMPLATES = {
                         "type": "pricing",
                         "props": {
                             "title": "Simple, transparent pricing",
-                            "subtitle": "Choose the plan that works for you",
+                            "subtitle": "Choose the plan that works for you. No hidden fees, cancel anytime.",
+                            "showToggle": True,
                             "plans": [
-                                {"name": "Starter", "price": "$9", "period": "/month", "features": ["5 Projects", "Basic Analytics", "Email Support"], "cta": "Get Started"},
-                                {"name": "Pro", "price": "$29", "period": "/month", "features": ["Unlimited Projects", "Advanced Analytics", "Priority Support", "API Access"], "cta": "Start Free Trial", "highlighted": True},
-                                {"name": "Enterprise", "price": "Custom", "period": "", "features": ["Everything in Pro", "Custom Integrations", "Dedicated Support", "SLA"], "cta": "Contact Sales"}
+                                {
+                                    "name": "Starter", 
+                                    "price": 9, 
+                                    "period": "month", 
+                                    "yearlyPrice": 90,
+                                    "description": "Perfect for individuals and small projects",
+                                    "features": [
+                                        "5 Projects", 
+                                        "Basic Analytics", 
+                                        "Email Support",
+                                        "1GB Storage",
+                                        "SSL Certificate"
+                                    ], 
+                                    "cta": "Get Started",
+                                    "popular": False
+                                },
+                                {
+                                    "name": "Pro", 
+                                    "price": 29, 
+                                    "period": "month", 
+                                    "yearlyPrice": 290,
+                                    "description": "Best for growing teams and businesses",
+                                    "features": [
+                                        "Unlimited Projects", 
+                                        "Advanced Analytics", 
+                                        "Priority Support", 
+                                        "API Access",
+                                        "10GB Storage",
+                                        "Custom Domain",
+                                        "Team Collaboration"
+                                    ], 
+                                    "cta": "Start Free Trial", 
+                                    "popular": True
+                                },
+                                {
+                                    "name": "Enterprise", 
+                                    "price": "Custom", 
+                                    "period": "", 
+                                    "description": "For large organizations with custom needs",
+                                    "features": [
+                                        "Everything in Pro", 
+                                        "Custom Integrations", 
+                                        "Dedicated Support", 
+                                        "SLA Guarantee",
+                                        "Unlimited Storage",
+                                        "Advanced Security",
+                                        "Custom Training"
+                                    ], 
+                                    "cta": "Contact Sales",
+                                    "popular": False
+                                }
                             ]
                         }
                     },
@@ -106,9 +198,30 @@ PREMADE_TEMPLATES = {
                         "type": "testimonial",
                         "props": {
                             "title": "What our customers say",
+                            "subtitle": "Don't just take our word for it - hear from some of our satisfied customers",
+                            "variant": "grid",
                             "testimonials": [
-                                {"quote": "This platform transformed our business.", "author": "Jane Doe", "role": "CEO, TechCorp", "avatar": ""},
-                                {"quote": "Best investment we've made this year.", "author": "John Smith", "role": "Founder, StartupXYZ", "avatar": ""}
+                                {
+                                    "quote": "This platform completely transformed how we build and deploy applications. The speed and reliability are unmatched.",
+                                    "author": "Sarah Johnson",
+                                    "role": "CTO, TechCorp",
+                                    "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face",
+                                    "rating": 5
+                                },
+                                {
+                                    "quote": "Best investment we've made this year. The ROI was immediate and the support team is incredible.",
+                                    "author": "Michael Chen",
+                                    "role": "Founder, StartupXYZ",
+                                    "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face",
+                                    "rating": 5
+                                },
+                                {
+                                    "quote": "The integration capabilities saved us months of development time. Highly recommended for any growing business.",
+                                    "author": "Emily Rodriguez",
+                                    "role": "Product Manager, InnovateLab",
+                                    "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&h=64&fit=crop&crop=face",
+                                    "rating": 5
+                                }
                             ]
                         }
                     },
@@ -117,22 +230,56 @@ PREMADE_TEMPLATES = {
                         "type": "cta",
                         "props": {
                             "title": "Ready to get started?",
-                            "subtitle": "Join thousands of satisfied customers today",
+                            "subtitle": "Join thousands of satisfied customers today. Start your free trial now.",
                             "primaryCta": "Start Free Trial",
-                            "secondaryCta": "Talk to Sales"
+                            "secondaryCta": "Talk to Sales",
+                            "backgroundType": "gradient",
+                            "centered": True
                         }
                     },
                     {
                         "id": "footer-1",
                         "type": "footer",
                         "props": {
-                            "logo": "YourBrand",
+                            "logo": "StartupPro",
+                            "logoImage": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=40&h=40&fit=crop",
+                            "description": "The all-in-one platform to launch your next big idea.",
                             "columns": [
-                                {"title": "Product", "links": [{"label": "Features", "href": "#"}, {"label": "Pricing", "href": "#"}, {"label": "Integrations", "href": "#"}]},
-                                {"title": "Company", "links": [{"label": "About", "href": "#"}, {"label": "Blog", "href": "#"}, {"label": "Careers", "href": "#"}]},
-                                {"title": "Support", "links": [{"label": "Help Center", "href": "#"}, {"label": "Contact", "href": "#"}, {"label": "Status", "href": "#"}]}
+                                {
+                                    "title": "Product", 
+                                    "links": [
+                                        {"label": "Features", "href": "#features"}, 
+                                        {"label": "Pricing", "href": "#pricing"}, 
+                                        {"label": "Integrations", "href": "#integrations"},
+                                        {"label": "API", "href": "/api"}
+                                    ]
+                                },
+                                {
+                                    "title": "Company", 
+                                    "links": [
+                                        {"label": "About", "href": "/about"}, 
+                                        {"label": "Blog", "href": "/blog"}, 
+                                        {"label": "Careers", "href": "/careers"},
+                                        {"label": "Press", "href": "/press"}
+                                    ]
+                                },
+                                {
+                                    "title": "Support", 
+                                    "links": [
+                                        {"label": "Help Center", "href": "/help"}, 
+                                        {"label": "Contact", "href": "/contact"}, 
+                                        {"label": "Status", "href": "/status"},
+                                        {"label": "Community", "href": "/community"}
+                                    ]
+                                }
                             ],
-                            "copyright": "© 2024 YourBrand. All rights reserved."
+                            "socialLinks": [
+                                {"platform": "twitter", "url": "https://twitter.com/startuppro"},
+                                {"platform": "linkedin", "url": "https://linkedin.com/company/startuppro"},
+                                {"platform": "github", "url": "https://github.com/startuppro"}
+                            ],
+                            "copyright": "© 2024 StartupPro. All rights reserved.",
+                            "showNewsletter": True
                         }
                     }
                 ]
@@ -208,7 +355,9 @@ PREMADE_TEMPLATES = {
                     {"id": "banner-1", "type": "banner", "props": {"text": "🎉 Free shipping on orders over $50!", "variant": "info", "dismissible": True}},
                     {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "links": [{"label": "Shop", "href": "/shop"}, {"label": "Collections", "href": "/collections"}, {"label": "About", "href": "/about"}], "showCart": True, "showSearch": True}},
                     {"id": "hero-1", "type": "hero", "props": {"title": "New Arrivals", "subtitle": "Discover our latest collection", "primaryCta": "Shop Now", "backgroundType": "image"}},
-                    {"id": "products-1", "type": "ecommerce", "props": {"title": "Featured Products", "layout": "grid", "columns": 4, "showPrice": True, "showRating": True}},
+                    {"id": "products-1", "type": "product", "props": {"name": "Premium Headphones", "price": 199.99, "originalPrice": 249.99, "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "products-2", "type": "product", "props": {"name": "Wireless Mouse", "price": 49.99, "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
+                    {"id": "products-3", "type": "product", "props": {"name": "Mechanical Keyboard", "price": 129.99, "originalPrice": 159.99, "layout": "card", "showAddToCart": True, "showWishlist": True, "showRating": True}},
                     {"id": "cta-1", "type": "cta", "props": {"title": "Join Our Newsletter", "subtitle": "Get 10% off your first order", "variant": "newsletter"}},
                     {"id": "features-1", "type": "features", "props": {"columns": 4, "variant": "icons", "features": [{"icon": "Truck", "title": "Free Shipping"}, {"icon": "RefreshCw", "title": "Easy Returns"}, {"icon": "Shield", "title": "Secure Payment"}, {"icon": "Headphones", "title": "24/7 Support"}]}},
                     {"id": "footer-1", "type": "footer", "props": {"showNewsletter": True, "showPaymentIcons": True}}
@@ -220,7 +369,7 @@ PREMADE_TEMPLATES = {
                 "elements": [
                     {"id": "nav-1", "type": "navbar", "props": {"logo": "ShopName", "showCart": True, "showSearch": True}},
                     {"id": "breadcrumb-1", "type": "breadcrumb", "props": {"items": [{"label": "Home", "href": "/"}, {"label": "Shop", "href": "/shop"}]}},
-                    {"id": "products-1", "type": "ecommerce", "props": {"title": "All Products", "layout": "grid", "columns": 4, "showFilters": True, "showSort": True}},
+                    {"id": "products-1", "type": "product", "props": {"layout": "grid", "columns": 4, "showFilters": True}},
                     {"id": "footer-1", "type": "footer", "props": {}}
                 ]
             }

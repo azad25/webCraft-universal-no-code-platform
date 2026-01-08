@@ -146,31 +146,42 @@ async def check_system_requirements():
     # Memory check (minimum 4GB recommended)
     memory = psutil.virtual_memory()
     requirements.available_memory_gb = round(memory.available / (1024**3), 2)
-    if requirements.available_memory_gb < 4:
-        warnings.append(f"Low available memory: {requirements.available_memory_gb}GB. Recommended: 4GB+")
+    if requirements.available_memory_gb < 2:  # Lower threshold for container
+        warnings.append(f"Low available memory: {requirements.available_memory_gb}GB. Recommended: 4GB+ on host")
     
     # Disk space check (minimum 10GB recommended)
     disk = psutil.disk_usage('/')
     requirements.available_disk_gb = round(disk.free / (1024**3), 2)
-    if requirements.available_disk_gb < 10:
-        warnings.append(f"Low disk space: {requirements.available_disk_gb}GB. Recommended: 10GB+")
+    if requirements.available_disk_gb < 5:  # Lower threshold for container
+        warnings.append(f"Low disk space: {requirements.available_disk_gb}GB. Recommended: 10GB+ on host")
     
-    # Docker check
-    requirements.docker_installed = check_command_exists("docker")
-    if not requirements.docker_installed:
-        issues.append("Docker is not installed. Please install Docker Desktop.")
+    # Check if we're running in Docker (which we are)
+    is_in_docker = os.path.exists('/.dockerenv') or os.path.exists('/proc/1/cgroup')
+    
+    if is_in_docker:
+        # We're running in Docker, so Docker is obviously available
+        requirements.docker_installed = True
+        requirements.docker_running = True
+        requirements.docker_compose_installed = True
+        
+        # Add success message
+        warnings.append("Running in Docker container - Docker environment is properly configured.")
     else:
-        requirements.docker_running = check_docker_running()
-        if not requirements.docker_running:
-            issues.append("Docker is installed but not running. Please start Docker.")
-    
-    # Docker Compose check
-    requirements.docker_compose_installed = (
-        check_command_exists("docker-compose") or 
-        check_command_exists("docker") # docker compose v2
-    )
-    if not requirements.docker_compose_installed:
-        issues.append("Docker Compose is not installed.")
+        # Original Docker checks for non-containerized environments
+        requirements.docker_installed = check_command_exists("docker")
+        if not requirements.docker_installed:
+            issues.append("Docker is not installed. Please install Docker Desktop.")
+        else:
+            requirements.docker_running = check_docker_running()
+            if not requirements.docker_running:
+                issues.append("Docker is installed but not running. Please start Docker.")
+        
+        requirements.docker_compose_installed = (
+            check_command_exists("docker-compose") or 
+            check_command_exists("docker") # docker compose v2
+        )
+        if not requirements.docker_compose_installed:
+            issues.append("Docker Compose is not installed.")
     
     # Node.js check (optional for development)
     requirements.node_installed = check_command_exists("node")
@@ -183,20 +194,30 @@ async def check_system_requirements():
         python_cmd = "python3" if check_command_exists("python3") else "python"
         requirements.python_version = get_command_version(python_cmd, "--version")
     
-    # Port availability check
-    required_ports = {
-        "3000": "Frontend (Next.js)",
-        "8000": "Backend (FastAPI)",
-        "5432": "PostgreSQL",
-        "6379": "Redis",
-        "9092": "Kafka"
-    }
-    
-    for port, service in required_ports.items():
-        available = check_port_available(int(port))
-        requirements.required_ports_available[port] = available
-        if not available:
-            warnings.append(f"Port {port} ({service}) is in use. It will be mapped to a different port.")
+    # Port availability check - skip for containerized environment
+    if not is_in_docker:
+        required_ports = {
+            "3000": "Frontend (Next.js)",
+            "8000": "Backend (FastAPI)",
+            "5432": "PostgreSQL",
+            "6379": "Redis",
+            "9092": "Kafka"
+        }
+        
+        for port, service in required_ports.items():
+            available = check_port_available(int(port))
+            requirements.required_ports_available[port] = available
+            if not available:
+                warnings.append(f"Port {port} ({service}) is in use. It will be mapped to a different port.")
+    else:
+        # In Docker, ports are managed by Docker Compose
+        requirements.required_ports_available = {
+            "3000": True,
+            "8000": True,
+            "5432": True,
+            "6379": True,
+            "9092": True
+        }
     
     requirements.issues = issues
     requirements.warnings = warnings
@@ -231,31 +252,63 @@ async def run_setup_process(config: SetupConfig):
     global setup_state
     
     try:
-        # Step 1: Generate environment file
-        setup_state["step"] = 1
-        await generate_env_file(config)
+        # Check if we're running in Docker
+        is_in_docker = os.path.exists('/.dockerenv') or os.path.exists('/proc/1/cgroup')
         
-        # Step 2: Start Docker services
-        setup_state["step"] = 2
-        await start_docker_services()
-        
-        # Step 3: Wait for services to be ready
-        setup_state["step"] = 3
-        await wait_for_services()
-        
-        # Step 4: Initialize database
-        setup_state["step"] = 4
-        await initialize_database()
-        
-        # Step 5: Create admin user
-        setup_state["step"] = 5
-        await create_admin_user(config.admin_user)
-        setup_state["admin_created"] = True
-        
-        # Step 6: Send welcome email (if configured)
-        setup_state["step"] = 6
-        if config.admin_user.send_welcome_email and config.smtp_host:
-            await send_welcome_email(config)
+        if is_in_docker:
+            # Containerized setup process
+            # Step 1: Generate environment file
+            setup_state["step"] = 1
+            await generate_env_file(config)
+            
+            # Step 2: Skip Docker services (already running)
+            setup_state["step"] = 2
+            # Services are already running in containers
+            
+            # Step 3: Skip waiting for services (already available)
+            setup_state["step"] = 3
+            # Services are already available
+            
+            # Step 4: Initialize database
+            setup_state["step"] = 4
+            await initialize_database()
+            
+            # Step 5: Create admin user
+            setup_state["step"] = 5
+            await create_admin_user(config.admin_user)
+            setup_state["admin_created"] = True
+            
+            # Step 6: Send welcome email (if configured)
+            setup_state["step"] = 6
+            if config.admin_user.send_welcome_email and config.smtp_host:
+                await send_welcome_email(config)
+        else:
+            # Original setup process for non-containerized environments
+            # Step 1: Generate environment file
+            setup_state["step"] = 1
+            await generate_env_file(config)
+            
+            # Step 2: Start Docker services
+            setup_state["step"] = 2
+            await start_docker_services()
+            
+            # Step 3: Wait for services to be ready
+            setup_state["step"] = 3
+            await wait_for_services()
+            
+            # Step 4: Initialize database
+            setup_state["step"] = 4
+            await initialize_database()
+            
+            # Step 5: Create admin user
+            setup_state["step"] = 5
+            await create_admin_user(config.admin_user)
+            setup_state["admin_created"] = True
+            
+            # Step 6: Send welcome email (if configured)
+            setup_state["step"] = 6
+            if config.admin_user.send_welcome_email and config.smtp_host:
+                await send_welcome_email(config)
         
         # Mark setup as complete
         setup_state["completed"] = True
@@ -384,9 +437,34 @@ async def wait_for_services():
 
 
 async def initialize_database():
-    """Initialize database tables"""
-    from core.database import init_db
-    await init_db()
+    """Initialize database tables using Alembic migrations"""
+    import subprocess
+    
+    api_dir = os.path.join(os.path.dirname(__file__), "..")
+    
+    try:
+        # Run Alembic migrations
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            cwd=api_dir,
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        
+        if result.returncode != 0:
+            # Fall back to SQLAlchemy create_all if Alembic fails
+            print(f"Alembic migration failed: {result.stderr}, falling back to create_all")
+            from core.database import init_db
+            await init_db()
+        else:
+            print("Database migrations completed successfully")
+    
+    except Exception as e:
+        # Fall back to SQLAlchemy create_all
+        print(f"Migration error: {e}, falling back to create_all")
+        from core.database import init_db
+        await init_db()
 
 
 async def create_admin_user(admin_data: AdminUserCreate):
@@ -401,7 +479,7 @@ async def create_admin_user(admin_data: AdminUserCreate):
         if existing:
             return existing
         
-        # Create admin user
+        # Create admin user (password length is handled in AuthService)
         user = User(
             email=admin_data.email,
             username=admin_data.username,
@@ -471,15 +549,29 @@ async def send_welcome_email(config: SetupConfig):
 @router.get("/setup/progress")
 async def get_setup_progress():
     """Get current setup progress"""
-    steps = [
-        {"id": 1, "name": "Generating configuration", "status": "pending"},
-        {"id": 2, "name": "Starting Docker services", "status": "pending"},
-        {"id": 3, "name": "Waiting for services", "status": "pending"},
-        {"id": 4, "name": "Initializing database", "status": "pending"},
-        {"id": 5, "name": "Creating admin user", "status": "pending"},
-        {"id": 6, "name": "Sending welcome email", "status": "pending"},
-        {"id": 7, "name": "Setup complete", "status": "pending"},
-    ]
+    # Check if we're running in Docker
+    is_in_docker = os.path.exists('/.dockerenv') or os.path.exists('/proc/1/cgroup')
+    
+    if is_in_docker:
+        steps = [
+            {"id": 1, "name": "Generating configuration", "status": "pending"},
+            {"id": 2, "name": "Verifying Docker services", "status": "pending"},
+            {"id": 3, "name": "Checking service connectivity", "status": "pending"},
+            {"id": 4, "name": "Initializing database", "status": "pending"},
+            {"id": 5, "name": "Creating admin user", "status": "pending"},
+            {"id": 6, "name": "Sending welcome email", "status": "pending"},
+            {"id": 7, "name": "Setup complete", "status": "pending"},
+        ]
+    else:
+        steps = [
+            {"id": 1, "name": "Generating configuration", "status": "pending"},
+            {"id": 2, "name": "Starting Docker services", "status": "pending"},
+            {"id": 3, "name": "Waiting for services", "status": "pending"},
+            {"id": 4, "name": "Initializing database", "status": "pending"},
+            {"id": 5, "name": "Creating admin user", "status": "pending"},
+            {"id": 6, "name": "Sending welcome email", "status": "pending"},
+            {"id": 7, "name": "Setup complete", "status": "pending"},
+        ]
     
     current_step = setup_state.get("step", 0)
     

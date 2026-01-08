@@ -66,15 +66,34 @@ export const login = createAsyncThunk<AuthResponse, LoginCredentials>(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/login', credentials)
+      const response = await apiClient.post('/api/v1/auth/login', credentials)
+      
+      // Map API response to expected format
+      const authResponse: AuthResponse = {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+        tokenType: response.data.token_type,
+        expiresIn: response.data.expires_in,
+        user: {
+          id: response.data.user.id,
+          email: response.data.user.email,
+          username: response.data.user.username,
+          fullName: response.data.user.full_name,
+          avatarUrl: response.data.user.avatar_url,
+          isVerified: response.data.user.is_verified,
+          isPremium: response.data.user.is_premium,
+          subscriptionTier: response.data.user.subscription_tier,
+          createdAt: response.data.user.created_at
+        }
+      }
       
       // Store tokens in localStorage for persistence
-      localStorage.setItem('accessToken', response.data.accessToken)
-      localStorage.setItem('refreshToken', response.data.refreshToken)
+      localStorage.setItem('accessToken', authResponse.accessToken)
+      localStorage.setItem('refreshToken', authResponse.refreshToken)
       
-      return response.data
+      return authResponse
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Login failed')
+      return rejectWithValue(error.message || error.response?.data?.detail || 'Login failed')
     }
   }
 )
@@ -83,7 +102,7 @@ export const register = createAsyncThunk<AuthResponse, RegisterData>(
   'auth/register',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/register', {
+      const response = await apiClient.post('/api/v1/auth/register', {
         email: data.email,
         username: data.username,
         password: data.password,
@@ -91,12 +110,31 @@ export const register = createAsyncThunk<AuthResponse, RegisterData>(
         terms_accepted: data.termsAccepted
       })
       
-      localStorage.setItem('accessToken', response.data.accessToken)
-      localStorage.setItem('refreshToken', response.data.refreshToken)
+      // Map API response to expected format
+      const authResponse: AuthResponse = {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+        tokenType: response.data.token_type,
+        expiresIn: response.data.expires_in,
+        user: {
+          id: response.data.user.id,
+          email: response.data.user.email,
+          username: response.data.user.username,
+          fullName: response.data.user.full_name,
+          avatarUrl: response.data.user.avatar_url,
+          isVerified: response.data.user.is_verified,
+          isPremium: response.data.user.is_premium,
+          subscriptionTier: response.data.user.subscription_tier,
+          createdAt: response.data.user.created_at
+        }
+      }
       
-      return response.data
+      localStorage.setItem('accessToken', authResponse.accessToken)
+      localStorage.setItem('refreshToken', authResponse.refreshToken)
+      
+      return authResponse
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Registration failed')
+      return rejectWithValue(error.message || error.response?.data?.detail || 'Registration failed')
     }
   }
 )
@@ -105,7 +143,7 @@ export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
-      await apiClient.post('/auth/logout')
+      await apiClient.post('/api/v1/auth/logout')
     } catch (error) {
       // Continue with logout even if API call fails
     } finally {
@@ -125,14 +163,23 @@ export const refreshAccessToken = createAsyncThunk<AuthResponse, void>(
         throw new Error('No refresh token')
       }
       
-      const response = await apiClient.post<AuthResponse>('/auth/refresh', {
+      const response = await apiClient.post('/api/v1/auth/refresh', {
         refresh_token: refreshToken
       })
       
-      localStorage.setItem('accessToken', response.data.accessToken)
-      localStorage.setItem('refreshToken', response.data.refreshToken)
+      // Map API response to expected format
+      const authResponse: AuthResponse = {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+        tokenType: response.data.token_type,
+        expiresIn: response.data.expires_in,
+        user: response.data.user
+      }
       
-      return response.data
+      localStorage.setItem('accessToken', authResponse.accessToken)
+      localStorage.setItem('refreshToken', authResponse.refreshToken)
+      
+      return authResponse
     } catch (error: any) {
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
@@ -145,7 +192,7 @@ export const fetchCurrentUser = createAsyncThunk<User, void>(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get<User>('/auth/me')
+      const response = await apiClient.get<User>('/api/v1/auth/me')
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to fetch user')
@@ -164,13 +211,13 @@ export const initializeAuth = createAsyncThunk<User | null, void>(
       }
       
       // Try to fetch current user
-      const response = await apiClient.get<User>('/auth/me')
+      const response = await apiClient.get<User>('/api/v1/auth/me')
       return response.data
     } catch (error: any) {
       // Try to refresh token
       try {
         await dispatch(refreshAccessToken()).unwrap()
-        const response = await apiClient.get<User>('/auth/me')
+        const response = await apiClient.get<User>('/api/v1/auth/me')
         return response.data
       } catch {
         localStorage.removeItem('accessToken')
@@ -185,7 +232,7 @@ export const updateProfile = createAsyncThunk<User, Partial<User>>(
   'auth/updateProfile',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put<User>('/auth/me', data)
+      const response = await apiClient.put<User>('/api/v1/auth/me', data)
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to update profile')
@@ -197,7 +244,7 @@ export const changePassword = createAsyncThunk<void, { currentPassword: string; 
   'auth/changePassword',
   async (data, { rejectWithValue }) => {
     try {
-      await apiClient.post('/auth/change-password', {
+      await apiClient.post('/api/v1/auth/change-password', {
         current_password: data.currentPassword,
         new_password: data.newPassword
       })
@@ -212,19 +259,28 @@ export const loginWithGoogle = createAsyncThunk<AuthResponse, string>(
   'auth/loginWithGoogle',
   async (code, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/oauth/callback', {
+      const response = await apiClient.post('/api/v1/auth/oauth/callback', {
         provider: 'google',
         code,
         state: localStorage.getItem('oauth_state')
       })
       
-      localStorage.setItem('accessToken', response.data.accessToken)
-      localStorage.setItem('refreshToken', response.data.refreshToken)
+      // Map API response to expected format
+      const authResponse: AuthResponse = {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+        tokenType: response.data.token_type,
+        expiresIn: response.data.expires_in,
+        user: response.data.user
+      }
+      
+      localStorage.setItem('accessToken', authResponse.accessToken)
+      localStorage.setItem('refreshToken', authResponse.refreshToken)
       localStorage.removeItem('oauth_state')
       
-      return response.data
+      return authResponse
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Google login failed')
+      return rejectWithValue(error.message || error.response?.data?.detail || 'Google login failed')
     }
   }
 )
@@ -233,20 +289,29 @@ export const loginWithApple = createAsyncThunk<AuthResponse, { code: string; idT
   'auth/loginWithApple',
   async ({ code, idToken }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/oauth/callback', {
+      const response = await apiClient.post('/api/v1/auth/oauth/callback', {
         provider: 'apple',
         code,
         id_token: idToken,
         state: localStorage.getItem('oauth_state')
       })
       
-      localStorage.setItem('accessToken', response.data.accessToken)
-      localStorage.setItem('refreshToken', response.data.refreshToken)
+      // Map API response to expected format
+      const authResponse: AuthResponse = {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+        tokenType: response.data.token_type,
+        expiresIn: response.data.expires_in,
+        user: response.data.user
+      }
+      
+      localStorage.setItem('accessToken', authResponse.accessToken)
+      localStorage.setItem('refreshToken', authResponse.refreshToken)
       localStorage.removeItem('oauth_state')
       
-      return response.data
+      return authResponse
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Apple login failed')
+      return rejectWithValue(error.message || error.response?.data?.detail || 'Apple login failed')
     }
   }
 )

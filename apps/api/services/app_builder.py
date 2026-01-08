@@ -24,7 +24,7 @@ class AppBuilderService:
         name: str,
         description: Optional[str],
         app_type: str,
-        template_id: Optional[uuid.UUID] = None,
+        template_id: Optional[str] = None,
         config: Dict[str, Any] = None,
         theme_config: Dict[str, Any] = None
     ) -> App:
@@ -68,31 +68,59 @@ class AppBuilderService:
         
         return app
     
-    async def _apply_template(self, app: App, template_id: uuid.UUID):
+    async def _apply_template(self, app: App, template_id: str):
         """Apply a template to an app"""
-        template = self.db.query(Template).filter(Template.id == template_id).first()
+        from services.template_service import TemplateService
+        
+        template_service = TemplateService(self.db)
+        template = await template_service.get_template(template_id)
+        
         if not template:
-            raise ValueError("Template not found")
+            raise ValueError(f"Template '{template_id}' not found")
         
         # Copy template config
-        app.config = {**app.config, **template.config}
+        app.config = {**app.config, **template.get("config", {})}
         
-        # Create pages from template
-        pages_config = template.pages_config or {}
-        for page_slug, page_config in pages_config.items():
-            page = Page(
-                app_id=app.id,
-                title=page_config.get("title", page_slug.title()),
-                slug=page_slug,
-                content=page_config.get("content", {}),
-                is_homepage=page_config.get("is_homepage", False),
-                meta_title=page_config.get("meta_title"),
-                meta_description=page_config.get("meta_description")
-            )
-            self.db.add(page)
+        # Create pages from template - handle both template structures
+        pages = template.get("pages", [])
+        pages_config = template.get("pages_config", {})
         
-        # Update template download count
-        template.downloads += 1
+        # If pages_config exists, use that structure (from templates router)
+        if pages_config:
+            for page_key, page_data in pages_config.items():
+                elements = page_data.get("content", {}).get("elements", [])
+                page = Page(
+                    app_id=app.id,
+                    title=page_data.get("title", page_key.title()),
+                    slug=page_key,
+                    content={
+                        "elements": elements
+                    },
+                    is_homepage=page_data.get("is_homepage", page_key == "home"),
+                    meta_title=page_data.get("title", page_key.title()),
+                    meta_description=f"{app.name} - {page_data.get('title', page_key.title())}"
+                )
+                self.db.add(page)
+        else:
+            # Use the original pages structure (from template_service)
+            for page_data in pages:
+                # Handle both direct elements and nested content.elements
+                elements = page_data.get("elements", [])
+                if not elements and "content" in page_data:
+                    elements = page_data["content"].get("elements", [])
+                
+                page = Page(
+                    app_id=app.id,
+                    title=page_data.get("name", "Home"),
+                    slug=page_data.get("slug", "home"),
+                    content={
+                        "elements": elements
+                    },
+                    is_homepage=page_data.get("slug") == "home",
+                    meta_title=page_data.get("name", "Home"),
+                    meta_description=f"{app.name} - {page_data.get('name', 'Home')}"
+                )
+                self.db.add(page)
     
     async def _create_default_page(self, app: App):
         """Create a default homepage"""

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import { 
   CheckCircle2, XCircle, AlertCircle, Loader2, ArrowRight, ArrowLeft,
   Server, Database, Mail, User, Settings, Sparkles, Shield, Rocket
@@ -87,7 +86,7 @@ export default function SetupPage() {
 
   const checkSetupStatus = async () => {
     try {
-      const res = await fetch('/api/v1/setup/status')
+      const res = await fetch('http://192.168.0.109:8000/api/v1/setup/status')
       const data = await res.json()
       if (!data.setup_required) {
         router.push('/dashboard')
@@ -101,10 +100,15 @@ export default function SetupPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/v1/setup/requirements')
+      const res = await fetch('http://192.168.0.109:8000/api/v1/setup/requirements')
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+      }
       const data = await res.json()
+      console.log('Requirements data:', data) // Debug log
       setRequirements(data)
     } catch (e) {
+      console.error('Requirements check failed:', e) // Debug log
       setError('Failed to check system requirements. Make sure the API is running.')
     } finally {
       setIsLoading(false)
@@ -143,7 +147,7 @@ export default function SetupPage() {
         enable_ai_features: formData.enableAI,
       }
 
-      await fetch('/api/v1/setup/initialize', {
+      await fetch('http://192.168.0.109:8000/api/v1/setup/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
@@ -160,7 +164,7 @@ export default function SetupPage() {
   const pollProgress = async () => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/v1/setup/progress')
+        const res = await fetch('http://192.168.0.109:8000/api/v1/setup/progress')
         const data = await res.json()
         setSetupProgress(data)
         
@@ -185,9 +189,19 @@ export default function SetupPage() {
     if (currentStep === 1 && !requirements?.meets_requirements) {
       return
     }
-    setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
-    if (currentStep === 1) checkRequirements()
-    if (currentStep === steps.length - 2) startInstallation()
+    
+    const newStep = Math.min(currentStep + 1, steps.length - 1)
+    setCurrentStep(newStep)
+    
+    // Check requirements when entering the requirements step
+    if (newStep === 1) {
+      checkRequirements()
+    }
+    
+    // Start installation when entering the install step
+    if (newStep === steps.length - 1) {
+      startInstallation()
+    }
   }
 
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0))
@@ -242,22 +256,22 @@ export default function SetupPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <RequirementItem 
                     label="Operating System" 
-                    value={`${requirements.os_name} ${requirements.os_version}`}
+                    value={`${requirements.os_name || 'Unknown'} ${requirements.os_version || ''}`}
                     status="info"
                   />
                   <RequirementItem 
                     label="CPU Cores" 
-                    value={`${requirements.cpu_cores} cores`}
+                    value={`${requirements.cpu_cores || 0} cores`}
                     status="info"
                   />
                   <RequirementItem 
                     label="Available Memory" 
-                    value={`${requirements.available_memory_gb} GB`}
+                    value={`${requirements.available_memory_gb || 0} GB`}
                     status={requirements.available_memory_gb >= 4 ? 'success' : 'warning'}
                   />
                   <RequirementItem 
                     label="Available Disk" 
-                    value={`${requirements.available_disk_gb} GB`}
+                    value={`${requirements.available_disk_gb || 0} GB`}
                     status={requirements.available_disk_gb >= 10 ? 'success' : 'warning'}
                   />
                 </div>
@@ -280,7 +294,7 @@ export default function SetupPage() {
                   />
                 </div>
 
-                {requirements.issues.length > 0 && (
+                {requirements.issues && requirements.issues.length > 0 && (
                   <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
                     <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Issues Found:</h4>
                     <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300">
@@ -289,7 +303,7 @@ export default function SetupPage() {
                   </div>
                 )}
 
-                {requirements.warnings.length > 0 && (
+                {requirements.warnings && requirements.warnings.length > 0 && (
                   <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                     <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Warnings:</h4>
                     <ul className="list-disc list-inside text-sm text-yellow-700 dark:text-yellow-300">
@@ -627,17 +641,9 @@ export default function SetupPage() {
         {/* Step Content */}
         <Card className="shadow-xl">
           <CardContent className="p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-              >
-                {renderStep()}
-              </motion.div>
-            </AnimatePresence>
+            <div key={currentStep}>
+              {renderStep()}
+            </div>
           </CardContent>
         </Card>
 

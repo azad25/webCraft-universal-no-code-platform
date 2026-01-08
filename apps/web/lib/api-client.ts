@@ -20,7 +20,7 @@ interface ApiClientConfig {
 
 // Default configuration
 const defaultConfig: ApiClientConfig = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || '', // Use environment variable or fallback to relative URLs
   timeout: 30000,
   retry: {
     retries: 3,
@@ -42,17 +42,42 @@ const createApiClient = (config: Partial<ApiClientConfig> = {}): AxiosInstance =
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
-    },
-    withCredentials: true
+    }
   })
   
   // Request interceptor
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      // Add auth token
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`
+      // Debug: Log the request URL
+      if (process.env.NODE_ENV === 'development') {
+        console.log('API Request:', {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          baseURL: config.baseURL,
+          fullURL: `${config.baseURL}${config.url}`
+        })
+      }
+      
+      // Add auth token (but not for auth endpoints)
+      const isAuthEndpoint = config.url?.includes('/api/auth/login') || 
+                            config.url?.includes('/api/auth/register') || 
+                            config.url?.includes('/api/auth/refresh')
+      
+      if (!isAuthEndpoint) {
+        let token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+        
+        // Development bypass - use a dummy token if no real token exists
+        if (!token && process.env.NODE_ENV === 'development') {
+          token = 'dev-bypass-token'
+          console.log('🔧 Using development bypass token')
+        }
+        
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`
+          console.log('🔑 Added auth token:', token.substring(0, 10) + '...')
+        } else {
+          console.log('❌ No auth token available')
+        }
       }
       
       // Add correlation ID for request tracing
@@ -93,7 +118,7 @@ const createApiClient = (config: Partial<ApiClientConfig> = {}): AxiosInstance =
           const refreshToken = localStorage.getItem('refreshToken')
           
           if (refreshToken) {
-            const response = await axios.post(`${mergedConfig.baseURL}/auth/refresh`, {
+            const response = await instance.post(`/api/auth/refresh`, {
               refresh_token: refreshToken
             })
             
@@ -136,6 +161,22 @@ const createApiClient = (config: Partial<ApiClientConfig> = {}): AxiosInstance =
           
           return instance(originalRequest)
         }
+      }
+      
+      // Debug: Log the error in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('🚨 API Error Details:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          fullURL: error.config?.baseURL && error.config?.url ? error.config.baseURL + error.config.url : 'N/A',
+          message: error.message,
+          code: error.code,
+          headers: error.config?.headers
+        })
       }
       
       // Transform error for consistent handling

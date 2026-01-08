@@ -246,21 +246,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   
   // Get OAuth URLs
   const getGoogleAuthUrl = useCallback(async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/oauth/google/url`)
+    const response = await fetch(`/api/v1/auth/oauth/google/url`)
     const data = await response.json()
     localStorage.setItem('oauth_state', data.state)
     return data.authorization_url
   }, [])
   
   const getAppleAuthUrl = useCallback(async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/oauth/apple/url`)
+    const response = await fetch(`/api/v1/auth/oauth/apple/url`)
     const data = await response.json()
     localStorage.setItem('oauth_state', data.state)
     return data.authorization_url
   }, [])
   
   const getGitHubAuthUrl = useCallback(async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/oauth/github/url`)
+    const response = await fetch(`/api/v1/auth/oauth/github/url`)
     const data = await response.json()
     localStorage.setItem('oauth_state', data.state)
     return data.authorization_url

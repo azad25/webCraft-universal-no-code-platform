@@ -152,7 +152,7 @@ async def generate_image(
 
 @router.post("/apps/{app_id}/generate-content")
 async def generate_app_content(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     request: AppContentRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -189,8 +189,8 @@ async def generate_app_content(
 
 @router.post("/apps/{app_id}/pages/{page_id}/generate-content")
 async def generate_page_content(
-    app_id: uuid.UUID = Path(...),
-    page_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
+    page_id: uuid.UUID,
     request: PageContentRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -228,7 +228,7 @@ async def generate_page_content(
 
 @router.post("/apps/{app_id}/generate-seo")
 async def generate_seo_content(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     request: SEOContentRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -307,7 +307,7 @@ async def generate_code_component(
 
 @router.post("/apps/{app_id}/generate-marketing")
 async def generate_marketing_copy(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     request: MarketingCopyRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -373,7 +373,7 @@ async def analyze_content_performance(
 
 @router.post("/apps/{app_id}/suggestions")
 async def get_ai_suggestions(
-    app_id: uuid.UUID = Path(...),
+    app_id: uuid.UUID,
     request: AISuggestionsRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

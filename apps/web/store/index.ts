@@ -4,8 +4,8 @@
  */
 
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
-import { 
-  persistStore, 
+import {
+  persistStore,
   persistReducer,
   FLUSH,
   REHYDRATE,
@@ -14,7 +14,23 @@ import {
   PURGE,
   REGISTER
 } from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
+import createWebStorage from 'redux-persist/lib/storage/createWebStorage'
+
+const createNoopStorage = () => {
+  return {
+    getItem(_key: any) {
+      return Promise.resolve(null)
+    },
+    setItem(_key: any, value: any) {
+      return Promise.resolve(value)
+    },
+    removeItem(_key: any) {
+      return Promise.resolve()
+    },
+  }
+}
+
+const storage = typeof window !== 'undefined' ? createWebStorage('local') : createNoopStorage()
 import { setupListeners } from '@reduxjs/toolkit/query'
 
 // Import slices
@@ -49,11 +65,12 @@ const rootReducer = combineReducers({
 })
 
 // Create persisted reducer
-const persistedReducer = persistReducer(persistConfig, rootReducer)
+// Create persisted reducer
+// const persistedReducer = persistReducer(persistConfig, rootReducer)
 
 // Configure store
 export const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer, // persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -68,7 +85,7 @@ export const store = configureStore({
 })
 
 // Create persistor
-export const persistor = persistStore(store)
+export const persistor = null as any // persistStore(store)
 
 // Setup listeners for RTK Query
 setupListeners(store.dispatch)

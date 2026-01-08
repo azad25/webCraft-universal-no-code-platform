@@ -3,6 +3,7 @@ Email Service for WebCraft Platform
 Handles transactional emails, marketing campaigns, and newsletters
 """
 
+import os
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 import asyncio
@@ -75,8 +76,46 @@ class EmailService:
     """
     
     def __init__(self):
-        self.sendgrid_client = SendGridAPIClient(settings.SENDGRID_API_KEY)
-        self.from_email = Email(settings.FROM_EMAIL, settings.FROM_NAME)
+        self.development_mode = os.getenv("ENVIRONMENT") == "development"
+        
+        logger.info(f"Initializing EmailService - Environment: {os.getenv('ENVIRONMENT')}")
+        logger.info(f"SendGrid API Key present: {bool(os.getenv('SENDGRID_API_KEY'))}")
+        logger.info(f"SMTP Host: {os.getenv('SMTP_HOST')}")
+        logger.info(f"SMTP User: {os.getenv('SMTP_USER')}")
+        
+        # Try SendGrid first
+        if not self.development_mode and os.getenv("SENDGRID_API_KEY"):
+            try:
+                self.sendgrid_client = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                self.from_email = Email(settings.FROM_EMAIL, settings.FROM_NAME)
+                self.email_backend = "sendgrid"
+                logger.info("Email backend: SendGrid configured successfully")
+            except Exception as e:
+                logger.error(f"SendGrid configuration failed: {e}")
+                self.sendgrid_client = None
+                self.from_email = None
+                self.email_backend = "smtp"
+        # Try SMTP if SendGrid not available
+        elif not self.development_mode and os.getenv("SMTP_HOST") and os.getenv("SMTP_USER"):
+            self.sendgrid_client = None
+            self.from_email = None
+            self.email_backend = "smtp"
+            self.smtp_config = {
+                "hostname": settings.SMTP_HOST,
+                "port": settings.SMTP_PORT,
+                "username": settings.SMTP_USER,
+                "password": settings.SMTP_PASSWORD,
+                "use_tls": settings.SMTP_PORT in [587, 25],
+                "start_tls": settings.SMTP_PORT == 587
+            }
+            logger.info("Email backend: SMTP configured successfully")
+        else:
+            # Development mode - just log emails
+            self.sendgrid_client = None
+            self.from_email = None
+            self.email_backend = "development"
+            self.development_mode = True
+            logger.info("Email backend: Development mode (logging only)")
         
         # Initialize Jinja2 for custom templates
         self.jinja_env = Environment(
@@ -134,6 +173,27 @@ class EmailService:
         Returns:
             Send result with message ID
         """
+        
+        # Development mode - just log the email
+        if self.email_backend == "development":
+            logger.info(f"[DEV MODE] Email would be sent to: {to_email}")
+            logger.info(f"[DEV MODE] Subject: {subject}")
+            logger.info(f"[DEV MODE] Template: {template}")
+            logger.info(f"[DEV MODE] Template Data: {template_data}")
+            
+            return {
+                "success": True,
+                "message_id": f"dev-{datetime.now().timestamp()}",
+                "status": "development_mode"
+            }
+        
+        # Use SMTP backend
+        if self.email_backend == "smtp":
+            return await self._send_smtp_email(
+                to_email, subject, template, template_data, 
+                from_email, from_name, attachments
+            )
+        
         try:
             # Create message
             message = Mail()
@@ -220,7 +280,7 @@ class EmailService:
             }
             
         except Exception as e:
-            logger.error(f"Failed to send email: {e}", to=to_email, template=template)
+            logger.error(f"Failed to send email to {to_email} using template {template}: {e}")
             
             # Publish failure event
             await event_publisher.publish_user_event(
@@ -306,6 +366,174 @@ class EmailService:
                 "error": str(e)
             }
     
+    async def _send_smtp_email(
+        self,
+        to_email: str,
+        subject: str,
+        template: str,
+        template_data: Dict[str, Any],
+        from_email: Optional[str] = None,
+        from_name: Optional[str] = None,
+        attachments: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
+        """Send email using SMTP"""
+        try:
+            # Create message
+            message = MIMEMultipart("alternative")
+            message["Subject"] = subject
+            message["From"] = f"{from_name or settings.FROM_NAME} <{from_email or settings.FROM_EMAIL}>"
+            message["To"] = to_email
+            
+            # Render template
+            if template.endswith(".html") or "/" in template:
+                # Custom template
+                html_content = await self._render_template(template, template_data)
+            else:
+                # Simple template
+                html_content = await self._render_simple_template(template, template_data)
+            
+            # Add HTML content
+            html_part = MIMEText(html_content, "html")
+            message.attach(html_part)
+            
+            # Add attachments
+            if attachments:
+                for att in attachments:
+                    # Handle attachments if needed
+                    pass
+            
+            # Send email
+            await aiosmtplib.send(
+                message,
+                hostname=self.smtp_config["hostname"],
+                port=self.smtp_config["port"],
+                username=self.smtp_config["username"],
+                password=self.smtp_config["password"],
+                use_tls=self.smtp_config["use_tls"],
+                start_tls=self.smtp_config["start_tls"]
+            )
+            
+            logger.info(f"SMTP email sent successfully to {to_email}")
+            
+            return {
+                "success": True,
+                "message_id": f"smtp-{datetime.now().timestamp()}",
+                "backend": "smtp"
+            }
+            
+        except Exception as e:
+            logger.error(f"SMTP email failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "backend": "smtp"
+            }
+    
+    async def _render_simple_template(
+        self,
+        template_type: str,
+        data: Dict[str, Any]
+    ) -> str:
+        """Render simple email templates"""
+        
+        if template_type == EmailTemplate.EMAIL_VERIFICATION:
+            return f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Verify Your Email</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                    .button {{ display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                    .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 14px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Welcome to WebCraft!</h1>
+                        <p>Please verify your email address</p>
+                    </div>
+                    <div class="content">
+                        <p>Hi there!</p>
+                        <p>Thanks for signing up for WebCraft. To complete your registration, please verify your email address by clicking the button below:</p>
+                        <p style="text-align: center;">
+                            <a href="{data.get('verification_url', '#')}" class="button">Verify Email Address</a>
+                        </p>
+                        <p>This link will expire in {data.get('expires_in', '24 hours')}.</p>
+                        <p>If you didn't create an account with WebCraft, you can safely ignore this email.</p>
+                        <p>Best regards,<br>The WebCraft Team</p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 WebCraft. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        
+        elif template_type == EmailTemplate.WELCOME:
+            return f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Welcome to WebCraft</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                    .button {{ display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🚀 Welcome to WebCraft!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hi {data.get('name', 'there')}!</p>
+                        <p>Welcome to WebCraft! We're excited to have you on board.</p>
+                        <p>You can now start building amazing apps with our no-code platform.</p>
+                        <p style="text-align: center;">
+                            <a href="{data.get('dashboard_url', '#')}" class="button">Go to Dashboard</a>
+                        </p>
+                        <p>If you have any questions, feel free to reach out to our support team.</p>
+                        <p>Happy building!<br>The WebCraft Team</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        
+        else:
+            # Generic template
+            return f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>WebCraft Notification</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h2>WebCraft Notification</h2>
+                    <p>This is a notification from WebCraft.</p>
+                    <pre>{data}</pre>
+                </div>
+            </body>
+            </html>
+            """
+
     async def _render_template(
         self,
         template_name: str,

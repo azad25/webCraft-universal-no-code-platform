@@ -32,6 +32,8 @@ import {
 interface EditorCanvasProps {
   previewMode: 'desktop' | 'tablet' | 'mobile'
   showPreview: boolean
+  onOpenInlineEditor?: (element: any, position?: { x: number; y: number }) => void
+  onStartResize?: (elementId: string) => void
 }
 
 const CANVAS_DIMENSIONS = {
@@ -40,7 +42,7 @@ const CANVAS_DIMENSIONS = {
   mobile: { width: 375, minWidth: 375 }
 }
 
-export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
+export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onStartResize }: EditorCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [showGrid, setShowGrid] = useState(false)
@@ -59,7 +61,6 @@ export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
     selectElement,
     setHoveredElement,
     addElement,
-    moveElement,
     reorderElement
   } = useEditor()
   
@@ -67,7 +68,7 @@ export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
 
   // Drop zone for widgets
   const [{ isOver, canDrop, draggedItem }, drop] = useDrop({
-    accept: ['widget', 'element'],
+    accept: ['widget', 'element', 'element-position'],
     hover: (item: any, monitor) => {
       if (!canvasRef.current) return
       
@@ -78,18 +79,23 @@ export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
         const x = (offset.x - canvasRect.left) / (zoom / 100)
         const y = (offset.y - canvasRect.top) / (zoom / 100)
         
-        // Calculate drop index based on y position
-        const sortedElements = [...elements].sort((a, b) => a.position.y - b.position.y)
-        let dropIndex = sortedElements.length
-        
-        for (let i = 0; i < sortedElements.length; i++) {
-          if (y < sortedElements[i].position.y + sortedElements[i].size.height / 2) {
-            dropIndex = i
-            break
+        // Only show drop indicator for reorder mode
+        if (item.type === 'widget' || (item.type === 'element' && item.dragMode === 'reorder')) {
+          // Calculate drop index based on y position
+          const sortedElements = [...elements].sort((a, b) => a.position.y - b.position.y)
+          let dropIndex = sortedElements.length
+          
+          for (let i = 0; i < sortedElements.length; i++) {
+            if (y < sortedElements[i].position.y + sortedElements[i].size.height / 2) {
+              dropIndex = i
+              break
+            }
           }
+          
+          setDropPosition({ x, y, index: dropIndex })
+        } else {
+          setDropPosition(null)
         }
-        
-        setDropPosition({ x, y, index: dropIndex })
       }
     },
     drop: (item: any, monitor) => {
@@ -114,8 +120,11 @@ export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
             style: item.defaultStyle || {},
             children: []
           })
-        } else if (item.type === 'element' && dropPosition) {
+        } else if (item.type === 'element' && item.dragMode === 'reorder' && dropPosition) {
           reorderElement(item.id, dropPosition.index)
+        } else if (item.type === 'element-position') {
+          // Position dragging is handled by the drag source
+          return
         }
       }
       
@@ -149,7 +158,8 @@ export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
 
   // Canvas click handler
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === canvasRef.current) {
+    // Only deselect if clicking directly on the canvas, not on elements
+    if (e.target === canvasRef.current || (e.target as HTMLElement).closest('[data-element-id]') === null) {
       selectElement(null)
     }
     setContextMenu(null)
@@ -301,8 +311,10 @@ export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
             {/* Drop Target */}
             <div
               ref={(node) => {
-                canvasRef.current = node
-                drop(node)
+                if (node) {
+                  (canvasRef as any).current = node
+                  drop(node)
+                }
               }}
               className={cn(
                 "relative min-h-[800px] transition-colors",
@@ -316,31 +328,61 @@ export function EditorCanvas({ previewMode, showPreview }: EditorCanvasProps) {
               {/* Grid Overlay */}
               {showGrid && !showPreview && <GridOverlay />}
               
-              {/* Elements - Vertical Stack Layout (like Wix/Webflow) */}
-              <div className="relative">
-                {elements.map((element, index) => (
-                  <motion.div
+              {/* Elements - Support both stacked and positioned layouts */}
+              <div className="relative min-h-[400px]">
+                {/* Stacked Elements (reorder mode) */}
+                <div className="relative space-y-0">
+                  {elements
+                    .filter(element => !element.position || element.position.x === 0) // Stacked elements
+                    .map((element, index) => (
+                    <motion.div
+                      key={element.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.2 }}
+                      className={cn(
+                        "relative w-full block",
+                        !showPreview && "hover:z-10"
+                      )}
+                      onMouseEnter={() => !showPreview && setHoveredElement(element)}
+                      onMouseLeave={() => setHoveredElement(null)}
+                      style={{ zIndex: selectedElement?.id === element.id ? 20 : 1 }}
+                    >
+                      <WidgetRenderer
+                        element={element}
+                        isSelected={selectedElement?.id === element.id}
+                        isHovered={hoveredElement?.id === element.id}
+                        isPreview={showPreview}
+                        onSelect={() => {
+                          console.log('Selecting element:', element.id, element.type)
+                          selectElement(element)
+                        }}
+                        onOpenInlineEditor={onOpenInlineEditor}
+                        onStartResize={onStartResize}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Positioned Elements (position mode) */}
+                {elements
+                  .filter(element => element.position && element.position.x !== 0) // Positioned elements
+                  .map((element) => (
+                  <WidgetRenderer
                     key={element.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.2 }}
-                    className={cn(
-                      "relative w-full",
-                      !showPreview && "hover:outline hover:outline-2 hover:outline-primary/30"
-                    )}
-                    onMouseEnter={() => !showPreview && setHoveredElement(element)}
-                    onMouseLeave={() => setHoveredElement(null)}
-                  >
-                    <WidgetRenderer
-                      element={element}
-                      isSelected={selectedElement?.id === element.id}
-                      isHovered={hoveredElement?.id === element.id}
-                      isPreview={showPreview}
-                      onSelect={() => selectElement(element)}
-                    />
-                  </motion.div>
+                    element={element}
+                    isSelected={selectedElement?.id === element.id}
+                    isHovered={hoveredElement?.id === element.id}
+                    isPreview={showPreview}
+                    onSelect={() => {
+                      console.log('Selecting positioned element:', element.id, element.type)
+                      selectElement(element)
+                    }}
+                    onOpenInlineEditor={onOpenInlineEditor}
+                    onStartResize={onStartResize}
+                  />
                 ))}
               </div>
               

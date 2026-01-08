@@ -214,7 +214,7 @@ async def create_widget(
 
 @router.put("/{widget_id}", response_model=WidgetResponse)
 async def update_widget(
-    widget_id: uuid.UUID = Path(...),
+    widget_id: uuid.UUID,
     widget_data: WidgetCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

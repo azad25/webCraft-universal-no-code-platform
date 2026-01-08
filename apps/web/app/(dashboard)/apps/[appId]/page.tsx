@@ -1,10 +1,12 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useGetAppQuery, useGetAppAnalyticsQuery } from '@/store/api/apiSlice';
+import { Loader2 } from 'lucide-react';
 import {
   Edit3,
   Settings,
@@ -28,28 +30,104 @@ export default function AppOverviewPage() {
   const router = useRouter();
   const appId = params.appId as string;
 
-  const [app] = useState({
-    id: appId,
-    name: 'My Website',
-    description: 'A modern business website built with WebCraft',
-    status: 'published',
-    domain: 'mywebsite.webcraft.app',
-    customDomain: 'www.mywebsite.com',
-    createdAt: '2025-12-15',
-    updatedAt: '2026-01-06',
-    stats: {
-      views: 12450,
-      visitors: 3280,
-      pages: 8,
-      automations: 3
+  // All hooks must be declared at the top level, before any early returns
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
+
+  const { data: app, isLoading, error } = useGetAppQuery(appId);
+  const { data: analytics } = useGetAppAnalyticsQuery({ id: appId, days: 30 });
+
+  // Generate preview URL when needed
+  const generatePreviewUrl = async () => {
+    if (previewUrl || isGeneratingPreview) return previewUrl
+
+    setIsGeneratingPreview(true)
+    try {
+      const response = await fetch(`/api/apps/${appId}/preview`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const url = `${window.location.origin}/preview/${data.token}`
+        setPreviewUrl(url)
+        return url
+      } else {
+        console.error('Failed to generate preview URL')
+        return null
+      }
+    } catch (error) {
+      console.error('Error generating preview URL:', error)
+      return null
+    } finally {
+      setIsGeneratingPreview(false)
     }
-  });
+  }
+
+  const handleViewLive = async () => {
+    if (app?.is_published && (app.custom_domain || app.subdomain)) {
+      // If app is published and has a domain, use it
+      const domain = app.custom_domain || app.subdomain || `${app.slug}.webcraft.app`
+      window.open(`https://${domain}`, '_blank')
+    } else {
+      // Otherwise, generate and use preview URL
+      const url = await generatePreviewUrl()
+      if (url) {
+        window.open(url, '_blank')
+      }
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !app) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium">App not found</h3>
+          <p className="text-muted-foreground">The app you're looking for doesn't exist or you don't have access to it.</p>
+          <Button onClick={() => router.push('/apps')} className="mt-4">
+            Back to Apps
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 48) return '1 day ago';
+    return `${Math.floor(diffInHours / 24)} days ago`;
+  };
 
   const quickActions = [
     { label: 'Edit Site', icon: Edit3, href: `/editor/${appId}`, primary: true },
-    { label: 'View Live', icon: Eye, href: `https://${app.domain}`, external: true },
-    { label: 'Settings', icon: Settings, href: `/dashboard/apps/${appId}/settings` },
-    { label: 'Analytics', icon: BarChart3, href: `/dashboard/apps/${appId}/analytics` },
+    { 
+      label: isGeneratingPreview ? 'Generating...' : 'View Live', 
+      icon: Eye, 
+      onClick: handleViewLive,
+      external: true,
+      disabled: isGeneratingPreview
+    },
+    { label: 'Settings', icon: Settings, href: `/apps/${appId}/settings` },
+    { label: 'Analytics', icon: BarChart3, href: `/apps/${appId}/analytics` },
   ];
 
   const sections = [
@@ -57,42 +135,42 @@ export default function AppOverviewPage() {
       title: 'Pages',
       description: 'Manage your site pages and content',
       icon: FileText,
-      href: `/dashboard/apps/${appId}/pages`,
-      count: app.stats.pages
+      href: `/apps/${appId}/pages`,
+      count: analytics?.top_pages?.length || 0
     },
     {
       title: 'Media Library',
       description: 'Images, videos, and documents',
       icon: Image,
-      href: `/dashboard/apps/${appId}/media`,
+      href: `/apps/${appId}/media`,
       count: 24
     },
     {
       title: 'Automations',
       description: 'Set up workflows and triggers',
       icon: Zap,
-      href: `/dashboard/apps/${appId}/automations`,
-      count: app.stats.automations
+      href: `/apps/${appId}/automations`,
+      count: 0
     },
     {
       title: 'Data Sources',
       description: 'Connect APIs and web scrapers',
       icon: Database,
-      href: `/dashboard/apps/${appId}/data-sources`,
-      count: 3
+      href: `/apps/${appId}/data-sources`,
+      count: 0
     },
     {
       title: 'Integrations',
       description: 'Connect third-party services',
       icon: Plug,
-      href: `/dashboard/apps/${appId}/integrations`,
-      count: 5
+      href: `/apps/${appId}/integrations`,
+      count: 0
     },
     {
       title: 'Export',
       description: 'Download or deploy your site',
       icon: Download,
-      href: `/dashboard/apps/${appId}/export`
+      href: `/apps/${appId}/export`
     },
   ];
 
@@ -102,11 +180,11 @@ export default function AppOverviewPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{app.name}</h1>
-            <Badge variant={app.status === 'published' ? 'default' : 'secondary'}>
-              {app.status}
+            <Badge variant={app.is_published ? 'default' : 'secondary'}>
+              {app.is_published ? 'published' : 'draft'}
             </Badge>
           </div>
-          <p className="text-muted-foreground mt-1">{app.description}</p>
+          <p className="text-muted-foreground mt-1">{app.description || 'No description provided'}</p>
         </div>
       </div>
 
@@ -116,10 +194,16 @@ export default function AppOverviewPage() {
           <Button
             key={action.label}
             variant={action.primary ? 'default' : 'outline'}
-            onClick={() => action.external 
-              ? window.open(action.href, '_blank') 
-              : router.push(action.href)
-            }
+            disabled={action.disabled}
+            onClick={() => {
+              if (action.onClick) {
+                action.onClick()
+              } else if (action.external && action.href) {
+                window.open(action.href, '_blank')
+              } else if (action.href) {
+                router.push(action.href)
+              }
+            }}
           >
             <action.icon className="w-4 h-4 mr-2" />
             {action.label}
@@ -137,7 +221,7 @@ export default function AppOverviewPage() {
                 <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{app.stats.views.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{analytics?.page_views?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Page Views</p>
               </div>
             </div>
@@ -150,7 +234,7 @@ export default function AppOverviewPage() {
                 <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{app.stats.visitors.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{analytics?.visitors?.unique?.toLocaleString() || '0'}</p>
                 <p className="text-sm text-muted-foreground">Visitors</p>
               </div>
             </div>
@@ -163,7 +247,7 @@ export default function AppOverviewPage() {
                 <Layers className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{app.stats.pages}</p>
+                <p className="text-2xl font-bold">{analytics?.top_pages?.length || '0'}</p>
                 <p className="text-sm text-muted-foreground">Pages</p>
               </div>
             </div>
@@ -176,7 +260,7 @@ export default function AppOverviewPage() {
                 <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{app.stats.automations}</p>
+                <p className="text-2xl font-bold">0</p>
                 <p className="text-sm text-muted-foreground">Automations</p>
               </div>
             </div>
@@ -189,26 +273,49 @@ export default function AppOverviewPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5" />
-            Domain Settings
+            Preview & Domain Settings
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div>
-              <p className="text-sm text-muted-foreground">WebCraft Domain</p>
-              <p className="font-medium">{app.domain}</p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => window.open(`https://${app.domain}`, '_blank')}>
-              <ArrowUpRight className="w-4 h-4" />
-            </Button>
-          </div>
-          {app.customDomain && (
+          {app.is_published && (app.custom_domain || app.subdomain) ? (
+            <>
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">Live Domain</p>
+                  <p className="font-medium">{app.custom_domain || app.subdomain}</p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => window.open(`https://${app.custom_domain || app.subdomain}`, '_blank')}>
+                  <ArrowUpRight className="w-4 h-4" />
+                </Button>
+              </div>
+              {app.custom_domain && (
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Custom Domain</p>
+                    <p className="font-medium">{app.custom_domain}</p>
+                  </div>
+                  <Badge variant="outline" className="text-green-600">Connected</Badge>
+                </div>
+              )}
+            </>
+          ) : (
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div>
-                <p className="text-sm text-muted-foreground">Custom Domain</p>
-                <p className="font-medium">{app.customDomain}</p>
+                <p className="text-sm text-muted-foreground">Preview Mode</p>
+                <p className="font-medium">App is in development - use preview to test</p>
               </div>
-              <Badge variant="outline" className="text-green-600">Connected</Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleViewLive}
+                disabled={isGeneratingPreview}
+              >
+                {isGeneratingPreview ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </Button>
             </div>
           )}
         </CardContent>
@@ -253,10 +360,9 @@ export default function AppOverviewPage() {
         <CardContent>
           <div className="space-y-3">
             {[
-              { action: 'Page updated', target: 'Home', time: '2 hours ago' },
-              { action: 'Automation triggered', target: 'Welcome Email', time: '5 hours ago' },
-              { action: 'Site published', target: '', time: '1 day ago' },
-              { action: 'New form submission', target: 'Contact Form', time: '2 days ago' },
+              { action: 'App created', target: '', time: formatDate(app.created_at) },
+              { action: 'Last updated', target: '', time: formatDate(app.updated_at) },
+              { action: app.is_published ? 'Published' : 'Draft saved', target: '', time: formatDate(app.updated_at) },
             ].map((activity, i) => (
               <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                 <div>
