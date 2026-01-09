@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { Loader2, Smartphone, Tablet, Monitor, ExternalLink, QrCode, ArrowLeft, RefreshCw, Eye, EyeOff, Copy, Check, Keyboard } from 'lucide-react';
+import { Loader2, Smartphone, Tablet, Monitor, ExternalLink, QrCode, ArrowLeft, RefreshCw, Eye, EyeOff, Copy, Check, Keyboard, Home, Globe, Layers, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WidgetRenderer } from '@/components/editor/widget-renderer';
 import { PreviewLoading } from '@/components/preview/preview-loading';
@@ -192,54 +192,66 @@ export default function PreviewPage() {
   const isExpired = expiresAt < new Date();
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Fixed Preview Bar */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Enhanced Fixed Preview Bar */}
       <AnimatePresence>
         {showPreviewBar && (
           <motion.div
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             exit={{ y: -100 }}
-            className="fixed top-0 left-0 right-0 z-50 bg-blue-600 text-white shadow-lg"
+            className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-lg backdrop-blur-sm"
           >
-            <div className="px-4 py-3">
+            <div className="px-6 py-4">
               <div className="flex items-center justify-between max-w-7xl mx-auto">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-6">
                   <button
                     onClick={handleClose}
-                    className="flex items-center space-x-2 px-3 py-1 bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span className="text-sm font-medium">Back to Editor</span>
                   </button>
                   
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">Live Preview</span>
-                  </div>
-                  
-                  <div className="text-sm">
-                    <span className="font-medium">{previewData.app.name}</span>
-                    <span className="text-blue-200 ml-2">• {previewData.app.app_type}</span>
-                    {previewData.pages && previewData.pages.length > 0 && (
-                      <span className="text-blue-300 ml-2 text-xs">
-                        ({previewData.pages.length} page{previewData.pages.length !== 1 ? 's' : ''})
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-sm"></div>
+                      <span className="text-sm font-semibold text-slate-700">Live Preview</span>
+                    </div>
+                    
+                    <div className="h-4 w-px bg-slate-300"></div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Globe className="w-4 h-4 text-slate-500" />
+                      <span className="text-sm font-bold text-slate-900">{previewData.app.name}</span>
+                      <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full font-medium">
+                        {previewData.app.app_type}
                       </span>
+                    </div>
+                    
+                    {previewData.pages && previewData.pages.length > 0 && (
+                      <>
+                        <div className="h-4 w-px bg-slate-300"></div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-600">
+                          <Layers className="w-3 h-3" />
+                          <span>{previewData.pages.length} page{previewData.pages.length !== 1 ? 's' : ''}</span>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  {/* Device Selector */}
-                  <div className="flex bg-blue-700 rounded-lg p-1">
+                <div className="flex items-center space-x-3">
+                  {/* Enhanced Device Selector */}
+                  <div className="flex bg-slate-100 rounded-xl p-1 shadow-inner">
                     {['desktop', 'tablet', 'mobile'].map((deviceType) => (
                       <button
                         key={deviceType}
                         onClick={() => setCurrentDevice(deviceType)}
-                        className={`flex items-center space-x-1 px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                           currentDevice === deviceType
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-blue-200 hover:text-white hover:bg-blue-600'
+                            ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         }`}
                       >
                         {getDeviceIcon(deviceType)}
@@ -248,133 +260,152 @@ export default function PreviewPage() {
                     ))}
                   </div>
 
-                  {/* Refresh Button */}
-                  <button
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    <span className="hidden sm:inline">Refresh</span>
-                  </button>
+                  <div className="h-6 w-px bg-slate-300"></div>
 
-                  {/* Copy Link Button */}
-                  <button
-                    onClick={handleCopyLink}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors"
-                  >
-                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
-                  </button>
+                  {/* Action Buttons */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={handleRefresh}
+                      disabled={isRefreshing}
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      <span className="hidden sm:inline">Refresh</span>
+                    </button>
 
-                  {/* QR Code Button */}
-                  <button
-                    onClick={() => setShowQR(!showQR)}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors"
-                  >
-                    <QrCode className="w-4 h-4" />
-                    <span className="hidden sm:inline">QR</span>
-                  </button>
+                    <button
+                      onClick={handleCopyLink}
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200"
+                    >
+                      {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                      <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
+                    </button>
 
-                  {/* External Link */}
-                  <a
-                    href={`/preview/${token}/embed`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    <span className="hidden sm:inline">Open</span>
-                  </a>
+                    <button
+                      onClick={() => setShowQR(!showQR)}
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      <span className="hidden sm:inline">QR</span>
+                    </button>
 
-                  {/* Fullscreen Toggle */}
-                  <button
-                    onClick={toggleFullscreen}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors"
-                  >
-                    <Monitor className="w-4 h-4" />
-                    <span className="hidden sm:inline">{fullscreen ? 'Exit' : 'Full'}</span>
-                  </button>
+                    <a
+                      href={`/preview/${token}/embed`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span className="hidden sm:inline">Embed</span>
+                    </a>
 
-                  {/* Keyboard Shortcuts Help */}
-                  <button
-                    onClick={() => setShowShortcuts(!showShortcuts)}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors"
-                  >
-                    <Keyboard className="w-4 h-4" />
-                    <span className="hidden sm:inline">Help</span>
-                  </button>
+                    <button
+                      onClick={toggleFullscreen}
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200"
+                    >
+                      <Monitor className="w-4 h-4" />
+                      <span className="hidden sm:inline">{fullscreen ? 'Exit' : 'Full'}</span>
+                    </button>
 
-                  {/* Hide/Show Preview Bar */}
-                  <button
-                    onClick={() => setShowPreviewBar(false)}
-                    className="flex items-center justify-center w-8 h-8 text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors"
-                  >
-                    <EyeOff className="w-4 h-4" />
-                  </button>
+                    <button
+                      onClick={() => setShowShortcuts(!showShortcuts)}
+                      className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200"
+                    >
+                      <Keyboard className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => setShowPreviewBar(false)}
+                      className="flex items-center justify-center w-8 h-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all duration-200"
+                    >
+                      <EyeOff className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Expiration Warning */}
               {isExpired && (
-                <div className="mt-2 bg-red-500 text-white rounded-lg p-2">
-                  <p className="text-sm font-medium">
-                    ⚠️ This preview has expired. Please generate a new preview link.
-                  </p>
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-4 bg-red-50 border border-red-200 text-red-800 rounded-lg p-3"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <p className="text-sm font-medium">
+                      ⚠️ This preview has expired. Please generate a new preview link.
+                    </p>
+                  </div>
+                </motion.div>
               )}
 
-              {/* QR Code Modal */}
-              {showQR && (
-                <div className="mt-2 bg-white text-gray-900 rounded-lg p-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <img
-                        src={`/api/apps/preview/${token}/qr?size=150`}
-                        alt="QR Code for mobile preview"
-                        className="w-24 h-24 border border-gray-300 rounded"
-                      />
+              {/* QR Code Panel */}
+              <AnimatePresence>
+                {showQR && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-4"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={`/api/apps/preview/${token}/qr?size=150`}
+                          alt="QR Code for mobile preview"
+                          className="w-24 h-24 border border-slate-300 rounded-lg shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-900 mb-1">
+                          Mobile Preview QR Code
+                        </h3>
+                        <p className="text-sm text-slate-600 mb-2">
+                          Scan this QR code with your mobile device to preview the app on your phone.
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Expires: {expiresAt.toLocaleString()}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900 mb-1">
-                        Mobile Preview QR Code
-                      </h3>
-                      <p className="text-sm text-gray-700">
-                        Scan this QR code with your mobile device to preview the app on your phone.
-                      </p>
-                      <p className="text-xs text-gray-600 mt-2">
-                        Expires: {expiresAt.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Keyboard Shortcuts Help */}
-              {showShortcuts && (
-                <div className="mt-2 bg-white text-gray-900 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">
-                    Keyboard Shortcuts
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Toggle Fullscreen:</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">F11</kbd>
+              <AnimatePresence>
+                {showShortcuts && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-4"
+                  >
+                    <h3 className="text-sm font-semibold text-slate-900 mb-3">
+                      Keyboard Shortcuts
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Toggle Fullscreen:</span>
+                        <kbd className="px-2 py-1 bg-white border border-slate-300 rounded text-xs font-mono shadow-sm">F11</kbd>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Exit Fullscreen:</span>
+                        <kbd className="px-2 py-1 bg-white border border-slate-300 rounded text-xs font-mono shadow-sm">Esc</kbd>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Refresh Preview:</span>
+                        <kbd className="px-2 py-1 bg-white border border-slate-300 rounded text-xs font-mono shadow-sm">Ctrl+R</kbd>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Copy Link:</span>
+                        <kbd className="px-2 py-1 bg-white border border-slate-300 rounded text-xs font-mono shadow-sm">Ctrl+Shift+C</kbd>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Exit Fullscreen:</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Esc</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Refresh Preview:</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+R</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Copy Link:</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+Shift+C</kbd>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
@@ -382,30 +413,32 @@ export default function PreviewPage() {
 
       {/* Show Preview Bar Button (when hidden) */}
       {!showPreviewBar && (
-        <button
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
           onClick={() => setShowPreviewBar(true)}
-          className="fixed top-4 right-4 z-50 bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+          className="fixed top-4 right-4 z-50 bg-white text-slate-700 p-3 rounded-xl shadow-lg hover:shadow-xl border border-slate-200 transition-all duration-200 hover:scale-105"
         >
-          <Eye className="w-4 h-4" />
-        </button>
+          <Eye className="w-5 h-5" />
+        </motion.button>
       )}
 
-      {/* Preview Content */}
-      <div className={`transition-all duration-300 ${showPreviewBar ? 'pt-20' : 'pt-4'} ${fullscreen ? 'fixed inset-0 z-40 bg-gray-100' : ''}`}>
-        <div className={`${fullscreen ? 'h-full' : 'p-4'}`}>
+      {/* Enhanced Preview Content */}
+      <div className={`transition-all duration-300 ${showPreviewBar ? 'pt-24' : 'pt-6'} ${fullscreen ? 'fixed inset-0 z-40 bg-gradient-to-br from-slate-50 to-slate-100' : ''}`}>
+        <div className={`${fullscreen ? 'h-full' : 'p-6'}`}>
           <div className={`transition-all duration-300 ${fullscreen ? 'h-full' : getDeviceClass()}`}>
-            {/* Device Frame with realistic styling */}
+            {/* Enhanced Device Frame */}
             <div className={`
-              bg-white shadow-2xl overflow-hidden transition-all duration-300
+              bg-white shadow-2xl overflow-hidden transition-all duration-300 relative
               ${fullscreen ? 'h-full rounded-none border-none' : ''}
-              ${!fullscreen && currentDevice === 'mobile' ? 'rounded-[2.5rem] border-8 border-gray-800 max-w-sm mx-auto' : ''}
-              ${!fullscreen && currentDevice === 'tablet' ? 'rounded-2xl border-4 border-gray-600 max-w-2xl mx-auto' : ''}
-              ${!fullscreen && currentDevice === 'desktop' ? 'rounded-lg border border-gray-300' : ''}
+              ${!fullscreen && currentDevice === 'mobile' ? 'rounded-[2.5rem] border-8 border-slate-800 max-w-sm mx-auto shadow-slate-900/20' : ''}
+              ${!fullscreen && currentDevice === 'tablet' ? 'rounded-2xl border-4 border-slate-600 max-w-2xl mx-auto shadow-slate-600/20' : ''}
+              ${!fullscreen && currentDevice === 'desktop' ? 'rounded-xl border border-slate-300 shadow-slate-300/20' : ''}
             `}>
               {/* Mobile Device Notch */}
               {!fullscreen && currentDevice === 'mobile' && (
-                <div className="h-6 bg-gray-800 flex items-center justify-center">
-                  <div className="w-20 h-4 bg-gray-700 rounded-full"></div>
+                <div className="h-6 bg-slate-900 flex items-center justify-center">
+                  <div className="w-20 h-4 bg-slate-700 rounded-full"></div>
                 </div>
               )}
               
@@ -413,9 +446,9 @@ export default function PreviewPage() {
               <div className={`
                 ${!fullscreen && currentDevice === 'mobile' ? 'aspect-[9/16]' : ''}
                 ${!fullscreen && currentDevice === 'tablet' ? 'aspect-[4/3]' : ''}
-                ${!fullscreen && currentDevice === 'desktop' ? 'min-h-[600px]' : ''}
+                ${!fullscreen && currentDevice === 'desktop' ? 'min-h-[700px]' : ''}
                 ${fullscreen ? 'h-full' : ''}
-                overflow-hidden
+                overflow-hidden relative
               `}>
                 <AppPreviewRenderer 
                   app={previewData.app}
@@ -427,8 +460,8 @@ export default function PreviewPage() {
               
               {/* Mobile Device Home Indicator */}
               {!fullscreen && currentDevice === 'mobile' && (
-                <div className="h-8 bg-gray-800 flex items-center justify-center">
-                  <div className="w-32 h-1 bg-gray-600 rounded-full"></div>
+                <div className="h-8 bg-slate-900 flex items-center justify-center">
+                  <div className="w-32 h-1 bg-slate-600 rounded-full"></div>
                 </div>
               )}
             </div>
@@ -436,26 +469,36 @@ export default function PreviewPage() {
         </div>
       </div>
 
-      {/* Preview Info Footer - Hide in fullscreen */}
+      {/* Enhanced Preview Info Footer */}
       {!fullscreen && (
-        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border border-gray-200 p-3 text-xs text-gray-600">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Preview Active</span>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-6 right-6 bg-white rounded-xl shadow-lg border border-slate-200 p-4 text-xs text-slate-600 backdrop-blur-sm"
+        >
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span className="font-semibold">Preview Active</span>
           </div>
-          <div className="mt-1">
-            Token: {token.substring(0, 8)}...
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className="text-slate-500">Token:</span>
+              <code className="bg-slate-100 px-1 py-0.5 rounded text-xs font-mono">
+                {token.substring(0, 8)}...
+              </code>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-slate-500">Expires:</span>
+              <span className="font-medium">{expiresAt.toLocaleString()}</span>
+            </div>
           </div>
-          <div>
-            Expires: {expiresAt.toLocaleString()}
-          </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
 }
 
-// Enhanced App Preview Renderer Component - Exact Editor Replica
+// Enhanced App Preview Renderer Component - Professional Layout
 function AppPreviewRenderer({ 
   app, 
   device, 
@@ -480,24 +523,6 @@ function AppPreviewRenderer({
   // Get elements from page content (prioritize page content over app config)
   const elements = activePage?.content?.elements || app.config?.elements || [];
   
-  // Debug elements
-  console.log('🎨 AppPreviewRenderer - Elements data:', {
-    activePageId: activePage?.id,
-    activePageTitle: activePage?.title,
-    hasActivePage: !!activePage,
-    hasContent: !!activePage?.content,
-    contentKeys: activePage?.content ? Object.keys(activePage.content) : [],
-    elementsCount: elements.length,
-    elements: elements.slice(0, 3).map((el: any) => ({
-      id: el.id,
-      type: el.type,
-      position: el.position,
-      size: el.size,
-      hasProps: !!el.props,
-      propsKeys: el.props ? Object.keys(el.props) : []
-    }))
-  });
-
   // Apply theme configuration
   const themeConfig = app.theme_config || {};
   const colors = themeConfig.colors || {};
@@ -518,47 +543,63 @@ function AppPreviewRenderer({
 
   return (
     <div className={`h-full w-full flex flex-col ${fullscreen ? 'min-h-screen' : ''}`} style={themeStyles}>
-      {/* Page Navigation - Only show if multiple pages and not in fullscreen mobile */}
+      {/* Enhanced Page Navigation */}
       {pages && pages.length > 1 && !(fullscreen && device === 'mobile') && (
-        <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'var(--heading-font)' }}>
-              {app.name}
-            </h2>
+        <div className="bg-white border-b border-slate-200 px-6 py-4 flex-shrink-0 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <Globe className="w-5 h-5 text-slate-600" />
+                <h2 className="font-bold text-slate-900 text-lg" style={{ fontFamily: 'var(--heading-font)' }}>
+                  {app.name}
+                </h2>
+              </div>
+              <div className="h-4 w-px bg-slate-300"></div>
+              <div className="flex items-center space-x-2">
+                <Layers className="w-4 h-4 text-slate-500" />
+                <span className="text-sm text-slate-600 font-medium">
+                  {activePage?.title || 'Page'}
+                </span>
+              </div>
+            </div>
+            
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                {activePage?.title || 'Page'}
+              <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full font-medium">
+                {app.app_type}
               </span>
               {fullscreen && (
-                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded font-medium">
+                <span className="text-xs text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full font-semibold">
                   Fullscreen
                 </span>
               )}
             </div>
           </div>
           
-          {/* Page Navigation Tabs */}
-          <nav className="flex flex-wrap gap-1">
+          {/* Enhanced Page Navigation Tabs */}
+          <nav className="flex flex-wrap gap-2">
             {pages.map((page) => (
               <button
                 key={page.id}
                 onClick={() => setCurrentPage(page.slug)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                className={`group flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   currentPage === page.slug
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
                 }`}
                 style={{ fontFamily: 'var(--body-font)' }}
               >
-                {page.title}
-                {page.is_homepage && <span className="ml-1 text-xs">🏠</span>}
+                {page.is_homepage && <Home className="w-4 h-4" />}
+                <span>{page.title}</span>
+                {currentPage === page.slug && (
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                )}
               </button>
             ))}
           </nav>
         </div>
       )}
 
-      {/* App Content - Exact replica of editor canvas */}
+      {/* Enhanced App Content */}
       <div 
         className={`flex-1 relative overflow-auto ${fullscreen ? 'min-h-screen' : ''}`}
         style={{ 
@@ -569,61 +610,49 @@ function AppPreviewRenderer({
       >
         {elements && elements.length > 0 ? (
           <div className={`relative w-full h-full ${fullscreen ? 'min-h-screen' : 'min-h-[600px]'}`}>
-            {/* Debug info */}
-            {!fullscreen && (
-              <div className="absolute top-2 right-2 bg-black/80 text-white text-xs p-2 rounded z-50">
-                Elements: {elements.length}
-              </div>
-            )}
-            
-            {/* Render elements exactly as they appear in the editor */}
-            {elements.map((element: any, index: number) => {
-              console.log(`🎨 Rendering element ${index}:`, {
-                id: element.id,
-                type: element.type,
-                position: element.position,
-                size: element.size,
-                props: element.props
-              });
-              
-              return (
-                <div
-                  key={element.id || index}
-                  className="absolute border border-dashed border-blue-300/50"
-                  style={{
-                    left: element.position?.x || 0,
-                    top: element.position?.y || (index * 100),
-                    width: element.size?.width || 'auto',
-                    height: element.size?.height || 'auto',
-                    zIndex: element.zIndex || index + 1,
-                    transform: element.transform || 'none',
-                    minWidth: '50px',
-                    minHeight: '30px'
-                  }}
-                  title={`${element.type} - ${element.id}`}
-                >
-                  <WidgetRenderer
-                    element={element}
-                    isSelected={false}
-                    isHovered={false}
-                    isPreview={true}
-                    onSelect={() => {}}
-                  />
-                </div>
-              );
-            })}
+            {/* Render elements in stacked layout for better preview */}
+            <div className="space-y-0">
+              {elements.map((element: any, index: number) => {
+                return (
+                  <motion.div
+                    key={element.id || index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1, duration: 0.3 }}
+                    className="w-full"
+                    style={{
+                      minHeight: element.size?.height || 'auto',
+                      zIndex: element.zIndex || index + 1,
+                    }}
+                  >
+                    <WidgetRenderer
+                      element={element}
+                      isSelected={false}
+                      isHovered={false}
+                      isPreview={true}
+                      onSelect={() => {}}
+                    />
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         ) : (
           <div className={`h-full flex items-center justify-center p-8 ${fullscreen ? 'min-h-screen' : ''}`}>
-            <div className="text-center max-w-lg">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center max-w-2xl"
+            >
               <div 
-                className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"
+                className="w-32 h-32 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg"
                 style={{ backgroundColor: 'var(--muted-color)' }}
               >
-                <Monitor className="w-12 h-12 text-gray-400" />
+                <Zap className="w-16 h-16 text-slate-400" />
               </div>
               <h3 
-                className={`font-bold mb-4 ${fullscreen ? 'text-4xl' : 'text-3xl'}`}
+                className={`font-bold mb-6 ${fullscreen ? 'text-5xl' : 'text-4xl'}`}
                 style={{ 
                   fontFamily: 'var(--heading-font)',
                   color: 'var(--foreground-color)'
@@ -631,49 +660,65 @@ function AppPreviewRenderer({
               >
                 {activePage ? activePage.title : app.name}
               </h3>
-              <p className={`text-gray-600 mb-8 ${fullscreen ? 'text-xl' : 'text-lg'}`} style={{ fontFamily: 'var(--body-font)' }}>
+              <p className={`text-slate-600 mb-8 ${fullscreen ? 'text-2xl' : 'text-xl'} leading-relaxed`} style={{ fontFamily: 'var(--body-font)' }}>
                 {activePage 
-                  ? `This page is ready for content. Add elements in the editor to see them here.`
-                  : "This app is ready for content. Add elements in the editor to see them here."
+                  ? `This page is ready for content. Add elements in the editor to bring it to life.`
+                  : "This app is ready for content. Start building in the editor to see your creation here."
                 }
               </p>
               
-              {/* App info card */}
+              {/* Enhanced App info card */}
               <div 
-                className={`bg-white rounded-lg shadow-sm border p-6 text-left mx-auto ${fullscreen ? 'max-w-lg' : 'max-w-md'}`}
+                className={`bg-white rounded-2xl shadow-lg border p-8 text-left mx-auto ${fullscreen ? 'max-w-2xl' : 'max-w-lg'}`}
                 style={{ borderColor: 'var(--muted-color)' }}
               >
-                <h4 className="font-semibold text-gray-900 mb-4" style={{ fontFamily: 'var(--heading-font)' }}>
-                  App Information
-                </h4>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="font-medium capitalize px-2 py-1 bg-gray-100 rounded text-xs">
-                      {app.app_type}
-                    </span>
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                    <Globe className="w-6 h-6 text-slate-600" />
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Pages:</span>
-                    <span className="font-medium">{pages?.length || 0}</span>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-lg" style={{ fontFamily: 'var(--heading-font)' }}>
+                      App Information
+                    </h4>
+                    <p className="text-slate-500 text-sm">Preview Details</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Current Page:</span>
-                    <span className="font-medium">{activePage?.title || 'None'}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Elements:</span>
-                    <span className="font-medium">{elements.length}</span>
-                  </div>
-                  {fullscreen && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">View Mode:</span>
-                      <span className="font-medium text-blue-600">Fullscreen</span>
-                    </div>
-                  )}
                 </div>
+                
+                <div className="grid grid-cols-2 gap-6 text-sm">
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-slate-500 block mb-1">Type</span>
+                      <span className="font-semibold capitalize px-3 py-1 bg-slate-100 rounded-lg text-sm">
+                        {app.app_type}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block mb-1">Pages</span>
+                      <span className="font-bold text-lg">{pages?.length || 0}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-slate-500 block mb-1">Current Page</span>
+                      <span className="font-semibold">{activePage?.title || 'None'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block mb-1">Elements</span>
+                      <span className="font-bold text-lg">{elements.length}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {fullscreen && (
+                  <div className="mt-6 pt-6 border-t border-slate-200">
+                    <div className="flex items-center justify-center space-x-2 text-emerald-600">
+                      <Monitor className="w-4 h-4" />
+                      <span className="font-semibold text-sm">Fullscreen Preview Mode</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>

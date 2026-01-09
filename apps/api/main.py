@@ -20,6 +20,9 @@ from routers import automations, export, pages, integrations
 from routers import data_sources, scrapers, media
 from routers import collections, analytics, payment, preview
 from routers import graphql, webhooks, notifications, sdk, setup, live_apps
+from routers import actions, data_flow  # New enhanced routers
+from routers import custom_assets  # Custom assets router
+from routers import cross_app  # Cross-app communication router
 from middleware.rate_limiting import RateLimitMiddleware
 from core.database import init_db
 from core.redis_client import init_redis
@@ -228,6 +231,18 @@ app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["In
 # Data Sources and Web Scrapers
 app.include_router(data_sources.router, prefix="/api/v1", tags=["Data Sources"])
 app.include_router(scrapers.router, prefix="/api/v1", tags=["Web Scrapers"])
+
+# Enhanced Actions & Events System
+app.include_router(actions.router, prefix="/api/v1", tags=["Actions & Events"])
+
+# Advanced Data Flow Management
+app.include_router(data_flow.router, prefix="/api/v1", tags=["Data Flow"])
+
+# Custom Assets (HTML, CSS, JS, Media)
+app.include_router(custom_assets.router, prefix="/api/v1", tags=["Custom Assets"])
+
+# Cross-App Communication
+app.include_router(cross_app.router, prefix="/api/v1", tags=["Cross-App Communication"])
 
 # Media Manager
 app.include_router(media.router, prefix="/api/v1", tags=["Media"])

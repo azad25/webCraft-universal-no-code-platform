@@ -25,7 +25,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { apiClient } from '@/lib/api-client'
-import { toast } from 'sonner'
+import { useAppDispatch } from '@/store'
+import { addToast } from '@/store/slices/uiSlice'
 
 interface DeploymentManagerProps {
   appId: string
@@ -52,6 +53,7 @@ interface DeploymentStatus {
 }
 
 export function DeploymentManager({ appId, app, onDeploymentChange }: DeploymentManagerProps) {
+  const dispatch = useAppDispatch()
   const [deploymentStatus, setDeploymentStatus] = useState<DeploymentStatus>({
     status: app.is_published ? 'deployed' : 'not_deployed'
   })
@@ -107,9 +109,11 @@ export function DeploymentManager({ appId, app, onDeploymentChange }: Deployment
           deployed_at: response.data.deployed_at
         })
         
-        toast.success('App deployed successfully!', {
-          description: `Your app is now live at ${response.data.url}`
-        })
+        dispatch(addToast({
+          type: 'success',
+          title: 'App deployed successfully!',
+          message: `Your app is now live at ${response.data.url}`
+        }))
         
         onDeploymentChange?.()
       } else {
@@ -122,9 +126,11 @@ export function DeploymentManager({ appId, app, onDeploymentChange }: Deployment
         error: error.response?.data?.detail || error.message || 'Deployment failed'
       })
       
-      toast.error('Deployment failed', {
-        description: error.response?.data?.detail || error.message
-      })
+      dispatch(addToast({
+        type: 'error',
+        title: 'Deployment failed',
+        message: error.response?.data?.detail || error.message || 'An error occurred during deployment'
+      }))
     } finally {
       setIsDeploying(false)
     }
@@ -134,18 +140,28 @@ export function DeploymentManager({ appId, app, onDeploymentChange }: Deployment
     try {
       await apiClient.post(`/api/v1/apps/${appId}/unpublish`)
       setDeploymentStatus({ status: 'not_deployed' })
-      toast.success('App unpublished successfully')
+      dispatch(addToast({
+        type: 'success',
+        title: 'App unpublished successfully',
+        message: 'Your app is no longer publicly accessible'
+      }))
       onDeploymentChange?.()
     } catch (error: any) {
-      toast.error('Failed to unpublish app', {
-        description: error.response?.data?.detail || error.message
-      })
+      dispatch(addToast({
+        type: 'error',
+        title: 'Failed to unpublish app',
+        message: error.response?.data?.detail || error.message || 'An error occurred while unpublishing'
+      }))
     }
   }
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    toast.success('Copied to clipboard')
+    dispatch(addToast({
+      type: 'success',
+      title: 'Copied to clipboard',
+      duration: 2000
+    }))
   }
 
   const getStatusIcon = () => {

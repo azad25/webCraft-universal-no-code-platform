@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebCraft - Code Examples Library</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .code-example {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .code-header {
+            background: #495057;
+            color: white;
+            padding: 10px 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .code-content {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        .code-content pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .copy-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .copy-btn:hover {
+            background: #5a6268;
+        }
+        .example-category {
+            margin-bottom: 40px;
+        }
+        .example-category h3 {
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .example-description {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            background: #f8f9fa;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background: white;
+            border-color: #dee2e6;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="docs-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Docs</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="../../index.html">🏠 Home</a></li>
+                <li>
+                    <a href="#" class="menu-toggle">📚 Development</a>
+                    <ul class="submenu">
+                        <li><a href="../database/database-design.html">Database Design</a></li>
+                        <li><a href="../api/rest-endpoints.html">API Documentation</a></li>
+                        <li>
+                            <a href="#" class="menu-toggle">Advanced Guides</a>
+                            <ul class="submenu">
+                                <li><a href="../advanced/testing.html">Testing Strategies</a></li>
+                                <li><a href="../advanced/deployment.html">Deployment Guide</a></li>
+                                <li><a href="../advanced/troubleshooting.html">Troubleshooting</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="../integration/external-apis.html">External APIs</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="menu-toggle">💡 Examples</a>
+                    <ul class="submenu">
+                        <li><a href="code-examples.html" class="active">Code Examples</a></li>
+                        <li><a href="patterns.html">Design Patterns</a></li>
+                        <li><a href="snippets.html">Code Snippets</a></li>
+                    </ul>
+                </li>
+                <li><a href="../../tutorials/index.html">🎯 Tutorials</a></li>
+                <li><a href="../../faq.html">❓ FAQ</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Code Examples Library</h1>
+                <p>Comprehensive collection of production-ready code examples for WebCraft development</p>
+            </header>
+
+            <div class="content-body">
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('frontend')">Frontend</div>
+                    <div class="tab" onclick="showTab('backend')">Backend</div>
+                    <div class="tab" onclick="showTab('database')">Database</div>
+                    <div class="tab" onclick="showTab('devops')">DevOps</div>
+                </div>
+
+                <!-- Frontend Examples -->
+                <div id="frontend" class="tab-content active">
+                    <div class="example-category">
+                        <h3>React Components</h3>
+                        
+                        <div class="example-description">
+                            <strong>Workspace Selector Component:</strong> A reusable dropdown component for workspace selection with loading states and error handling.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>WorkspaceSelector.tsx</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>import React, { useState, useEffect } from 'react';
+import { useWorkspace } from '@/hooks/useWorkspace';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+
+interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  role: 'owner' | 'admin' | 'member';
+}
+
+interface WorkspaceSelectorProps {
+  onWorkspaceChange?: (workspace: Workspace) => void;
+  className?: string;
+}
+
+export const WorkspaceSelector: React.FC&lt;WorkspaceSelectorProps&gt; = ({
+  onWorkspaceChange,
+  className = ''
+}) => {
+  const { workspaces, currentWorkspace, loading, error, switchWorkspace } = useWorkspace();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleWorkspaceSelect = async (workspace: Workspace) => {
+    try {
+      await switchWorkspace(workspace.id);
+      onWorkspaceChange?.(workspace);
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Failed to switch workspace:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      &lt;div className={`animate-pulse bg-gray-200 rounded-md h-10 w-48 ${className}`}&gt;
+        &lt;div className="h-4 bg-gray-300 rounded w-3/4 mx-auto mt-3"&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  if (error) {
+    return (
+      &lt;div className={`bg-red-50 border border-red-200 rounded-md p-3 text-red-700 ${className}`}&gt;
+        Failed to load workspaces
+      &lt;/div&gt;
+    );
+  }
+
+  return (
+    &lt;div className={`relative ${className}`}&gt;
+      &lt;button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      &gt;
+        &lt;span className="flex items-center"&gt;
+          &lt;div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium mr-3"&gt;
+            {currentWorkspace?.name?.charAt(0)?.toUpperCase()}
+          &lt;/div&gt;
+          &lt;span className="text-gray-900"&gt;{currentWorkspace?.name}&lt;/span&gt;
+        &lt;/span&gt;
+        &lt;ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} /&gt;
+      &lt;/button&gt;
+
+      {isOpen && (
+        &lt;div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg"&gt;
+          &lt;div className="py-1"&gt;
+            {workspaces.map((workspace) =&gt; (
+              &lt;button
+                key={workspace.id}
+                onClick={() => handleWorkspaceSelect(workspace)}
+                className={`flex items-center w-full px-4 py-2 text-left hover:bg-gray-100 ${
+                  workspace.id === currentWorkspace?.id ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                }`}
+              &gt;
+                &lt;div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center text-gray-700 text-xs font-medium mr-3"&gt;
+                  {workspace.name.charAt(0).toUpperCase()}
+                &lt;/div&gt;
+                &lt;div className="flex-1"&gt;
+                  &lt;div className="font-medium"&gt;{workspace.name}&lt;/div&gt;
+                  &lt;div className="text-xs text-gray-500"&gt;{workspace.role}&lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/button&gt;
+            ))}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+};</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="example-description">
+                            <strong>Custom Hook for Data Fetching:</strong> A reusable hook for API data fetching with loading, error, and retry states.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>useApi.ts</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>import { useState, useEffect, useCallback, useRef } from 'react';
+
+interface ApiState&lt;T&gt; {
+  data: T | null;
+  loading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+}
+
+interface UseApiOptions {
+  enabled?: boolean;
+  retryCount?: number;
+  retryDelay?: number;
+  onSuccess?: (data: any) => void;
+  onError?: (error: Error) => void;
+}
+
+export function useApi&lt;T&gt;(
+  url: string,
+  options: UseApiOptions = {}
+): ApiState&lt;T&gt; {
+  const {
+    enabled = true,
+    retryCount = 3,
+    retryDelay = 1000,
+    onSuccess,
+    onError
+  } = options;
+
+  const [data, setData] = useState&lt;T | null&gt;(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState&lt;Error | null&gt;(null);
+  const abortControllerRef = useRef&lt;AbortController | null&gt;(null);
+  const retryTimeoutRef = useRef&lt;NodeJS.Timeout | null&gt;(null);
+
+  const fetchData = useCallback(async () => {
+    if (!enabled) return;
+
+    // Cancel any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Clear any retry timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
+
+    abortControllerRef.current = new AbortController();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(url, {
+        signal: abortControllerRef.current.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setData(result);
+      onSuccess?.(result);
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return; // Request was cancelled, don't update state
+      }
+
+      const error = err instanceof Error ? err : new Error('Unknown error');
+      setError(error);
+      onError?.(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [url, enabled, onSuccess, onError]);
+
+  const refetch = useCallback(async () => {
+    await fetchData();
+  }, [fetchData]);
+
+  // Retry logic
+  useEffect(() => {
+    if (error && retryCount > 0) {
+      retryTimeoutRef.current = setTimeout(() => {
+        fetchData();
+      }, retryDelay);
+    }
+
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, [error, retryCount, retryDelay, fetchData]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchData();
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, [fetchData]);
+
+  return { data, loading, error, refetch };
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backend Examples -->
+                <div id="backend" class="tab-content">
+                    <div class="example-category">
+                        <h3>FastAPI Endpoints</h3>
+                        
+                        <div class="example-description">
+                            <strong>Authentication Middleware:</strong> JWT authentication middleware with role-based access control and workspace isolation.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>auth_middleware.py</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>from typing import Optional, List
+from fastapi import HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import jwt, JWTError
+from sqlalchemy.orm import Session
+from datetime import datetime, timezone
+
+from .database import get_db
+from .models import User, Workspace, WorkspaceMember
+from .config import settings
+
+security = HTTPBearer()
+
+class AuthService:
+    def __init__(self):
+        self.secret_key = settings.SECRET_KEY
+        self.algorithm = settings.ALGORITHM
+        self.access_token_expire_minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+
+    def create_access_token(self, data: dict) -> str:
+        to_encode = data.copy()
+        expire = datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes)
+        to_encode.update({"exp": expire})
+        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+
+    def verify_token(self, token: str) -> dict:
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            return payload
+        except JWTError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    async def get_current_user(
+        self,
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+        db: Session = Depends(get_db)
+    ) -> User:
+        token_data = self.verify_token(credentials.credentials)
+        user_id = token_data.get("sub")
+        
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials"
+            )
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+
+        return user
+
+    async def get_current_active_user(
+        self,
+        current_user: User = Depends(get_current_user)
+    ) -> User:
+        if not current_user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user"
+            )
+        return current_user
+
+    async def get_workspace_member(
+        self,
+        workspace_id: str,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ) -> WorkspaceMember:
+        workspace_member = db.query(WorkspaceMember).filter(
+            WorkspaceMember.workspace_id == workspace_id,
+            WorkspaceMember.user_id == current_user.id
+        ).first()
+
+        if not workspace_member:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied to this workspace"
+            )
+
+        return workspace_member
+
+    def require_roles(self, required_roles: List[str]):
+        def role_checker(
+            current_user: User = Depends(self.get_current_active_user),
+            workspace_member: WorkspaceMember = Depends(self.get_workspace_member)
+        ):
+            if workspace_member.role not in required_roles:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"This action requires one of these roles: {', '.join(required_roles)}"
+                )
+            return current_user
+        return role_checker
+
+# Usage examples
+def require_admin():
+    return AuthService().require_roles(['owner', 'admin'])
+
+def require_owner():
+    return AuthService().require_roles(['owner'])
+
+# Dependency shortcuts
+current_user = AuthService().get_current_active_user
+admin_required = require_admin()
+owner_required = require_owner()</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="example-description">
+                            <strong>Background Task Queue:</strong> Redis-based task queue for handling background jobs with retry logic and monitoring.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>task_queue.py</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>import json
+import asyncio
+import logging
+from typing import Dict, Any, Optional, Callable
+from datetime import datetime, timedelta
+import redis.asyncio as redis
+from celery import Celery
+from celery.utils.log import get_task_logger
+
+from .config import settings
+from .database import get_db_session
+from .models import Task, TaskStatus
+
+logger = get_task_logger(__name__)
+
+class TaskQueue:
+    def __init__(self):
+        self.redis_client = redis.from_url(settings.REDIS_URL)
+        self.celery_app = Celery(
+            'webcraft',
+            broker=settings.REDIS_URL,
+            backend=settings.REDIS_URL
+        )
+        self.celery_app.conf.update(
+            task_serializer='json',
+            accept_content=['json'],
+            result_serializer='json',
+            timezone='UTC',
+            enable_utc=True,
+            task_track_started=True,
+            task_time_limit=30 * 60,  # 30 minutes
+            task_soft_time_limit=25 * 60,  # 25 minutes
+            worker_prefetch_multiplier=1,
+            worker_max_tasks_per_child=1000,
+        )
+
+    async def enqueue_task(
+        self,
+        task_name: str,
+        task_data: Dict[str, Any],
+        priority: int = 5,
+        delay: Optional[int] = None
+    ) -> str:
+        """Add a task to the queue with optional delay"""
+        task_id = f"{task_name}_{datetime.now().timestamp()}"
+        
+        # Store task metadata in Redis
+        task_metadata = {
+            'task_id': task_id,
+            'task_name': task_name,
+            'task_data': task_data,
+            'priority': priority,
+            'created_at': datetime.now().isoformat(),
+            'status': 'pending'
+        }
+        
+        await self.redis_client.hset(
+            f"task:{task_id}",
+            mapping=task_metadata
+        )
+
+        # Schedule the task
+        if delay:
+            # Use delayed task execution
+            self.celery_app.send_task(
+                task_name,
+                args=[task_data],
+                task_id=task_id,
+                countdown=delay
+            )
+        else:
+            # Execute immediately
+            self.celery_app.send_task(
+                task_name,
+                args=[task_data],
+                task_id=task_id,
+                priority=priority
+            )
+
+        logger.info(f"Task {task_id} enqueued with priority {priority}")
+        return task_id
+
+    async def get_task_status(self, task_id: str) -> Dict[str, Any]:
+        """Get the current status of a task"""
+        task_data = await self.redis_client.hgetall(f"task:{task_id}")
+        
+        if not task_data:
+            return {'status': 'not_found'}
+
+        # Get Celery task result if available
+        async_result = self.celery_app.AsyncResult(task_id)
+        
+        return {
+            'task_id': task_id,
+            'status': async_result.status,
+            'result': async_result.result if async_result.successful() else None,
+            'error': str(async_result.result) if async_result.failed() else None,
+            'created_at': task_data.get('created_at'),
+            'started_at': task_data.get('started_at'),
+            'completed_at': task_data.get('completed_at')
+        }
+
+    async def cancel_task(self, task_id: str) -> bool:
+        """Cancel a pending task"""
+        async_result = self.celery_app.AsyncResult(task_id)
+        
+        if async_result.state in ['PENDING', 'RETRY']:
+            async_result.revoke()
+            await self.redis_client.hset(f"task:{task_id}", 'status', 'cancelled')
+            logger.info(f"Task {task_id} cancelled")
+            return True
+        
+        return False
+
+# Celery tasks
+@celery_app.task(bind=True, max_retries=3)
+def process_workspace_invitation(self, invitation_data: Dict[str, Any]):
+    """Process workspace invitation with retry logic"""
+    try:
+        task_id = self.request.id
+        logger.info(f"Processing workspace invitation task {task_id}")
+        
+        # Update task status
+        queue = TaskQueue()
+        asyncio.run(queue.redis_client.hset(
+            f"task:{task_id}",
+            'status': 'running',
+            'started_at': datetime.now().isoformat()
+        ))
+
+        # Get database session
+        db = next(get_db_session())
+        
+        # Process invitation
+        invitation = db.query(Invitation).filter(
+            Invitation.id == invitation_data['invitation_id']
+        ).first()
+        
+        if not invitation:
+            raise ValueError("Invitation not found")
+
+        # Send email notification
+        send_invitation_email(invitation)
+        
+        # Update invitation status
+        invitation.status = 'sent'
+        invitation.sent_at = datetime.now(timezone.utc)
+        db.commit()
+
+        # Mark task as completed
+        asyncio.run(queue.redis_client.hset(
+            f"task:{task_id}",
+            'status': 'completed',
+            'completed_at': datetime.now().isoformat()
+        ))
+
+        logger.info(f"Workspace invitation task {task_id} completed successfully")
+        return {"status": "success", "invitation_id": invitation.id}
+
+    except Exception as exc:
+        logger.error(f"Workspace invitation task {task_id} failed: {str(exc)}")
+        
+        # Retry logic
+        if self.request.retries < self.max_retries:
+            logger.warning(f"Retrying task {task_id} (attempt {self.request.retries + 1})")
+            raise self.retry(countdown=60 * (self.request.retries + 1))
+        
+        # Mark task as failed
+        queue = TaskQueue()
+        asyncio.run(queue.redis_client.hset(
+            f"task:{task_id}",
+            'status': 'failed',
+            'error': str(exc),
+            'completed_at': datetime.now().isoformat()
+        ))
+        
+        raise exc
+
+@celery_app.task
+def cleanup_expired_sessions():
+    """Periodic task to cleanup expired sessions"""
+    db = next(get_db_session())
+    
+    expired_count = db.query(Session).filter(
+        Session.expires_at < datetime.now(timezone.utc)
+    ).delete()
+    
+    db.commit()
+    logger.info(f"Cleaned up {expired_count} expired sessions")
+    
+    return {"cleaned_sessions": expired_count}
+
+# Usage example
+queue = TaskQueue()
+
+# Schedule a task
+task_id = await queue.enqueue_task(
+    'process_workspace_invitation',
+    {'invitation_id': 'inv_123'},
+    priority=1,
+    delay=300  # 5 minutes delay
+)
+
+# Check task status
+status = await queue.get_task_status(task_id)
+print(f"Task status: {status['status']}")
+
+# Cancel task if needed
+await queue.cancel_task(task_id)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Examples -->
+                <div id="database" class="tab-content">
+                    <div class="example-category">
+                        <h3>PostgreSQL Queries</h3>
+                        
+                        <div class="example-description">
+                            <strong>Multi-tenant Query with RLS:</strong> Complex query with row-level security and performance optimization.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>multi_tenant_queries.sql</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>-- Set workspace context for RLS
+SET app.current_workspace_id = 'ws_123e4567-e89b-12d3-a456-426614174000';
+
+-- Get projects with member counts and recent activity
+WITH project_stats AS (
+    SELECT 
+        p.id,
+        p.name,
+        p.description,
+        p.created_at,
+        p.updated_at,
+        COUNT(DISTINCT pm.user_id) as member_count,
+        COUNT(DISTINCT t.id) as task_count,
+        MAX(t.updated_at) as last_activity,
+        SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed_tasks,
+        SUM(CASE WHEN t.status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_tasks
+    FROM projects p
+    LEFT JOIN project_members pm ON p.id = pm.project_id
+    LEFT JOIN tasks t ON p.id = t.project_id
+    WHERE p.workspace_id = current_setting('app.current_workspace_id')::UUID
+    GROUP BY p.id, p.name, p.description, p.created_at, p.updated_at
+),
+user_role AS (
+    SELECT 
+        pm.project_id,
+        pm.role,
+        u.name as user_name,
+        u.email as user_email
+    FROM project_members pm
+    JOIN users u ON pm.user_id = u.id
+    WHERE pm.user_id = current_setting('app.current_user_id')::UUID
+)
+SELECT 
+    ps.*,
+    ur.role as user_role,
+    CASE 
+        WHEN ps.last_activity > NOW() - INTERVAL '7 days' THEN 'active'
+        WHEN ps.last_activity > NOW() - INTERVAL '30 days' THEN 'recent'
+        ELSE 'inactive'
+    END as activity_status,
+    ROUND(
+        (ps.completed_tasks::DECIMAL / NULLIF(ps.task_count, 0)) * 100, 
+        2
+    ) as completion_rate
+FROM project_stats ps
+LEFT JOIN user_role ur ON ps.id = ur.project_id
+ORDER BY ps.last_activity DESC NULLS LAST, ps.created_at DESC;
+
+-- Optimized index for multi-tenant queries
+CREATE INDEX CONCURRENTLY idx_projects_workspace_activity 
+ON projects(workspace_id, updated_at DESC) 
+WHERE deleted_at IS NULL;
+
+-- Performance monitoring query
+EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+SELECT * FROM projects 
+WHERE workspace_id = current_setting('app.current_workspace_id')::UUID 
+AND created_at > NOW() - INTERVAL '30 days';
+
+-- Pagination with cursor-based approach
+WITH workspace_projects AS (
+    SELECT id, name, created_at
+    FROM projects
+    WHERE workspace_id = current_setting('app.current_workspace_id')::UUID
+    AND created_at < $1  -- cursor timestamp
+    ORDER BY created_at DESC
+    LIMIT $2
+)
+SELECT * FROM workspace_projects
+ORDER BY created_at DESC;</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="example-description">
+                            <strong>Time-series Data with TimescaleDB:</strong> Efficient queries for time-series data using TimescaleDB hypertables.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>timescale_queries.sql</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>-- Create hypertable for metrics
+CREATE TABLE metrics (
+    time TIMESTAMPTZ NOT NULL,
+    workspace_id UUID NOT NULL,
+    metric_name TEXT NOT NULL,
+    metric_value DOUBLE PRECISION,
+    tags JSONB
+);
+
+-- Convert to hypertable
+SELECT create_hypertable('metrics', 'time', 
+    chunk_time_interval => INTERVAL '1 day');
+
+-- Create compression policy
+SELECT add_compression_policy('metrics', INTERVAL '7 days');
+
+-- Enable compression
+ALTER TABLE metrics SET (
+    timescaledb.compress,
+    timescaledb.compress_orderby = 'time DESC',
+    timescaledb.compress_segmentby = 'workspace_id, metric_name'
+);
+
+-- Continuous aggregate for hourly metrics
+CREATE MATERIALIZED VIEW metrics_hourly
+WITH (timescaledb.continuous) AS
+SELECT 
+    time_bucket('1 hour', time) as hour,
+    workspace_id,
+    metric_name,
+    AVG(metric_value) as avg_value,
+    MIN(metric_value) as min_value,
+    MAX(metric_value) as max_value,
+    COUNT(*) as sample_count
+FROM metrics
+GROUP BY hour, workspace_id, metric_name
+WITH NO DATA;
+
+-- Refresh policy for continuous aggregate
+SELECT add_continuous_aggregate_policy('metrics_hourly',
+    start_offset => INTERVAL '1 month',
+    end_offset => INTERVAL '1 hour',
+    schedule_interval => INTERVAL '1 hour');
+
+-- Real-time analytics query
+WITH hourly_stats AS (
+    SELECT 
+        time_bucket('1 hour', m.time) as hour,
+        m.workspace_id,
+        COUNT(DISTINCT m.metric_name) as unique_metrics,
+        AVG(m.metric_value) as avg_metric_value,
+        SUM(CASE WHEN m.metric_value > 0 THEN 1 ELSE 0 END) as positive_metrics
+    FROM metrics m
+    WHERE m.time > NOW() - INTERVAL '24 hours'
+    AND m.workspace_id = $1
+    GROUP BY hour, m.workspace_id
+),
+daily_trends AS (
+    SELECT 
+        time_bucket('1 day', m.time) as day,
+        m.workspace_id,
+        metric_name,
+        AVG(metric_value) as daily_avg,
+        LAG(AVG(metric_value)) OVER (PARTITION BY m.workspace_id, m.metric_name ORDER BY time_bucket('1 day', m.time)) as previous_day_avg,
+        (AVG(metric_value) - LAG(AVG(metric_value)) OVER (PARTITION BY m.workspace_id, m.metric_name ORDER BY time_bucket('1 day', m.time))) / NULLIF(LAG(AVG(metric_value)) OVER (PARTITION BY m.workspace_id, m.metric_name ORDER BY time_bucket('1 day', m.time)), 0) * 100 as day_over_day_change
+    FROM metrics m
+    WHERE m.time > NOW() - INTERVAL '7 days'
+    AND m.workspace_id = $1
+    GROUP BY day, m.workspace_id, m.metric_name
+)
+SELECT 
+    h.*,
+    d.metric_name,
+    d.daily_avg,
+    d.day_over_day_change,
+    CASE 
+        WHEN d.day_over_day_change > 10 THEN 'increasing'
+        WHEN d.day_over_day_change < -10 THEN 'decreasing'
+        ELSE 'stable'
+    END as trend_direction
+FROM hourly_stats h
+JOIN daily_trends d ON h.workspace_id = d.workspace_id
+ORDER BY h.hour DESC, d.metric_name;
+
+-- Performance optimization for large datasets
+-- Create index on compressed chunks
+CREATE INDEX idx_metrics_compressed_workspace_time 
+ON metrics(workspace_id, time DESC) 
+WHERE metric_value IS NOT NULL;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DevOps Examples -->
+                <div id="devops" class="tab-content">
+                    <div class="example-category">
+                        <h3>Docker & Kubernetes</h3>
+                        
+                        <div class="example-description">
+                            <strong>Multi-stage Docker Build:</strong> Optimized Docker build for production with security best practices.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>Dockerfile</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code># syntax=docker/dockerfile:1
+
+# Build stage
+FROM node:18-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ git
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY yarn.lock ./
+
+# Install dependencies
+RUN yarn install --frozen-lockfile --production=false
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN yarn build
+
+# Run tests
+RUN yarn test --ci --coverage --watchAll=false
+
+# Production stage
+FROM node:18-alpine AS runner
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY yarn.lock ./
+
+# Install production dependencies only
+RUN yarn install --frozen-lockfile --production=true && yarn cache clean
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy environment configuration
+COPY --chown=nextjs:nodejs .env.production ./
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/.next/cache /app/logs && chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node healthcheck.js
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Start the application
+CMD ["yarn", "start"]
+
+# Development stage (for local development)
+FROM node:18-alpine AS development
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+COPY yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["yarn", "dev"]</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="example-description">
+                            <strong>Kubernetes Deployment:</strong> Production-ready Kubernetes deployment with rolling updates and resource management.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>k8s-deployment.yaml</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webcraft-frontend
+  namespace: webcraft
+  labels:
+    app: webcraft-frontend
+    version: v1.2.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: webcraft-frontend
+  template:
+    metadata:
+      labels:
+        app: webcraft-frontend
+        version: v1.2.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: webcraft-frontend
+        image: webcraft/frontend:v1.2.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          value: "https://api.webcraft.app"
+        - name: NEXT_PUBLIC_WS_URL
+          value: "wss://ws.webcraft.app"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: webcraft-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: webcraft-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: config
+        configMap:
+          name: webcraft-frontend-config
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - webcraft-frontend
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - key: "webcraft"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      nodeSelector:
+        workload-type: "web"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webcraft-frontend-service
+  namespace: webcraft
+  labels:
+    app: webcraft-frontend
+spec:
+  selector:
+    app: webcraft-frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webcraft-frontend-ingress
+  namespace: webcraft
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - app.webcraft.app
+    secretName: webcraft-frontend-tls
+  rules:
+  - host: app.webcraft.app
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: webcraft-frontend-service
+            port:
+              number: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: webcraft-frontend-hpa
+  namespace: webcraft
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: webcraft-frontend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="example-description">
+                            <strong>GitHub Actions CI/CD Pipeline:</strong> Complete CI/CD pipeline with testing, building, and deployment stages.
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>.github/workflows/deploy.yml</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <pre><code>name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: webcraft_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'yarn'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        yarn install --frozen-lockfile
+        pip install -r requirements.txt
+        pip install -r requirements-test.txt
+
+    - name: Run linting
+      run: |
+        yarn lint
+        yarn type-check
+        flake8 apps/api
+        black --check apps/api
+
+    - name: Run frontend tests
+      run: yarn test --ci --coverage --watchAll=false
+      env:
+        CI: true
+
+    - name: Run backend tests
+      run: |
+        pytest apps/api/tests/ -v --cov=apps/api --cov-report=xml
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/webcraft_test
+        REDIS_URL: redis://localhost:6379/1
+        TESTING: true
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage/coverage-final.json,./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'v3.12.0'
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region us-west-2 --name webcraft-prod
+
+    - name: Deploy with Helm
+      run: |
+        helm upgrade --install webcraft ./helm/webcraft \
+          --namespace webcraft \
+          --create-namespace \
+          --set image.tag=${{ github.sha }} \
+          --set environment=production \
+          --wait --timeout=10m
+
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/webcraft-frontend -n webcraft
+        kubectl rollout status deployment/webcraft-api -n webcraft
+
+    - name: Run smoke tests
+      run: |
+        kubectl run smoke-test --image=curlimages/curl:latest --rm -i --restart=Never \
+          --command -- curl -f http://webcraft-api-service.webcraft.svc.cluster.local/health
+
+    - name: Notify deployment status
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="next-steps">
+                    <h3>Next Steps</h3>
+                    <p>Now that you have explored our code examples library, here are the next topics to dive into:</p>
+                    <div class="button-group">
+                        <a href="patterns.html" class="btn primary">Design Patterns</a>
+                        <a href="snippets.html" class="btn primary">Code Snippets</a>
+                        <a href="../advanced/performance.html" class="btn primary">Performance Optimization</a>
+                        <a href="../advanced/security.html" class="btn primary">Security Best Practices</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeContent = button.closest('.code-example').querySelector('code').textContent;
+            navigator.clipboard.writeText(codeContent).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#6c757d';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy code: ', err);
+                button.textContent = 'Failed';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        // Sidebar menu toggle
+        document.querySelectorAll('.menu-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const submenu = this.nextElementSibling;
+                if (submenu && submenu.classList.contains('submenu')) {
+                    submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                    this.classList.toggle('active');
+                }
+            });
+        });
+
+        // Auto-expand current page menu
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentLink = document.querySelector('.sidebar-menu a.active');
+            if (currentLink) {
+                let parent = currentLink.parentElement;
+                while (parent) {
+                    if (parent.classList.contains('submenu')) {
+                        parent.style.display = 'block';
+                        const toggle = parent.previousElementSibling;
+                        if (toggle && toggle.classList.contains('menu-toggle')) {
+                            toggle.classList.add('active');
+                        }
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+import { LinkableWidgetWrapper } from './linkable-widget-wrapper'
+import { MediaManager } from '@/components/media/media-manager'
+
 interface ImageWidgetProps {
   src?: string
   alt?: string
@@ -18,11 +21,25 @@ interface ImageWidgetProps {
   borderRadius?: string
   shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
   caption?: string
-  link?: string
+  
+  // Link support
+  linkConfig?: {
+    type: 'page' | 'section' | 'data' | 'custom' | 'external' | 'action'
+    target: string
+    label?: string
+    openInNewTab?: boolean
+    parameters?: Record<string, any>
+  }
+  href?: string
+  target?: string
+  link?: string // Legacy support
+  
   isEditing?: boolean
   isPreview?: boolean
   isSelected?: boolean
+  isHovered?: boolean
   elementId?: string
+  appId?: string
   onChange?: (props: any) => void
   onStyleChange?: (style: any) => void
 }
@@ -49,11 +66,13 @@ export function ImageWidget({
   isPreview,
   isSelected,
   elementId,
+  appId,
   onChange,
   onStyleChange
 }: ImageWidgetProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [showEditPopover, setShowEditPopover] = useState(false)
+  const [showMediaManager, setShowMediaManager] = useState(false)
   const [localSrc, setLocalSrc] = useState(src)
   const [localAlt, setLocalAlt] = useState(alt)
   const [localCaption, setLocalCaption] = useState(caption)
@@ -68,12 +87,19 @@ export function ImageWidget({
   }, [src, alt, caption])
 
   const handleImageUpload = () => {
-    // In a real app, this would open a file picker or media library
-    const newSrc = prompt('Enter image URL:', localSrc)
-    if (newSrc !== null && onChange) {
-      setLocalSrc(newSrc)
-      onChange({ src: newSrc })
+    if (isPreview) return
+    setShowMediaManager(true)
+  }
+
+  const handleMediaSelect = (media: any) => {
+    setLocalSrc(media.url)
+    if (onChange) {
+      onChange({ 
+        src: media.url,
+        alt: media.alt_text || alt
+      })
     }
+    setShowMediaManager(false)
   }
 
   const handleImageChange = (newSrc: string) => {
@@ -227,11 +253,39 @@ export function ImageWidget({
 
   if (link && !isEditing && isPreview) {
     return (
-      <a href={link} target="_blank" rel="noopener noreferrer">
-        {imageContent}
-      </a>
+      <>
+        <a href={link} target="_blank" rel="noopener noreferrer">
+          {imageContent}
+        </a>
+        
+        {/* Media Manager */}
+        {appId && (
+          <MediaManager
+            appId={appId}
+            isOpen={showMediaManager}
+            onClose={() => setShowMediaManager(false)}
+            onSelect={handleMediaSelect}
+            acceptTypes={['image']}
+          />
+        )}
+      </>
     )
   }
 
-  return imageContent
+  return (
+    <>
+      {imageContent}
+      
+      {/* Media Manager */}
+      {appId && (
+        <MediaManager
+          appId={appId}
+          isOpen={showMediaManager}
+          onClose={() => setShowMediaManager(false)}
+          onSelect={handleMediaSelect}
+          acceptTypes={['image']}
+        />
+      )}
+    </>
+  )
 }

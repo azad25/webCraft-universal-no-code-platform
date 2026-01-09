@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface ResizeHandlesProps {
@@ -13,8 +12,11 @@ interface ResizeHandlesProps {
   minHeight?: number
   maxWidth?: number
   maxHeight?: number
-  aspectRatio?: number
   showGrid?: boolean
+  snapToGrid?: boolean
+  gridSize?: number
+  aspectRatio?: number | null
+  className?: string
 }
 
 type ResizeDirection = 
@@ -26,12 +28,15 @@ export function ResizeHandles({
   isSelected,
   onResize,
   onResizeEnd,
-  minWidth = 50,
+  minWidth = 20,
   minHeight = 20,
   maxWidth,
   maxHeight,
-  aspectRatio,
-  showGrid = false
+  showGrid = false,
+  snapToGrid = false,
+  gridSize = 8,
+  aspectRatio = null,
+  className
 }: ResizeHandlesProps) {
   const [isResizing, setIsResizing] = useState(false)
   const [resizeDirection, setResizeDirection] = useState<ResizeDirection | null>(null)
@@ -39,39 +44,26 @@ export function ResizeHandles({
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 })
   const elementRef = useRef<HTMLDivElement>(null)
 
-  // Get element bounds
-  const getElementBounds = useCallback(() => {
-    const elementNode = document.querySelector(`[data-element-id="${element.id}"]`)
-    if (elementNode) {
-      return elementNode.getBoundingClientRect()
-    }
-    return null
-  }, [element.id])
+  const snapToGridValue = useCallback((value: number) => {
+    if (!snapToGrid) return value
+    return Math.round(value / gridSize) * gridSize
+  }, [snapToGrid, gridSize])
 
-  // Handle mouse down on resize handle
   const handleMouseDown = useCallback((direction: ResizeDirection, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
-    const bounds = getElementBounds()
-    if (!bounds) return
-
     setIsResizing(true)
     setResizeDirection(direction)
-    setStartSize({ 
-      width: element.size?.width || bounds.width, 
-      height: element.size?.height || bounds.height 
+    setStartSize({
+      width: element.size?.width || 200,
+      height: element.size?.height || 100
     })
     setStartPosition({ x: e.clientX, y: e.clientY })
 
-    // Add global mouse events
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-    document.body.style.cursor = getCursor(direction)
-    document.body.style.userSelect = 'none'
-  }, [element.size, getElementBounds])
+    document.body.style.cursor = getCursorForDirection(direction)
+  }, [element.size])
 
-  // Handle mouse move during resize
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing || !resizeDirection) return
 
@@ -113,6 +105,16 @@ export function ResizeHandles({
         break
     }
 
+    // Maintain aspect ratio if specified
+    if (aspectRatio && (resizeDirection === 'se' || resizeDirection === 'sw' || resizeDirection === 'ne' || resizeDirection === 'nw')) {
+      const ratio = aspectRatio
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        newHeight = newWidth / ratio
+      } else {
+        newWidth = newHeight * ratio
+      }
+    }
+
     // Apply constraints
     newWidth = Math.max(minWidth, newWidth)
     newHeight = Math.max(minHeight, newHeight)
@@ -120,53 +122,34 @@ export function ResizeHandles({
     if (maxWidth) newWidth = Math.min(maxWidth, newWidth)
     if (maxHeight) newHeight = Math.min(maxHeight, newHeight)
 
-    // Maintain aspect ratio if specified
-    if (aspectRatio) {
-      if (resizeDirection.includes('e') || resizeDirection.includes('w')) {
-        newHeight = newWidth / aspectRatio
-      } else if (resizeDirection.includes('n') || resizeDirection.includes('s')) {
-        newWidth = newHeight * aspectRatio
-      } else {
-        // Corner resize - maintain aspect ratio based on the larger change
-        const widthRatio = newWidth / startSize.width
-        const heightRatio = newHeight / startSize.height
-        
-        if (Math.abs(widthRatio - 1) > Math.abs(heightRatio - 1)) {
-          newHeight = newWidth / aspectRatio
-        } else {
-          newWidth = newHeight * aspectRatio
-        }
-      }
-    }
+    // Snap to grid
+    newWidth = snapToGridValue(newWidth)
+    newHeight = snapToGridValue(newHeight)
 
-    // Snap to grid if enabled
-    if (showGrid) {
-      const gridSize = 10
-      newWidth = Math.round(newWidth / gridSize) * gridSize
-      newHeight = Math.round(newHeight / gridSize) * gridSize
-    }
+    onResize({ width: newWidth, height: newHeight })
+  }, [isResizing, resizeDirection, startPosition, startSize, aspectRatio, minWidth, minHeight, maxWidth, maxHeight, snapToGridValue, onResize])
 
-    onResize({ width: Math.round(newWidth), height: Math.round(newHeight) })
-  }, [isResizing, resizeDirection, startPosition, startSize, minWidth, minHeight, maxWidth, maxHeight, aspectRatio, showGrid, onResize])
-
-  // Handle mouse up to end resize
   const handleMouseUp = useCallback(() => {
     if (isResizing) {
       setIsResizing(false)
       setResizeDirection(null)
-      
-      // Remove global mouse events
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-
+      document.body.style.cursor = 'default'
       onResizeEnd?.()
     }
-  }, [isResizing, handleMouseMove, onResizeEnd])
+  }, [isResizing, onResizeEnd])
 
-  // Get cursor style for resize direction
-  const getCursor = (direction: ResizeDirection): string => {
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp])
+
+  const getCursorForDirection = (direction: ResizeDirection): string => {
     const cursors = {
       n: 'n-resize',
       s: 's-resize',
@@ -180,99 +163,89 @@ export function ResizeHandles({
     return cursors[direction]
   }
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-    }
-  }, [handleMouseMove])
-
   if (!isSelected) return null
 
-  const bounds = getElementBounds()
-  if (!bounds) return null
-
-  const handleSize = 8
-  const handleOffset = handleSize / 2
+  const handleStyle = "absolute w-2 h-2 bg-white border-2 border-blue-500 rounded-sm hover:bg-blue-100 transition-colors z-50"
+  const edgeHandleStyle = "absolute bg-transparent hover:bg-blue-200/50 transition-colors z-40"
 
   return (
-    <motion.div
+    <div
       ref={elementRef}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="absolute pointer-events-none z-50"
-      style={{
-        left: bounds.left - handleOffset,
-        top: bounds.top - handleOffset,
-        width: bounds.width + handleSize,
-        height: bounds.height + handleSize,
-      }}
+      className={cn("absolute inset-0 pointer-events-none", className)}
     >
-      {/* Resize Handles */}
-      {[
-        { direction: 'nw' as ResizeDirection, className: 'top-0 left-0 cursor-nw-resize' },
-        { direction: 'n' as ResizeDirection, className: 'top-0 left-1/2 -translate-x-1/2 cursor-n-resize' },
-        { direction: 'ne' as ResizeDirection, className: 'top-0 right-0 cursor-ne-resize' },
-        { direction: 'e' as ResizeDirection, className: 'top-1/2 right-0 -translate-y-1/2 cursor-e-resize' },
-        { direction: 'se' as ResizeDirection, className: 'bottom-0 right-0 cursor-se-resize' },
-        { direction: 's' as ResizeDirection, className: 'bottom-0 left-1/2 -translate-x-1/2 cursor-s-resize' },
-        { direction: 'sw' as ResizeDirection, className: 'bottom-0 left-0 cursor-sw-resize' },
-        { direction: 'w' as ResizeDirection, className: 'top-1/2 left-0 -translate-y-1/2 cursor-w-resize' },
-      ].map(({ direction, className }) => (
-        <div
-          key={direction}
-          className={cn(
-            'absolute pointer-events-auto bg-primary border-2 border-white rounded-sm shadow-lg hover:bg-primary/80 transition-colors',
-            className,
-            isResizing && resizeDirection === direction && 'bg-primary/80 scale-110'
-          )}
-          style={{
-            width: handleSize,
-            height: handleSize,
-          }}
-          onMouseDown={(e) => handleMouseDown(direction, e)}
-        />
-      ))}
+      {/* Corner Handles */}
+      <div
+        className={cn(handleStyle, "-top-1 -left-1 cursor-nw-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('nw', e)}
+      />
+      <div
+        className={cn(handleStyle, "-top-1 -right-1 cursor-ne-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('ne', e)}
+      />
+      <div
+        className={cn(handleStyle, "-bottom-1 -left-1 cursor-sw-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('sw', e)}
+      />
+      <div
+        className={cn(handleStyle, "-bottom-1 -right-1 cursor-se-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('se', e)}
+      />
 
-      {/* Size indicator */}
+      {/* Edge Handles */}
+      <div
+        className={cn(edgeHandleStyle, "-top-1 left-2 right-2 h-2 cursor-n-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('n', e)}
+      />
+      <div
+        className={cn(edgeHandleStyle, "-bottom-1 left-2 right-2 h-2 cursor-s-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('s', e)}
+      />
+      <div
+        className={cn(edgeHandleStyle, "-left-1 top-2 bottom-2 w-2 cursor-w-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('w', e)}
+      />
+      <div
+        className={cn(edgeHandleStyle, "-right-1 top-2 bottom-2 w-2 cursor-e-resize")}
+        style={{ pointerEvents: 'auto' }}
+        onMouseDown={(e) => handleMouseDown('e', e)}
+      />
+
+      {/* Size Indicator */}
       {isResizing && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-mono whitespace-nowrap shadow-lg"
-        >
-          {Math.round(element.size?.width || bounds.width)} × {Math.round(element.size?.height || bounds.height)}
-        </motion.div>
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+          {Math.round(element.size?.width || 0)} × {Math.round(element.size?.height || 0)}
+        </div>
       )}
 
-      {/* Grid overlay when resizing */}
-      {isResizing && showGrid && (
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, #3b82f6 1px, transparent 1px),
-              linear-gradient(to bottom, #3b82f6 1px, transparent 1px)
-            `,
-            backgroundSize: '10px 10px'
-          }}
-        />
+      {/* Grid Snap Indicators */}
+      {showGrid && snapToGrid && isResizing && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div 
+            className="absolute inset-0 border border-dashed border-blue-400 opacity-50"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, rgba(59, 130, 246, 0.2) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(59, 130, 246, 0.2) 1px, transparent 1px)
+              `,
+              backgroundSize: `${gridSize}px ${gridSize}px`
+            }}
+          />
+        </div>
       )}
 
-      {/* Aspect ratio indicator */}
-      {aspectRatio && isResizing && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-2 py-1 rounded text-xs font-mono whitespace-nowrap shadow-lg"
-        >
-          Ratio: {aspectRatio.toFixed(2)}
-        </motion.div>
+      {/* Aspect Ratio Lock Indicator */}
+      {aspectRatio && (
+        <div className="absolute -top-8 -right-8 bg-purple-500 text-white text-xs px-1 py-0.5 rounded">
+          🔒
+        </div>
       )}
-    </motion.div>
+    </div>
   )
 }

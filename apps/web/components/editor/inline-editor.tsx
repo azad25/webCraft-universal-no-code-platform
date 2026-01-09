@@ -65,6 +65,8 @@ import {
   Wand2
 } from 'lucide-react'
 
+import { MediaManager } from '@/components/media/media-manager'
+
 interface InlineEditorProps {
   element: any
   position: { x: number; y: number }
@@ -73,6 +75,7 @@ interface InlineEditorProps {
   onDelete?: () => void
   onDuplicate?: () => void
   onStartResize?: () => void
+  appId?: string
 }
 
 const FONT_FAMILIES = [
@@ -126,11 +129,14 @@ const ANIMATION_PRESETS = [
   { name: 'Flip In', value: 'flipIn' }
 ]
 
-export function InlineEditor({ element, position, onClose, onUpdate, onDelete, onDuplicate, onStartResize }: InlineEditorProps) {
-  const [activeTab, setActiveTab] = useState<'content' | 'style' | 'layout' | 'animation'>('content')
+export function InlineEditor({ element, position, onClose, onUpdate, onDelete, onDuplicate, onStartResize, appId }: InlineEditorProps) {
+  const [activeTab, setActiveTab] = useState<'content' | 'style' | 'layout' | 'animation' | 'actions'>('content')
   const [localProps, setLocalProps] = useState(element.props || {})
   const [localStyle, setLocalStyle] = useState(element.style || {})
   const [hasChanges, setHasChanges] = useState(false)
+  const [showMediaManager, setShowMediaManager] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showGradientPicker, setShowGradientPicker] = useState(false)
   const editorRef = useRef<HTMLDivElement>(null)
 
   // Handle clicks outside to close
@@ -177,6 +183,17 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
       setHasChanges(false)
     }
   }, [hasChanges, localProps, localStyle, onUpdate])
+
+  // Handle media selection
+  const handleMediaSelect = useCallback((media: any) => {
+    if (element.type === 'image') {
+      handlePropChange('src', media.url)
+      if (media.alt_text) handlePropChange('alt', media.alt_text)
+    } else {
+      handleStyleChange('backgroundImage', `url(${media.url})`)
+    }
+    setShowMediaManager(false)
+  }, [element.type])
 
   const renderContentTab = () => {
     switch (element.type) {
@@ -277,10 +294,8 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const url = prompt('Enter image URL:', localProps.src || '')
-                    if (url !== null) handlePropChange('src', url)
-                  }}
+                  onClick={() => setShowMediaManager(true)}
+                  className="px-3"
                 >
                   <Upload className="w-4 h-4" />
                 </Button>
@@ -625,47 +640,187 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
             </div>
           </div>
         )
+
+      // Universal widget editor for all other types
+      default:
         return (
           <div className="space-y-4">
             <div className="text-center text-muted-foreground">
               <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>Content editing for {element.type} widgets</p>
-              <p className="text-xs mt-1">Double-click the element to edit inline</p>
+              <p>Universal Editor for {element.type}</p>
+              <p className="text-xs mt-1">All widgets are fully customizable</p>
             </div>
             
-            {/* Generic props editor */}
-            {Object.keys(localProps).length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold">Properties</Label>
-                {Object.entries(localProps).map(([key, value]) => (
+            {/* Universal Text Properties */}
+            {['title', 'text', 'content', 'label', 'placeholder', 'description', 'subtitle'].some(prop => 
+              localProps.hasOwnProperty(prop)
+            ) && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Text Content</Label>
+                {['title', 'text', 'content', 'label', 'placeholder', 'description', 'subtitle'].map(prop => {
+                  if (!localProps.hasOwnProperty(prop)) return null
+                  const value = localProps[prop]
+                  return (
+                    <div key={prop}>
+                      <Label className="text-xs capitalize">{prop.replace(/([A-Z])/g, ' $1')}</Label>
+                      {typeof value === 'string' && value.length > 50 ? (
+                        <Textarea
+                          value={value}
+                          onChange={(e) => handlePropChange(prop, e.target.value)}
+                          className="mt-1 text-sm"
+                          rows={2}
+                          placeholder={`Enter ${prop}...`}
+                        />
+                      ) : (
+                        <Input
+                          value={value?.toString() || ''}
+                          onChange={(e) => handlePropChange(prop, e.target.value)}
+                          className="mt-1 text-sm"
+                          placeholder={`Enter ${prop}...`}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Universal Image Properties */}
+            {['src', 'image', 'icon', 'avatar', 'logo'].some(prop => 
+              localProps.hasOwnProperty(prop)
+            ) && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Images & Media</Label>
+                {['src', 'image', 'icon', 'avatar', 'logo'].map(prop => {
+                  if (!localProps.hasOwnProperty(prop)) return null
+                  return (
+                    <div key={prop}>
+                      <Label className="text-xs capitalize">{prop.replace(/([A-Z])/g, ' $1')}</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          value={localProps[prop] || ''}
+                          onChange={(e) => handlePropChange(prop, e.target.value)}
+                          placeholder={`Enter ${prop} URL...`}
+                          className="flex-1 text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowMediaManager(true)}
+                          className="px-3"
+                        >
+                          <Upload className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Universal Link Properties */}
+            {['href', 'url', 'link', 'action'].some(prop => 
+              localProps.hasOwnProperty(prop)
+            ) && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Links & Actions</Label>
+                {['href', 'url', 'link', 'action'].map(prop => {
+                  if (!localProps.hasOwnProperty(prop)) return null
+                  return (
+                    <div key={prop}>
+                      <Label className="text-xs capitalize">{prop.replace(/([A-Z])/g, ' $1')}</Label>
+                      <Input
+                        value={localProps[prop] || ''}
+                        onChange={(e) => handlePropChange(prop, e.target.value)}
+                        className="mt-1 text-sm"
+                        placeholder={`Enter ${prop}...`}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Universal Boolean Properties */}
+            {Object.entries(localProps).filter(([key, value]) => typeof value === 'boolean').length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Options & Settings</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(localProps).filter(([key, value]) => typeof value === 'boolean').map(([key, value]) => (
+                    <div key={key} className="flex items-center space-x-2">
+                      <Switch
+                        checked={value as boolean}
+                        onCheckedChange={(checked) => handlePropChange(key, checked)}
+                      />
+                      <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Universal Number Properties */}
+            {Object.entries(localProps).filter(([key, value]) => typeof value === 'number').length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Numeric Values</Label>
+                {Object.entries(localProps).filter(([key, value]) => typeof value === 'number').map(([key, value]) => (
                   <div key={key}>
                     <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
-                    {typeof value === 'boolean' ? (
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Switch
-                          checked={value}
-                          onCheckedChange={(checked) => handlePropChange(key, checked)}
-                        />
-                        <Label className="text-xs">{value ? 'Enabled' : 'Disabled'}</Label>
-                      </div>
-                    ) : typeof value === 'string' && value.length > 50 ? (
-                      <Textarea
-                        value={value}
-                        onChange={(e) => handlePropChange(key, e.target.value)}
-                        className="mt-1 text-xs"
-                        rows={2}
-                      />
-                    ) : (
-                      <Input
-                        value={value?.toString() || ''}
-                        onChange={(e) => handlePropChange(key, e.target.value)}
-                        className="mt-1 text-xs"
-                      />
-                    )}
+                    <Input
+                      type="number"
+                      value={value as number}
+                      onChange={(e) => handlePropChange(key, parseFloat(e.target.value) || 0)}
+                      className="mt-1 text-sm"
+                    />
                   </div>
                 ))}
               </div>
             )}
+
+            {/* Universal Array Properties (for lists, options, etc.) */}
+            {Object.entries(localProps).filter(([key, value]) => Array.isArray(value)).length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Lists & Collections</Label>
+                {Object.entries(localProps).filter(([key, value]) => Array.isArray(value)).map(([key, value]) => (
+                  <div key={key}>
+                    <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                    <Textarea
+                      value={JSON.stringify(value, null, 2)}
+                      onChange={(e) => {
+                        try {
+                          const parsed = JSON.parse(e.target.value)
+                          handlePropChange(key, parsed)
+                        } catch (error) {
+                          // Invalid JSON, don't update
+                        }
+                      }}
+                      className="mt-1 text-xs font-mono"
+                      rows={3}
+                      placeholder="JSON array..."
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add New Property */}
+            <div className="pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const key = prompt('Property name:')
+                  const value = prompt('Property value:')
+                  if (key && value !== null) {
+                    handlePropChange(key, value)
+                  }
+                }}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Custom Property
+              </Button>
+            </div>
           </div>
         )
     }
@@ -746,26 +901,191 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
                 className="flex-1"
               />
             </div>
+            {/* Color Presets */}
+            <div className="grid grid-cols-10 gap-1 mt-2">
+              {COLOR_PRESETS.map((color) => (
+                <button
+                  key={color}
+                  className="w-6 h-6 rounded border hover:scale-110 transition-transform"
+                  style={{ backgroundColor: color }}
+                  onClick={() => handleStyleChange('color', color)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Text Alignment</Label>
+            <div className="flex gap-1 mt-1">
+              {[
+                { value: 'left', icon: AlignLeft },
+                { value: 'center', icon: AlignCenter },
+                { value: 'right', icon: AlignRight }
+              ].map(({ value, icon: Icon }) => (
+                <Button
+                  key={value}
+                  variant={localStyle.textAlign === value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleStyleChange('textAlign', value)}
+                  className="flex-1"
+                >
+                  <Icon className="w-4 h-4" />
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Line Height</Label>
+            <div className="flex items-center space-x-2 mt-1">
+              <Slider
+                value={[parseFloat(localStyle.lineHeight || '1.5')]}
+                onValueChange={([value]) => handleStyleChange('lineHeight', value.toString())}
+                min={1}
+                max={3}
+                step={0.1}
+                className="flex-1"
+              />
+              <span className="text-sm text-muted-foreground w-12">
+                {localStyle.lineHeight || '1.5'}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <Label>Letter Spacing</Label>
+            <div className="flex items-center space-x-2 mt-1">
+              <Slider
+                value={[parseFloat(localStyle.letterSpacing?.replace('px', '') || '0')]}
+                onValueChange={([value]) => handleStyleChange('letterSpacing', `${value}px`)}
+                min={-2}
+                max={5}
+                step={0.1}
+                className="flex-1"
+              />
+              <span className="text-sm text-muted-foreground w-12">
+                {localStyle.letterSpacing || '0px'}
+              </span>
+            </div>
           </div>
         </>
       )}
 
       {/* Background */}
       <div>
-        <Label>Background Color</Label>
-        <div className="flex items-center space-x-2 mt-1">
-          <Input
-            type="color"
-            value={localStyle.backgroundColor || '#ffffff'}
-            onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-            className="w-12 h-8 p-1 border rounded"
-          />
-          <Input
-            value={localStyle.backgroundColor || '#ffffff'}
-            onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-            placeholder="#ffffff"
-            className="flex-1"
-          />
+        <Label>Background</Label>
+        <div className="space-y-3 mt-1">
+          {/* Background Color */}
+          <div>
+            <Label className="text-xs">Color</Label>
+            <div className="flex items-center space-x-2 mt-1">
+              <Input
+                type="color"
+                value={localStyle.backgroundColor || '#ffffff'}
+                onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+                className="w-12 h-8 p-1 border rounded"
+              />
+              <Input
+                value={localStyle.backgroundColor || '#ffffff'}
+                onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+                placeholder="#ffffff"
+                className="flex-1"
+              />
+            </div>
+            {/* Color Presets */}
+            <div className="grid grid-cols-10 gap-1 mt-2">
+              {COLOR_PRESETS.map((color) => (
+                <button
+                  key={color}
+                  className="w-6 h-6 rounded border hover:scale-110 transition-transform"
+                  style={{ backgroundColor: color }}
+                  onClick={() => handleStyleChange('backgroundColor', color)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Background Gradient */}
+          <div>
+            <Label className="text-xs">Gradient</Label>
+            <div className="grid grid-cols-4 gap-1 mt-1">
+              {GRADIENT_PRESETS.map((gradient, index) => (
+                <button
+                  key={index}
+                  className="w-full h-8 rounded border hover:scale-105 transition-transform"
+                  style={{ background: gradient }}
+                  onClick={() => handleStyleChange('background', gradient)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Background Image */}
+          <div>
+            <Label className="text-xs">Image</Label>
+            <div className="flex gap-2 mt-1">
+              <Input
+                value={localStyle.backgroundImage?.replace('url(', '').replace(')', '') || ''}
+                onChange={(e) => handleStyleChange('backgroundImage', e.target.value ? `url(${e.target.value})` : '')}
+                placeholder="Image URL..."
+                className="flex-1 text-xs"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMediaManager(true)}
+                className="px-3"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+            </div>
+            {localStyle.backgroundImage && (
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <Select
+                  value={localStyle.backgroundSize || 'cover'}
+                  onValueChange={(value) => handleStyleChange('backgroundSize', value)}
+                >
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cover">Cover</SelectItem>
+                    <SelectItem value="contain">Contain</SelectItem>
+                    <SelectItem value="auto">Auto</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={localStyle.backgroundPosition || 'center'}
+                  onValueChange={(value) => handleStyleChange('backgroundPosition', value)}
+                >
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="center">Center</SelectItem>
+                    <SelectItem value="top">Top</SelectItem>
+                    <SelectItem value="bottom">Bottom</SelectItem>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="right">Right</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={localStyle.backgroundRepeat || 'no-repeat'}
+                  onValueChange={(value) => handleStyleChange('backgroundRepeat', value)}
+                >
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-repeat">No Repeat</SelectItem>
+                    <SelectItem value="repeat">Repeat</SelectItem>
+                    <SelectItem value="repeat-x">Repeat X</SelectItem>
+                    <SelectItem value="repeat-y">Repeat Y</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -829,6 +1149,20 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
             {localStyle.borderRadius || '0px'}
           </span>
         </div>
+        {/* Quick presets */}
+        <div className="flex gap-1 mt-2">
+          {[0, 4, 8, 16, 24, 50].map(radius => (
+            <Button
+              key={radius}
+              variant="outline"
+              size="sm"
+              onClick={() => handleStyleChange('borderRadius', `${radius}px`)}
+              className="text-xs px-2 py-1"
+            >
+              {radius}px
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Shadow */}
@@ -843,13 +1177,48 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">None</SelectItem>
-              <SelectItem value="0 1px 3px rgba(0,0,0,0.1)">Small</SelectItem>
-              <SelectItem value="0 4px 6px rgba(0,0,0,0.1)">Medium</SelectItem>
-              <SelectItem value="0 10px 15px rgba(0,0,0,0.1)">Large</SelectItem>
-              <SelectItem value="0 20px 25px rgba(0,0,0,0.1)">Extra Large</SelectItem>
+              {SHADOW_PRESETS.map(preset => (
+                <SelectItem key={preset.value} value={preset.value}>
+                  {preset.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      {/* Transform */}
+      <div>
+        <Label>Transform</Label>
+        <div className="space-y-2 mt-1">
+          <div className="flex items-center space-x-2">
+            <Label className="text-xs w-16">Scale</Label>
+            <Slider
+              value={[parseFloat(localStyle.scale || '1')]}
+              onValueChange={([value]) => handleStyleChange('transform', `scale(${value})`)}
+              min={0.5}
+              max={2}
+              step={0.1}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">
+              {localStyle.scale || '1'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Label className="text-xs w-16">Rotate</Label>
+            <Slider
+              value={[parseInt(localStyle.rotate?.replace('deg', '') || '0')]}
+              onValueChange={([value]) => handleStyleChange('transform', `rotate(${value}deg)`)}
+              min={-180}
+              max={180}
+              step={5}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">
+              {localStyle.rotate || '0°'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -868,6 +1237,41 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
           <span className="text-sm text-muted-foreground w-12">
             {Math.round(parseFloat(localStyle.opacity || '1') * 100)}%
           </span>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div>
+        <Label>Filters</Label>
+        <div className="space-y-2 mt-1">
+          <div className="flex items-center space-x-2">
+            <Label className="text-xs w-16">Blur</Label>
+            <Slider
+              value={[parseInt(localStyle.blur?.replace('px', '') || '0')]}
+              onValueChange={([value]) => handleStyleChange('filter', `blur(${value}px)`)}
+              min={0}
+              max={20}
+              step={1}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">
+              {localStyle.blur || '0px'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Label className="text-xs w-16">Brightness</Label>
+            <Slider
+              value={[parseFloat(localStyle.brightness || '1') * 100]}
+              onValueChange={([value]) => handleStyleChange('filter', `brightness(${value / 100})`)}
+              min={0}
+              max={200}
+              step={10}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">
+              {Math.round(parseFloat(localStyle.brightness || '1') * 100)}%
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -1158,6 +1562,176 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
     </div>
   )
 
+  const renderActionsTab = () => (
+    <div className="space-y-4">
+      <div className="text-center text-muted-foreground">
+        <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
+        <p>Actions & Events</p>
+        <p className="text-xs mt-1">Configure interactive behaviors</p>
+      </div>
+
+      {/* Click Actions */}
+      <div>
+        <Label>On Click Action</Label>
+        <Select
+          value={localProps.clickAction || 'none'}
+          onValueChange={(value) => handlePropChange('clickAction', value)}
+        >
+          <SelectTrigger className="mt-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No Action</SelectItem>
+            <SelectItem value="navigate">Navigate to URL</SelectItem>
+            <SelectItem value="scroll">Scroll to Element</SelectItem>
+            <SelectItem value="modal">Open Modal</SelectItem>
+            <SelectItem value="api">API Call</SelectItem>
+            <SelectItem value="form">Submit Form</SelectItem>
+            <SelectItem value="custom">Custom JavaScript</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Action Configuration */}
+      {localProps.clickAction && localProps.clickAction !== 'none' && (
+        <div>
+          <Label>Action Configuration</Label>
+          {localProps.clickAction === 'navigate' && (
+            <Input
+              value={localProps.navigateUrl || ''}
+              onChange={(e) => handlePropChange('navigateUrl', e.target.value)}
+              placeholder="https://example.com"
+              className="mt-1"
+            />
+          )}
+          {localProps.clickAction === 'scroll' && (
+            <Input
+              value={localProps.scrollTarget || ''}
+              onChange={(e) => handlePropChange('scrollTarget', e.target.value)}
+              placeholder="#element-id"
+              className="mt-1"
+            />
+          )}
+          {localProps.clickAction === 'api' && (
+            <div className="space-y-2 mt-1">
+              <Input
+                value={localProps.apiUrl || ''}
+                onChange={(e) => handlePropChange('apiUrl', e.target.value)}
+                placeholder="API Endpoint URL"
+              />
+              <Select
+                value={localProps.apiMethod || 'GET'}
+                onValueChange={(value) => handlePropChange('apiMethod', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                  <SelectItem value="PUT">PUT</SelectItem>
+                  <SelectItem value="DELETE">DELETE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {localProps.clickAction === 'custom' && (
+            <Textarea
+              value={localProps.customScript || ''}
+              onChange={(e) => handlePropChange('customScript', e.target.value)}
+              placeholder="// Custom JavaScript code"
+              className="mt-1 font-mono text-xs"
+              rows={4}
+            />
+          )}
+        </div>
+      )}
+
+      <Separator />
+
+      {/* Event Tracking */}
+      <div>
+        <Label>Event Tracking</Label>
+        <div className="space-y-2 mt-1">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="track-clicks"
+              checked={localProps.trackClicks || false}
+              onCheckedChange={(checked) => handlePropChange('trackClicks', checked)}
+            />
+            <Label htmlFor="track-clicks">Track Clicks</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="track-views"
+              checked={localProps.trackViews || false}
+              onCheckedChange={(checked) => handlePropChange('trackViews', checked)}
+            />
+            <Label htmlFor="track-views">Track Views</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="track-hovers"
+              checked={localProps.trackHovers || false}
+              onCheckedChange={(checked) => handlePropChange('trackHovers', checked)}
+            />
+            <Label htmlFor="track-hovers">Track Hovers</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* Conditional Display */}
+      <div>
+        <Label>Conditional Display</Label>
+        <div className="space-y-2 mt-1">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-on-mobile"
+              checked={localProps.showOnMobile !== false}
+              onCheckedChange={(checked) => handlePropChange('showOnMobile', checked)}
+            />
+            <Label htmlFor="show-on-mobile">Show on Mobile</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-on-tablet"
+              checked={localProps.showOnTablet !== false}
+              onCheckedChange={(checked) => handlePropChange('showOnTablet', checked)}
+            />
+            <Label htmlFor="show-on-tablet">Show on Tablet</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-on-desktop"
+              checked={localProps.showOnDesktop !== false}
+              onCheckedChange={(checked) => handlePropChange('showOnDesktop', checked)}
+            />
+            <Label htmlFor="show-on-desktop">Show on Desktop</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* Data Binding */}
+      <div>
+        <Label>Data Binding</Label>
+        <div className="space-y-2 mt-1">
+          <Input
+            value={localProps.dataSource || ''}
+            onChange={(e) => handlePropChange('dataSource', e.target.value)}
+            placeholder="Data source URL or collection"
+            className="text-sm"
+          />
+          <Input
+            value={localProps.dataField || ''}
+            onChange={(e) => handlePropChange('dataField', e.target.value)}
+            placeholder="Field name to bind"
+            className="text-sm"
+          />
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <TooltipProvider>
       <motion.div
@@ -1260,7 +1834,8 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
             { id: 'content', label: 'Content', icon: Type },
             { id: 'style', label: 'Style', icon: Paintbrush },
             { id: 'layout', label: 'Layout', icon: Layers3 },
-            { id: 'animation', label: 'Effects', icon: Wand2 }
+            { id: 'animation', label: 'Effects', icon: Wand2 },
+            { id: 'actions', label: 'Actions', icon: Zap }
           ].map(tab => (
             <button
               key={tab.id}
@@ -1284,6 +1859,7 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
           {activeTab === 'style' && renderStyleTab()}
           {activeTab === 'layout' && renderLayoutTab()}
           {activeTab === 'animation' && renderAnimationTab()}
+          {activeTab === 'actions' && renderActionsTab()}
         </div>
 
         {/* Footer */}
@@ -1316,6 +1892,17 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
           </div>
         </div>
       </motion.div>
+
+      {/* Media Manager */}
+      {appId && (
+        <MediaManager
+          appId={appId}
+          isOpen={showMediaManager}
+          onClose={() => setShowMediaManager(false)}
+          onSelect={handleMediaSelect}
+          acceptTypes={element.type === 'image' ? ['image'] : ['image']}
+        />
+      )}
     </TooltipProvider>
   )
 }

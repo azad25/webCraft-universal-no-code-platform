@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Upload, Edit, Database, RefreshCw, Loader2 } from 'lucide-react'
 import { fetchDataSourceData } from '@/lib/data-source-api'
+import { MediaManager } from '@/components/media/media-manager'
 
 interface CardWidgetProps {
   // Data source integration
@@ -33,6 +34,7 @@ interface CardWidgetProps {
   isPreview?: boolean
   isSelected?: boolean
   elementId?: string
+  appId?: string
   onChange?: (props: any) => void
   onStyleChange?: (style: any) => void
 }
@@ -58,6 +60,7 @@ export function CardWidget({
   isPreview = false,
   isSelected = false,
   elementId,
+  appId,
   onChange,
   onStyleChange
 }: CardWidgetProps) {
@@ -68,6 +71,7 @@ export function CardWidget({
   const [inlineEditingDesc, setInlineEditingDesc] = useState(false)
   const [inlineEditingButton, setInlineEditingButton] = useState(false)
   const [localImage, setLocalImage] = useState(image)
+  const [showMediaManager, setShowMediaManager] = useState(false)
 
   // Data source state
   const [cardData, setCardData] = useState<any>(null)
@@ -183,11 +187,16 @@ export function CardWidget({
   }
 
   const handleImageUpload = () => {
-    const newSrc = prompt('Enter image URL:', localImage)
-    if (newSrc !== null && onChange) {
-      setLocalImage(newSrc)
-      onChange({ image: newSrc })
+    if (isPreview) return
+    setShowMediaManager(true)
+  }
+
+  const handleMediaSelect = (media: any) => {
+    setLocalImage(media.url)
+    if (onChange) {
+      onChange({ image: media.url })
     }
+    setShowMediaManager(false)
   }
 
   // Start editing when Enter is pressed on selected element
@@ -377,6 +386,17 @@ export function CardWidget({
           </button>
         )}
       </div>
+      
+      {/* Media Manager */}
+      {appId && (
+        <MediaManager
+          appId={appId}
+          isOpen={showMediaManager}
+          onClose={() => setShowMediaManager(false)}
+          onSelect={handleMediaSelect}
+          acceptTypes={['image']}
+        />
+      )}
     </motion.div>
   )
 }

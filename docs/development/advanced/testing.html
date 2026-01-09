@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testing Strategies - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="docs-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Documentation</h2>
+                <p>Developer Guide</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="../index.html">Getting Started</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="../architecture/frontend-architecture.html">Frontend Architecture</a></li>
+                <li><a href="../architecture/backend-architecture.html">Backend Architecture</a></li>
+                <li><a href="../architecture/system-design.html">System Design</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html">Next.js Setup</a></li>
+                <li><a href="../frontend/react-components.html">React Components</a></li>
+                <li><a href="../frontend/state-management.html">State Management</a></li>
+                <li><a href="../frontend/styling.html">Styling & Theming</a></li>
+                
+                <li class="nav-section">Backend Development</li>
+                <li><a href="../backend/fastapi-setup.html">FastAPI Setup</a></li>
+                <li><a href="../backend/api-development.html">API Development</a></li>
+                <li><a href="../backend/authentication.html">Authentication</a></li>
+                <li><a href="../backend/authorization.html">Authorization</a></li>
+                
+                <li class="nav-section">Database</li>
+                <li><a href="../database/database-design.html">Database Design</a></li>
+                <li><a href="../database/postgresql-setup.html">PostgreSQL Setup</a></li>
+                <li><a href="../database/redis-setup.html">Redis Setup</a></li>
+                <li><a href="../database/migrations.html">Migrations</a></li>
+                <li><a href="../database/performance.html">Performance Optimization</a></li>
+                
+                <li class="nav-section">API Reference</li>
+                <li><a href="../api/rest-endpoints.html">REST Endpoints</a></li>
+                <li><a href="../api/authentication.html">API Authentication</a></li>
+                <li><a href="../api/rate-limiting.html">Rate Limiting</a></li>
+                <li><a href="../api/webhooks.html">Webhooks</a></li>
+                
+                <li class="nav-section">Advanced Topics</li>
+                <li class="active"><a href="testing.html">Testing Strategies</a></li>
+                <li><a href="deployment.html">Deployment</a></li>
+                <li><a href="performance.html">Performance</a></li>
+                <li><a href="monitoring.html">Monitoring</a></li>
+                <li><a href="security.html">Security</a></li>
+                
+                <li class="nav-section">Tutorials</li>
+                <li><a href="../tutorials/build-first-app.html">Build Your First App</a></li>
+                <li><a href="../tutorials/create-custom-widget.html">Create Custom Widget</a></li>
+                <li><a href="../tutorials/integrate-api.html">Integrate External APIs</a></li>
+                <li><a href="../tutorials/deploy-production.html">Deploy to Production</a></li>
+                
+                <li class="nav-section">Troubleshooting</li>
+                <li><a href="../troubleshooting/common-issues.html">Common Issues</a></li>
+                <li><a href="../troubleshooting/debugging.html">Debugging Guide</a></li>
+                <li><a href="../troubleshooting/faq.html">FAQ</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header class="content-header">
+                <h1>Testing Strategies</h1>
+                <p>Comprehensive testing approaches for WebCraft applications</p>
+            </header>
+
+            <div class="content-body">
+                <section id="overview">
+                    <h2>Testing Overview</h2>
+                    <p>WebCraft employs a comprehensive testing strategy covering unit tests, integration tests, end-to-end tests, and performance tests. Our testing approach follows the testing pyramid principle with emphasis on fast, reliable unit tests.</p>
+                    
+                    <h3>Testing Stack</h3>
+                    <ul>
+                        <li><strong>Frontend:</strong> Jest, React Testing Library, Cypress, Playwright</li>
+                        <li><strong>Backend:</strong> pytest, pytest-asyncio, FastAPI TestClient</li>
+                        <li><strong>Database:</strong> pytest-postgresql, testcontainers</li>
+                        <li><strong>Performance:</strong> Locust, k6, Artillery</li>
+                        <li><strong>Coverage:</strong> Coverage.py, Istanbul/nyc</li>
+                    </ul>
+                </section>
+
+                <section id="unit-testing">
+                    <h2>Unit Testing</h2>
+                    
+                    <h3>Frontend Unit Tests</h3>
+                    <pre><code class="language-typescript">// Button.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Button } from './Button';
+
+describe('Button Component', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByText('Click me')).toBeInTheDocument();
+  });
+
+  it('handles click events', async () => {
+    const handleClick = jest.fn();
+    const user = userEvent.setup();
+    
+    render(<Button onClick={handleClick}>Click me</Button>);
+    await user.click(screen.getByText('Click me'));
+    
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies correct variant styles', () => {
+    const { container } = render(<Button variant="primary">Primary</Button>);
+    expect(container.firstChild).toHaveClass('btn-primary');
+  });
+
+  it('disables button when loading', () => {
+    render(<Button loading>Submit</Button>);
+    expect(screen.getByText('Submit')).toBeDisabled();
+  });
+});
+
+// Custom hook testing
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useForm } from './useForm';
+
+describe('useForm Hook', () => {
+  it('initializes with default values', () => {
+    const { result } = renderHook(() => useForm({
+      initialValues: { name: 'John', email: '' }
+    }));
+    
+    expect(result.current.values).toEqual({ name: 'John', email: '' });
+  });
+
+  it('updates values on change', () => {
+    const { result } = renderHook(() => useForm());
+    
+    act(() => {
+      result.current.handleChange('name', 'Jane');
+    });
+    
+    expect(result.current.values.name).toBe('Jane');
+  });
+
+  it('validates form on submit', async () => {
+    const onSubmit = jest.fn();
+    const { result } = renderHook(() => useForm({
+      onSubmit,
+      validate: (values) => {
+        if (!values.email) return { email: 'Email is required' };
+        return {};
+      }
+    }));
+    
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+    
+    expect(result.current.errors.email).toBe('Email is required');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+});</code></pre>
+
+                    <h3>Backend Unit Tests</h3>
+                    <pre><code class="language-python"># test_user_service.py
+import pytest
+from unittest.mock import Mock, patch
+from datetime import datetime, timedelta
+from app.services.user_service import UserService
+from app.models.user import User
+from app.exceptions import ValidationError, NotFoundError
+
+class TestUserService:
+    @pytest.fixture
+    def user_service(self):
+        return UserService()
+    
+    @pytest.fixture
+    def mock_user(self):
+        return User(
+            id="123e4567-e89b-12d3-a456-426614174000",
+            email="test@example.com",
+            name="Test User",
+            is_active=True
+        )
+    
+    async def test_create_user_success(self, user_service, mock_user):
+        # Arrange
+        user_data = {
+            "email": "test@example.com",
+            "name": "Test User",
+            "password": "securepassword123"
+        }
+        
+        with patch.object(user_service.repository, 'create', return_value=mock_user):
+            # Act
+            result = await user_service.create_user(user_data)
+            
+            # Assert
+            assert result.email == "test@example.com"
+            assert result.name == "Test User"
+            assert result.is_active is True
+    
+    async def test_create_user_duplicate_email(self, user_service):
+        # Arrange
+        user_data = {
+            "email": "existing@example.com",
+            "name": "Test User",
+            "password": "securepassword123"
+        }
+        
+        with patch.object(user_service.repository, 'get_by_email', return_value=Mock()):
+            # Act & Assert
+            with pytest.raises(ValidationError, match="Email already exists"):
+                await user_service.create_user(user_data)
+    
+    async def test_get_user_by_id_found(self, user_service, mock_user):
+        with patch.object(user_service.repository, 'get_by_id', return_value=mock_user):
+            result = await user_service.get_user_by_id(mock_user.id)
+            assert result.id == mock_user.id
+            assert result.email == mock_user.email
+    
+    async def test_get_user_by_id_not_found(self, user_service):
+        with patch.object(user_service.repository, 'get_by_id', return_value=None):
+            with pytest.raises(NotFoundError, match="User not found"):
+                await user_service.get_user_by_id("non-existent-id")
+    
+    async def test_update_user_profile(self, user_service, mock_user):
+        update_data = {"name": "Updated Name", "bio": "New bio"}
+        
+        with patch.object(user_service.repository, 'get_by_id', return_value=mock_user):
+            with patch.object(user_service.repository, 'update', return_value=mock_user):
+                result = await user_service.update_user_profile(mock_user.id, update_data)
+                assert result.name == "Updated Name"
+
+# Test with parametrization
+@pytest.mark.parametrize("email,expected_valid", [
+    ("valid@example.com", True),
+    ("invalid.email", False),
+    ("", False),
+    ("test@", False),
+])
+async def test_email_validation(user_service, email, expected_valid):
+    result = user_service.validate_email(email)
+    assert result is expected_valid</code></pre>
+                </section>
+
+                <section id="integration-testing">
+                    <h2>Integration Testing</h2>
+                    
+                    <h3>API Integration Tests</h3>
+                    <pre><code class="language-python"># test_api_integration.py
+import pytest
+from httpx import AsyncClient
+from app.main import app
+from app.database import get_db
+from testcontainers.postgres import PostgresContainer
+
+@pytest.fixture(scope="session")
+async def test_db():
+    with PostgresContainer("postgres:15") as postgres:
+        database_url = postgres.get_connection_url()
+        # Override database dependency for testing
+        app.dependency_overrides[get_db] = lambda: create_test_db(database_url)
+        yield database_url
+        app.dependency_overrides.clear()
+
+@pytest.fixture
+async def client(test_db):
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+class TestUserAPI:
+    async def test_user_registration_flow(self, client):
+        # Test user registration
+        response = await client.post("/v1/auth/register", json={
+            "email": "test@example.com",
+            "password": "securepassword123",
+            "name": "Test User"
+        })
+        
+        assert response.status_code == 201
+        data = response.json()
+        assert data["email"] == "test@example.com"
+        assert "id" in data
+        
+        # Test login with new user
+        login_response = await client.post("/v1/auth/login", json={
+            "email": "test@example.com",
+            "password": "securepassword123"
+        })
+        
+        assert login_response.status_code == 200
+        token_data = login_response.json()
+        assert "access_token" in token_data
+        assert "refresh_token" in token_data
+        
+        # Test accessing protected endpoint
+        access_token = token_data["access_token"]
+        me_response = await client.get("/v1/auth/me", headers={
+            "Authorization": f"Bearer {access_token}"
+        })
+        
+        assert me_response.status_code == 200
+        user_data = me_response.json()
+        assert user_data["email"] == "test@example.com"
+    
+    async def test_workspace_crud_operations(self, client):
+        # First, login to get token
+        login_response = await client.post("/v1/auth/login", json={
+            "email": "test@example.com",
+            "password": "securepassword123"
+        })
+        token = login_response.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        # Create workspace
+        create_response = await client.post("/v1/workspaces", 
+            headers=headers,
+            json={"name": "Test Workspace", "slug": "test-workspace"}
+        )
+        
+        assert create_response.status_code == 201
+        workspace = create_response.json()
+        workspace_id = workspace["id"]
+        
+        # Get workspace
+        get_response = await client.get(f"/v1/workspaces/{workspace_id}", headers=headers)
+        assert get_response.status_code == 200
+        assert get_response.json()["name"] == "Test Workspace"
+        
+        # Update workspace
+        update_response = await client.put(f"/v1/workspaces/{workspace_id}", 
+            headers=headers,
+            json={"name": "Updated Workspace"}
+        )
+        assert update_response.status_code == 200
+        assert update_response.json()["name"] == "Updated Workspace"
+        
+        # Delete workspace
+        delete_response = await client.delete(f"/v1/workspaces/{workspace_id}", headers=headers)
+        assert delete_response.status_code == 204
+
+# Test with database transactions
+@pytest.mark.asyncio
+async def test_database_transactions(client):
+    """Test that database operations are properly isolated"""
+    
+    # Create workspace
+    response = await client.post("/v1/workspaces", 
+        headers=headers,
+        json={"name": "Transaction Test", "slug": "transaction-test"}
+    )
+    
+    workspace_id = response.json()["id"]
+    
+    # Create multiple projects in parallel
+    project_tasks = []
+    for i in range(5):
+        task = client.post(f"/v1/workspaces/{workspace_id}/projects", 
+            headers=headers,
+            json={"name": f"Project {i}", "description": f"Description {i}"}
+        )
+        project_tasks.append(task)
+    
+    responses = await asyncio.gather(*project_tasks)
+    
+    # Verify all projects were created successfully
+    assert all(r.status_code == 201 for r in responses)
+    
+    # Verify we can retrieve all projects
+    projects_response = await client.get(f"/v1/workspaces/{workspace_id}/projects", headers=headers)
+    assert projects_response.status_code == 200
+    assert len(projects_response.json()["data"]) == 5</code></pre>
+                </section>
+
+                <section id="e2e-testing">
+                    <h2>End-to-End Testing</h2>
+                    
+                    <h3>Cypress E2E Tests</h3>
+                    <pre><code class="language-typescript">// cypress/e2e/auth.cy.ts
+describe('Authentication Flow', () => {
+  beforeEach(() => {
+    cy.visit('/login');
+  });
+
+  it('should login successfully with valid credentials', () => {
+    cy.intercept('POST', '/api/v1/auth/login').as('loginRequest');
+    
+    cy.get('[data-testid="email-input"]').type('test@example.com');
+    cy.get('[data-testid="password-input"]').type('securepassword123');
+    cy.get('[data-testid="login-button"]').click();
+    
+    cy.wait('@loginRequest').then((interception) => {
+      expect(interception.response.statusCode).to.equal(200);
+      expect(interception.response.body).to.have.property('access_token');
+    });
+    
+    cy.url().should('include', '/dashboard');
+    cy.get('[data-testid="user-menu"]').should('be.visible');
+  });
+
+  it('should show error for invalid credentials', () => {
+    cy.intercept('POST', '/api/v1/auth/login').as('loginRequest');
+    
+    cy.get('[data-testid="email-input"]').type('invalid@example.com');
+    cy.get('[data-testid="password-input"]').type('wrongpassword');
+    cy.get('[data-testid="login-button"]').click();
+    
+    cy.wait('@loginRequest').then((interception) => {
+      expect(interception.response.statusCode).to.equal(401);
+    });
+    
+    cy.get('[data-testid="error-message"]').should('be.visible');
+    cy.get('[data-testid="error-message"]').should('contain', 'Invalid credentials');
+  });
+});
+
+// cypress/e2e/workspace-creation.cy.ts
+describe('Workspace Creation Flow', () => {
+  beforeEach(() => {
+    cy.login('test@example.com', 'securepassword123');
+    cy.visit('/workspaces');
+  });
+
+  it('should create a new workspace', () => {
+    cy.intercept('POST', '/api/v1/workspaces').as('createWorkspace');
+    
+    cy.get('[data-testid="create-workspace-button"]').click();
+    cy.get('[data-testid="workspace-name-input"]').type('My Test Workspace');
+    cy.get('[data-testid="workspace-slug-input"]').type('my-test-workspace');
+    cy.get('[data-testid="submit-workspace-button"]').click();
+    
+    cy.wait('@createWorkspace').then((interception) => {
+      expect(interception.response.statusCode).to.be.oneOf([200, 201]);
+    });
+    
+    cy.url().should('include', '/workspaces/my-test-workspace');
+    cy.get('[data-testid="workspace-title"]').should('contain', 'My Test Workspace');
+  });
+
+  it('should validate workspace slug uniqueness', () => {
+    cy.intercept('POST', '/api/v1/workspaces').as('createWorkspace');
+    
+    // Create first workspace
+    cy.get('[data-testid="create-workspace-button"]').click();
+    cy.get('[data-testid="workspace-name-input"]').type('First Workspace');
+    cy.get('[data-testid="workspace-slug-input"]').type('duplicate-slug');
+    cy.get('[data-testid="submit-workspace-button"]').click();
+    
+    cy.wait('@createWorkspace');
+    
+    // Try to create workspace with same slug
+    cy.get('[data-testid="create-workspace-button"]').click();
+    cy.get('[data-testid="workspace-name-input"]').type('Second Workspace');
+    cy.get('[data-testid="workspace-slug-input"]').type('duplicate-slug');
+    cy.get('[data-testid="submit-workspace-button"]').click();
+    
+    cy.wait('@createWorkspace').then((interception) => {
+      expect(interception.response.statusCode).to.equal(409); // Conflict
+    });
+    
+    cy.get('[data-testid="slug-error"]').should('contain', 'Slug already exists');
+  });
+});
+
+// cypress/support/commands.ts
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login(email: string, password: string): Chainable<void>;
+      createWorkspace(name: string, slug: string): Chainable<void>;
+      dragAndDrop(source: string, target: string): Chainable<void>;
+    }
+  }
+}
+
+Cypress.Commands.add('login', (email: string, password: string) => {
+  cy.session([email, password], () => {
+    cy.visit('/login');
+    cy.get('[data-testid="email-input"]').type(email);
+    cy.get('[data-testid="password-input"]').type(password);
+    cy.get('[data-testid="login-button"]').click();
+    cy.url().should('include', '/dashboard');
+  });
+});
+
+Cypress.Commands.add('createWorkspace', (name: string, slug: string) => {
+  cy.visit('/workspaces');
+  cy.get('[data-testid="create-workspace-button"]').click();
+  cy.get('[data-testid="workspace-name-input"]').type(name);
+  cy.get('[data-testid="workspace-slug-input"]').type(slug);
+  cy.get('[data-testid="submit-workspace-button"]').click();
+  cy.get('[data-testid="workspace-title"]').should('contain', name);
+});
+
+Cypress.Commands.add('dragAndDrop', (source: string, target: string) => {
+  cy.get(source).trigger('dragstart');
+  cy.get(target).trigger('drop');
+  cy.get(target).trigger('dragend');
+});</code></pre>
+
+                    <h3>Playwright E2E Tests</h3>
+                    <pre><code class="language-typescript">// playwright/tests/page-builder.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Page Builder', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/login');
+    await page.fill('[data-testid="email-input"]', 'test@example.com');
+    await page.fill('[data-testid="password-input"]', 'securepassword123');
+    await page.click('[data-testid="login-button"]');
+    await page.waitForURL('/dashboard');
+  });
+
+  test('should create and edit a page', async ({ page }) => {
+    // Navigate to page builder
+    await page.click('[data-testid="page-builder-nav"]');
+    await page.waitForURL('/page-builder');
+    
+    // Create new page
+    await page.click('[data-testid="create-page-button"]');
+    await page.fill('[data-testid="page-name-input"]', 'Test Page');
+    await page.fill('[data-testid="page-path-input"]', '/test-page');
+    await page.click('[data-testid="create-page-submit"]');
+    
+    // Wait for page editor to load
+    await page.waitForSelector('[data-testid="page-editor"]');
+    
+    // Add a component
+    await page.dragAndDrop(
+      '[data-testid="component-button"]',
+      '[data-testid="page-canvas"]'
+    );
+    
+    // Configure component
+    await page.fill('[data-testid="component-text-input"]', 'Click Me!');
+    await page.click('[data-testid="save-component-button"]');
+    
+    // Preview page
+    await page.click('[data-testid="preview-button"]');
+    const newPage = await page.waitForEvent('popup');
+    await newPage.waitForLoadState();
+    
+    expect(await newPage.textContent('body')).toContain('Click Me!');
+    expect(newPage.url()).toContain('/test-page');
+    
+    await newPage.close();
+  });
+
+  test('should handle responsive design', async ({ page }) => {
+    await page.goto('/page-builder');
+    
+    // Test mobile view
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.click('[data-testid="mobile-view-button"]');
+    
+    const canvas = page.locator('[data-testid="page-canvas"]');
+    await expect(canvas).toHaveCSS('width', '375px');
+    
+    // Test tablet view
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.click('[data-testid="tablet-view-button"]');
+    await expect(canvas).toHaveCSS('width', '768px');
+    
+    // Test desktop view
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.click('[data-testid="desktop-view-button"]');
+    await expect(canvas).toHaveCSS('width', '1920px');
+  });
+
+  test('should save page draft', async ({ page }) => {
+    await page.goto('/page-builder/test-page');
+    
+    // Make some changes
+    await page.click('[data-testid="add-section-button"]');
+    await page.click('[data-testid="hero-section-option"]');
+    
+    // Wait for auto-save
+    await page.waitForSelector('[data-testid="save-indicator"]', { state: 'visible' });
+    await page.waitForSelector('[data-testid="save-indicator"]', { state: 'hidden' });
+    
+    // Reload page and verify changes are saved
+    await page.reload();
+    await page.waitForSelector('[data-testid="hero-section"]');
+    
+    const heroSection = page.locator('[data-testid="hero-section"]');
+    await expect(heroSection).toBeVisible();
+  });
+});</code></pre>
+                </section>
+
+                <section id="performance-testing">
+                    <h2>Performance Testing</h2>
+                    
+                    <h3>Load Testing with Locust</h3>
+                    <pre><code class="language-python"># locustfile.py
+from locust import HttpUser, task, between
+import random
+import json
+
+class WebCraftUser(HttpUser):
+    wait_time = between(1, 3)
+    
+    def on_start(self):
+        """Login and get authentication token"""
+        response = self.client.post("/api/v1/auth/login", json={
+            "email": "test@example.com",
+            "password": "securepassword123"
+        })
+        
+        if response.status_code == 200:
+            self.token = response.json()["access_token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+        else:
+            self.token = None
+            self.headers = {}
+    
+    @task(3)
+    def view_dashboard(self):
+        """Simulate user viewing dashboard"""
+        if self.token:
+            self.client.get("/api/v1/workspaces", headers=self.headers)
+    
+    @task(2)
+    def create_workspace(self):
+        """Simulate user creating workspace"""
+        if self.token:
+            workspace_data = {
+                "name": f"Test Workspace {random.randint(1, 1000)}",
+                "slug": f"test-workspace-{random.randint(1, 1000)}"
+            }
+            
+            self.client.post("/api/v1/workspaces", 
+                headers=self.headers,
+                json=workspace_data
+            )
+    
+    @task(4)
+    def view_pages(self):
+        """Simulate user viewing pages"""
+        if self.token:
+            # First get workspaces
+            response = self.client.get("/api/v1/workspaces", headers=self.headers)
+            
+            if response.status_code == 200:
+                workspaces = response.json()["data"]
+                if workspaces:
+                    workspace_id = random.choice(workspaces)["id"]
+                    
+                    # Get projects for workspace
+                    self.client.get(f"/api/v1/workspaces/{workspace_id}/projects", 
+                        headers=self.headers
+                    )
+    
+    @task(1)
+    def create_page(self):
+        """Simulate user creating page"""
+        if self.token:
+            # Get a project first
+            response = self.client.get("/api/v1/workspaces", headers=self.headers)
+            
+            if response.status_code == 200 and response.json()["data"]:
+                workspace_id = response.json()["data"][0]["id"]
+                
+                # Get projects
+                proj_response = self.client.get(
+                    f"/api/v1/workspaces/{workspace_id}/projects",
+                    headers=self.headers
+                )
+                
+                if proj_response.status_code == 200 and proj_response.json()["data"]:
+                    project_id = proj_response.json()["data"][0]["id"]
+                    
+                    page_data = {
+                        "name": f"Test Page {random.randint(1, 1000)}",
+                        "path": f"/test-page-{random.randint(1, 1000)}",
+                        "content": {
+                            "sections": [{
+                                "type": "hero",
+                                "props": {"title": "Test Page"}
+                            }]
+                        }
+                    }
+                    
+                    self.client.post(f"/api/v1/projects/{project_id}/pages",
+                        headers=self.headers,
+                        json=page_data
+                    )
+
+class WebsiteViewer(HttpUser):
+    """Simulates users viewing published websites"""
+    wait_time = between(2, 5)
+    
+    @task(10)
+    def view_homepage(self):
+        """View homepage"""
+        self.client.get("/")
+    
+    @task(5)
+    def view_page(self):
+        """View specific page"""
+        pages = ["/about", "/contact", "/services", "/blog"]
+        page = random.choice(pages)
+        self.client.get(page)
+    
+    @task(3)
+    def submit_contact_form(self):
+        """Submit contact form"""
+        form_data = {
+            "name": f"Test User {random.randint(1, 100)}",
+            "email": f"test{random.randint(1, 100)}@example.com",
+            "message": "This is a test message from load testing"
+        }
+        
+        self.client.post("/api/contact", json=form_data)</code></pre>
+
+                    <h3>Performance Monitoring</h3>
+                    <pre><code class="language-python"># performance_monitor.py
+import time
+import psutil
+import asyncio
+from functools import wraps
+from typing import Callable, Any
+
+def measure_performance(func: Callable) -> Callable:
+    """Decorator to measure function performance"""
+    @wraps(func)
+    async def async_wrapper(*args, **kwargs):
+        start_time = time.time()
+        start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+        
+        try:
+            result = await func(*args, **kwargs)
+            
+            end_time = time.time()
+            end_memory = psutil.Process().memory_info().rss / 1024 / 1024
+            
+            execution_time = end_time - start_time
+            memory_usage = end_memory - start_memory
+            
+            print(f"{func.__name__} - Time: {execution_time:.3f}s, Memory: {memory_usage:.2f}MB")
+            
+            return result
+        except Exception as e:
+            print(f"{func.__name__} - Error: {str(e)}")
+            raise
+    
+    @wraps(func)
+    def sync_wrapper(*args, **kwargs):
+        start_time = time.time()
+        start_memory = psutil.Process().memory_info().rss / 1024 / 1024
+        
+        try:
+            result = func(*args, **kwargs)
+            
+            end_time = time.time()
+            end_memory = psutil.Process().memory_info().rss / 1024 / 1024
+            
+            execution_time = end_time - start_time
+            memory_usage = end_memory - start_memory
+            
+            print(f"{func.__name__} - Time: {execution_time:.3f}s, Memory: {memory_usage:.2f}MB")
+            
+            return result
+        except Exception as e:
+            print(f"{func.__name__} - Error: {str(e)}")
+            raise
+    
+    return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+
+# Usage example
+@measure_performance
+async def get_workspace_with_projects(workspace_id: str):
+    """Get workspace data with all projects - performance optimized"""
+    # Database query with joins to minimize queries
+    query = """
+        SELECT w.*, p.id as project_id, p.name as project_name
+        FROM workspaces w
+        LEFT JOIN projects p ON w.id = p.workspace_id
+        WHERE w.id = :workspace_id
+    """
+    
+    result = await db.execute(query, {"workspace_id": workspace_id})
+    rows = result.fetchall()
+    
+    if not rows:
+        return None
+    
+    # Build workspace object with projects
+    workspace_data = dict(rows[0])
+    projects = []
+    
+    for row in rows:
+        if row.project_id:
+            projects.append({
+                "id": row.project_id,
+                "name": row.project_name
+            })
+    
+    workspace_data["projects"] = projects
+    return workspace_data
+
+# Database performance testing
+async def test_database_performance():
+    """Test database query performance"""
+    import asyncpg
+    
+    # Connection pool performance
+    pool = await asyncpg.create_pool(
+        "postgresql://user:pass@localhost/webcraft",
+        min_size=10,
+        max_size=20
+    )
+    
+    # Test query performance
+    queries = [
+        ("Simple select", "SELECT * FROM users LIMIT 100"),
+        ("Complex join", """
+            SELECT u.*, w.name as workspace_name, COUNT(p.id) as project_count
+            FROM users u
+            JOIN workspace_members wm ON u.id = wm.user_id
+            JOIN workspaces w ON wm.workspace_id = w.id
+            LEFT JOIN projects p ON w.id = p.workspace_id
+            GROUP BY u.id, w.name
+            LIMIT 100
+        """),
+        ("Aggregation", """
+            SELECT 
+                DATE(created_at) as date,
+                COUNT(*) as user_count,
+                COUNT(CASE WHEN is_active THEN 1 END) as active_count
+            FROM users
+            WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+            GROUP BY DATE(created_at)
+            ORDER BY date DESC
+        """),
+    ]
+    
+    async with pool.acquire() as conn:
+        for name, query in queries:
+            start_time = time.time()
+            
+            # Execute query multiple times
+            for _ in range(10):
+                await conn.fetch(query)
+            
+            avg_time = (time.time() - start_time) / 10
+            print(f"{name}: {avg_time:.3f}s average")</code></pre>
+                </section>
+
+                <section id="test-automation">
+                    <h2>Test Automation</h2>
+                    
+                    <h3>CI/CD Pipeline Configuration</h3>
+                    <pre><code class="yaml"># .github/workflows/test.yml
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: webcraft_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-test.txt
+    
+    - name: Run backend tests
+      env:
+        DATABASE_URL: postgresql://postgres:testpass@localhost:5432/webcraft_test
+        REDIS_URL: redis://localhost:6379/1
+        TESTING: true
+      run: |
+        pytest apps/api/tests/ -v --cov=apps/api --cov-report=xml
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: backend
+        name: backend-coverage
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: apps/web/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd apps/web
+        npm ci
+    
+    - name: Run unit tests
+      run: |
+        cd apps/web
+        npm run test:ci
+    
+    - name: Run component tests
+      run: |
+        cd apps/web
+        npm run test:components
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./apps/web/coverage/lcov.info
+        flags: frontend
+        name: frontend-coverage
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: webcraft_e2e
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: |
+        cd apps/web
+        npm ci
+        npx playwright install
+    
+    - name: Start backend server
+      env:
+        DATABASE_URL: postgresql://postgres:testpass@localhost:5432/webcraft_e2e
+        REDIS_URL: redis://localhost:6379/2
+      run: |
+        cd apps/api
+        python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+    
+    - name: Start frontend server
+      run: |
+        cd apps/web
+        npm run build
+        npm start &
+        sleep 10
+    
+    - name: Run E2E tests
+      run: |
+        cd apps/web
+        npm run test:e2e
+    
+    - name: Upload E2E test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: e2e-test-results
+        path: apps/web/test-results/
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Locust
+      run: pip install locust
+    
+    - name: Run performance tests
+      run: |
+        cd tests/performance
+        locust --headless --users 100 --spawn-rate 10 --run-time 60s --host https://staging.webcraft.app
+    
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: tests/performance/results/</code></pre>
+
+                    <h3>Test Data Management</h3>
+                    <pre><code class="language-python"># test_factories.py
+from factory import Factory, Faker, SubFactory
+from factory.alchemy import SQLAlchemyModelFactory
+from app.models import User, Workspace, Project, Page
+from app.database import SessionLocal
+
+class UserFactory(SQLAlchemyModelFactory):
+    class Meta:
+        model = User
+        sqlalchemy_session = SessionLocal()
+        sqlalchemy_session_persistence = "commit"
+    
+    email = Faker('email')
+    name = Faker('name')
+    is_active = True
+    created_at = Faker('date_time')
+
+class WorkspaceFactory(SQLAlchemyModelFactory):
+    class Meta:
+        model = Workspace
+        sqlalchemy_session = SessionLocal()
+        sqlalchemy_session_persistence = "commit"
+    
+    name = Faker('company')
+    slug = Faker('slug')
+    created_at = Faker('date_time')
+
+class ProjectFactory(SQLAlchemyModelFactory):
+    class Meta:
+        model = Project
+        sqlalchemy_session = SessionLocal()
+        sqlalchemy_session_persistence = "commit"
+    
+    name = Faker('catch_phrase')
+    description = Faker('text')
+    workspace = SubFactory(WorkspaceFactory)
+
+# Usage in tests
+@pytest.fixture
+def test_user():
+    return UserFactory()
+
+@pytest.fixture
+def test_workspace():
+    return WorkspaceFactory()
+
+@pytest.fixture
+def test_project(test_workspace):
+    return ProjectFactory(workspace=test_workspace)
+
+# Test data builders
+class TestDataBuilder:
+    """Builder pattern for complex test data"""
+    
+    def __init__(self):
+        self.workspace = None
+        self.projects = []
+        self.pages = []
+        self.users = []
+    
+    def with_workspace(self, **kwargs):
+        self.workspace = WorkspaceFactory(**kwargs)
+        return self
+    
+    def with_projects(self, count=1, **kwargs):
+        for _ in range(count):
+            project = ProjectFactory(workspace=self.workspace, **kwargs)
+            self.projects.append(project)
+        return self
+    
+    def with_pages(self, count=1, **kwargs):
+        for project in self.projects:
+            for _ in range(count):
+                page = PageFactory(project=project, **kwargs)
+                self.pages.append(page)
+        return self
+    
+    def with_users(self, count=1, **kwargs):
+        for _ in range(count):
+            user = UserFactory(**kwargs)
+            self.users.append(user)
+        return self
+    
+    def build(self):
+        return {
+            'workspace': self.workspace,
+            'projects': self.projects,
+            'pages': self.pages,
+            'users': self.users
+        }
+
+# Usage
+def test_complex_workspace_scenario():
+    test_data = TestDataBuilder()\
+        .with_workspace(name="Test Workspace")\
+        .with_projects(count=3)\
+        .with_pages(count=5)\
+        .with_users(count=2)\
+        .build()
+    
+    # Use test_data in your tests
+    assert len(test_data['projects']) == 3
+    assert len(test_data['pages']) == 15  # 3 projects * 5 pages each</code></pre>
+                </section>
+
+                <section id="testing-best-practices">
+                    <h2>Testing Best Practices</h2>
+                    
+                    <h3>Test Organization</h3>
+                    <ul>
+                        <li><strong>Arrange-Act-Assert (AAA):</strong> Structure tests clearly</li>
+                        <li><strong>One assertion per test:</strong> Keep tests focused and simple</li>
+                        <li><strong>Descriptive test names:</strong> Test names should explain what is being tested</li>
+                        <li><strong>Test isolation:</strong> Tests should not depend on each other</li>
+                        <li><strong>Use fixtures:</strong> Share common test setup</li>
+                    </ul>
+
+                    <h3>Mocking Strategies</h3>
+                    <pre><code class="language-python"># Mock external services
+from unittest.mock import Mock, patch
+import pytest
+
+class TestExternalService:
+    @patch('app.services.user_service.send_email')
+    async def test_user_registration_sends_email(self, mock_send_email):
+        # Arrange
+        user_data = {
+            "email": "test@example.com",
+            "name": "Test User",
+            "password": "securepassword123"
+        }
+        
+        # Act
+        await user_service.register_user(user_data)
+        
+        # Assert
+        mock_send_email.assert_called_once_with(
+            to="test@example.com",
+            subject="Welcome to WebCraft",
+            template="welcome_email",
+            context={"name": "Test User"}
+        )
+    
+    @patch('app.services.analytics_service.track_event')
+    async def test_page_view_tracks_analytics(self, mock_track_event):
+        # Act
+        await page_service.record_page_view("page_123", "user_456")
+        
+        # Assert
+        mock_track_event.assert_called_once_with(
+            event_name="page_view",
+            user_id="user_456",
+            properties={"page_id": "page_123"}
+        )
+
+# Mock time for deterministic tests
+@patch('app.services.subscription_service.datetime')
+def test_subscription_expiration(mock_datetime):
+    # Set fixed time
+    mock_datetime.utcnow.return_value = datetime(2024, 1, 1)
+    
+    subscription = Subscription(
+        expires_at=datetime(2023, 12, 31)
+    )
+    
+    assert subscription.is_expired() is True</code></pre>
+
+                    <h3>Coverage Guidelines</h3>
+                    <ul>
+                        <li>Aim for 80%+ code coverage</li>
+                        <li>Focus on critical business logic</li>
+                        <li>Test edge cases and error conditions</li>
+                        <li>Don't write tests just to increase coverage</li>
+                        <li>Use coverage reports to identify untested code</li>
+                    </ul>
+
+                    <h3>Performance Testing Guidelines</h3>
+                    <ul>
+                        <li>Response time: API endpoints should respond within 200ms</li>
+                        <li>Database queries: Should execute within 100ms</li>
+                        <li>Memory usage: Monitor for memory leaks</li>
+                        <li>Concurrent users: Test with expected load</li>
+                        <li>Resource utilization: Monitor CPU and memory under load</li>
+                    </ul>
+                </section>
+
+                <div class="next-steps">
+                    <h3>Next Steps</h3>
+                    <p>Continue learning about WebCraft's advanced topics:</p>
+                    <div class="next-step-buttons">
+                        <a href="deployment.html" class="btn primary">Deployment Guide</a>
+                        <a href="performance.html" class="btn secondary">Performance Optimization</a>
+                        <a href="monitoring.html" class="btn secondary">Monitoring & Observability</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Architecture - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                
+                <li class="nav-section">Getting Started</li>
+                <li><a href="../getting-started/quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="../getting-started/installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="../getting-started/environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="../getting-started/project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="system-overview.html" class="active"><i class="fas fa-sitemap"></i> System Overview</a></li>
+                <li><a href="backend-architecture.html"><i class="fas fa-server"></i> Backend Architecture</a></li>
+                <li><a href="frontend-architecture.html"><i class="fas fa-desktop"></i> Frontend Architecture</a></li>
+                <li><a href="module-system.html"><i class="fas fa-puzzle-piece"></i> Module System</a></li>
+                <li><a href="data-flow.html"><i class="fas fa-exchange-alt"></i> Data Flow</a></li>
+                <li><a href="design-patterns.html"><i class="fas fa-code-branch"></i> Design Patterns</a></li>
+                
+                <li class="nav-section">Backend Development</li>
+                <li><a href="../backend/fastapi-setup.html"><i class="fab fa-python"></i> FastAPI Setup</a></li>
+                <li><a href="../backend/database-models.html"><i class="fas fa-database"></i> Database Models</a></li>
+                <li><a href="../backend/api-routers.html"><i class="fas fa-route"></i> API Routers</a></li>
+                <li><a href="../backend/services.html"><i class="fas fa-cogs"></i> Services Layer</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html"><i class="fab fa-react"></i> Next.js Setup</a></li>
+                <li><a href="../frontend/component-architecture.html"><i class="fas fa-puzzle-piece"></i> Component Architecture</a></li>
+                <li><a href="../frontend/editor-system.html"><i class="fas fa-edit"></i> Editor System</a></li>
+                <li><a href="../frontend/widget-development.html"><i class="fas fa-cube"></i> Widget Development</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <header>
+                <h1>System Architecture Overview</h1>
+                <div class="search-box">
+                    <input type="text" placeholder="Search documentation..." id="searchInput">
+                    <button onclick="searchDocs()"><i class="fas fa-search"></i></button>
+                </div>
+            </header>
+            
+            <div class="content-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Architecture Overview:</strong> This document provides a comprehensive overview of WebCraft's system architecture, including microservices design, data flow patterns, and scalability considerations.
+                </div>
+
+                <section class="architecture-intro">
+                    <h2>High-Level Architecture</h2>
+                    <p>WebCraft is built using a modern microservices architecture with clear separation of concerns. The system is designed to be scalable, maintainable, and extensible through a powerful module system.</p>
+                    
+                    <div class="architecture-diagram">
+                        <div class="diagram-container">
+                            <div class="layer user-layer">
+                                <h4>👥 Users</h4>
+                                <div class="layer-items">
+                                    <span>Web Browser</span>
+                                    <span>Mobile Apps</span>
+                                    <span>API Clients</span>
+                                </div>
+                            </div>
+                            
+                            <div class="layer frontend-layer">
+                                <h4>🌐 Frontend Layer</h4>
+                                <div class="layer-items">
+                                    <span>Next.js 14</span>
+                                    <span>React 18</span>
+                                    <span>TypeScript</span>
+                                    <span>Tailwind CSS</span>
+                                </div>
+                            </div>
+                            
+                            <div class="layer api-gateway">
+                                <h4>🚪 API Gateway</h4>
+                                <div class="layer-items">
+                                    <span>FastAPI</span>
+                                    <span>Rate Limiting</span>
+                                    <span>Authentication</span>
+                                    <span>CORS</span>
+                                </div>
+                            </div>
+                            
+                            <div class="layer services-layer">
+                                <h4>⚙️ Services Layer</h4>
+                                <div class="services-grid">
+                                    <div class="service-card">
+                                        <h5>Core Services</h5>
+                                        <ul>
+                                            <li>App Builder</li>
+                                            <li>Widget System</li>
+                                            <li>Template Engine</li>
+                                            <li>Media Manager</li>
+                                        </ul>
+                                    </div>
+                                    <div class="service-card">
+                                        <h5>Business Services</h5>
+                                        <ul>
+                                            <li>Automation Engine</li>
+                                            <li>AI Services</li>
+                                            <li>Analytics</li>
+                                            <li>Integrations</li>
+                                        </ul>
+                                    </div>
+                                    <div class="service-card">
+                                        <h5>Support Services</h5>
+                                        <ul>
+                                            <li>Email Service</li>
+                                            <li>Payment Processing</li>
+                                            <li>CDN Service</li>
+                                            <li>SSL Service</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="layer data-layer">
+                                <h4>💾 Data Layer</h4>
+                                <div class="data-grid">
+                                    <div class="data-card">
+                                        <h5>PostgreSQL</h5>
+                                        <p>Primary Database</p>
+                                        <small>Multi-tenant, ACID compliant</small>
+                                    </div>
+                                    <div class="data-card">
+                                        <h5>Redis</h5>
+                                        <p>Cache & Sessions</p>
+                                        <small>High-performance caching</small>
+                                    </div>
+                                    <div class="data-card">
+                                        <h5>Kafka</h5>
+                                        <p>Event Streaming</p>
+                                        <small>Real-time data processing</small>
+                                    </div>
+                                    <div class="data-card">
+                                        <h5>S3/GCS</h5>
+                                        <p>Object Storage</p>
+                                        <small>Media files & backups</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="core-components">
+                    <h2>Core Components</h2>
+                    
+                    <div class="component-grid">
+                        <div class="component-card">
+                            <div class="component-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <h3>Module System</h3>
+                            <p>Extensible plugin architecture that allows dynamic loading and management of features. Core modules include widgets, integrations, analytics, and AI providers.</p>
+                            <div class="component-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Dynamic module loading</li>
+                                    <li>Dependency management</li>
+                                    <li>Version control</li>
+                                    <li>Hot-swapping capabilities</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="component-card">
+                            <div class="component-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <h3>Visual Editor</h3>
+                            <p>Professional drag-and-drop editor with 60+ widgets, real-time preview, and responsive design capabilities.</p>
+                            <div class="component-details">
+                                <h4>Components:</h4>
+                                <ul>
+                                    <li>Widget library (60+ components)</li>
+                                    <li>Canvas rendering engine</li>
+                                    <li>Property panels</li>
+                                    <li>Responsive breakpoints</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="component-card">
+                            <div class="component-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h3>Automation Engine</h3>
+                            <p>Visual workflow builder with 100+ integrations, smart templates, and real-time execution monitoring.</p>
+                            <div class="component-details">
+                                <h4>Capabilities:</h4>
+                                <ul>
+                                    <li>Visual workflow designer</li>
+                                    <li>100+ service integrations</li>
+                                    <li>Smart templates</li>
+                                    <li>Error handling & retries</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="component-card">
+                            <div class="component-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h3>AI Integration</h3>
+                            <p>Native AI services for content generation, design suggestions, and SEO optimization using multiple providers.</p>
+                            <div class="component-details">
+                                <h4>AI Providers:</h4>
+                                <ul>
+                                    <li>OpenAI (GPT-4, DALL-E)</li>
+                                    <li>Anthropic (Claude)</li>
+                                    <li>Google (Gemini)</li>
+                                    <li>Custom AI endpoints</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="component-card">
+                            <div class="component-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3>Data Layer</h3>
+                            <p>Multi-tenant database architecture with PostgreSQL, Redis caching, and Kafka event streaming.</p>
+                            <div class="component-details">
+                                <h4>Technologies:</h4>
+                                <ul>
+                                    <li>PostgreSQL 15 (ACID compliant)</li>
+                                    <li>Redis 7 (Caching & sessions)</li>
+                                    <li>Kafka (Event streaming)</li>
+                                    <li>SQLAlchemy ORM</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="component-card">
+                            <div class="component-icon">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <h3>Integration Layer</h3>
+                            <p>100+ third-party service integrations with OAuth2, webhooks, and API key management.</p>
+                            <div class="component-details">
+                                <h4>Integration Types:</h4>
+                                <ul>
+                                    <li>Google Workspace</li>
+                                    <li>Microsoft 365</li>
+                                    <li>Social Media APIs</li>
+                                    <li>E-commerce platforms</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="scalability-design">
+                    <h2>Scalability & Performance Design</h2>
+                    
+                    <div class="scalability-grid">
+                        <div class="scalability-card">
+                            <h3>Horizontal Scaling</h3>
+                            <div class="scalability-content">
+                                <h4>Container Architecture</h4>
+                                <ul>
+                                    <li>Docker containerization</li>
+                                    <li>Kubernetes orchestration</li>
+                                    <li>Auto-scaling policies</li>
+                                    <li>Load balancing</li>
+                                </ul>
+                                
+                                <h4>Database Scaling</h4>
+                                <ul>
+                                    <li>Read replicas</li>
+                                    <li>Connection pooling</li>
+                                    <li>Database sharding</li>
+                                    <li>Query optimization</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="scalability-card">
+                            <h3>Caching Strategy</h3>
+                            <div class="scalability-content">
+                                <h4>Multi-Level Caching</h4>
+                                <ul>
+                                    <li>Redis for session data</li>
+                                    <li>CDN for static assets</li>
+                                    <li>Application-level caching</li>
+                                    <li>Database query caching</li>
+                                </ul>
+                                
+                                <h4>Cache Invalidation</h4>
+                                <ul>
+                                    <li>Event-driven invalidation</li>
+                                    <li>Time-based expiration</li>
+                                    <li>Dependency tracking</li>
+                                    <li>Smart cache warming</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="scalability-card">
+                            <h3>Performance Optimization</h3>
+                            <div class="scalability-content">
+                                <h4>Frontend Optimization</h4>
+                                <ul>
+                                    <li>Code splitting</li>
+                                    <li>Lazy loading</li>
+                                    <li>Image optimization</li>
+                                    <li>Bundle size reduction</li>
+                                </ul>
+                                
+                                <h4>Backend Optimization</h4>
+                                <ul>
+                                    <li>Async processing</li>
+                                    <li>Database indexing</li>
+                                    <li>API response compression</li>
+                                    <li>Background job processing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="security-architecture">
+                    <h2>Security Architecture</h2>
+                    
+                    <div class="security-layers">
+                        <div class="security-layer">
+                            <h3>Application Security</h3>
+                            <ul>
+                                <li><strong>JWT Authentication:</strong> Token-based authentication with refresh tokens</li>
+                                <li><strong>OAuth2 Integration:</strong> Secure third-party authentication</li>
+                                <li><strong>Input Validation:</strong> Pydantic-based data validation</li>
+                                <li><strong>SQL Injection Prevention:</strong> ORM-based query building</li>
+                                <li><strong>XSS Protection:</strong> Content Security Policy headers</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="security-layer">
+                            <h3>API Security</h3>
+                            <ul>
+                                <li><strong>Rate Limiting:</strong> Tier-based request limits</li>
+                                <li><strong>CORS Configuration:</strong> Cross-origin request security</li>
+                                <li><strong>API Key Management:</strong> Secure key rotation</li>
+                                <li><strong>Request Validation:</strong> Schema-based validation</li>
+                                <li><strong>Response Sanitization:</strong> Data filtering</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="security-layer">
+                            <h3>Infrastructure Security</h3>
+                            <ul>
+                                <li><strong>SSL/TLS Encryption:</strong> End-to-end encryption</li>
+                                <li><strong>Container Security:</strong> Secure container images</li>
+                                <li><strong>Network Isolation:</strong> VPC and security groups</li>
+                                <li><strong>Secret Management:</strong> Encrypted secret storage</li>
+                                <li><strong>Audit Logging:</strong> Comprehensive activity tracking</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="deployment-architecture">
+                    <h2>Deployment Architecture</h2>
+                    
+                    <div class="deployment-options">
+                        <div class="deployment-card">
+                            <h3>Development Environment</h3>
+                            <div class="deployment-content">
+                                <h4>Local Development</h4>
+                                <ul>
+                                    <li>Docker Compose setup</li>
+                                    <li>Hot reloading</li>
+                                    <li>Development database</li>
+                                    <li>Local caching</li>
+                                </ul>
+                                
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Start development environment
+docker compose up -d
+
+# Access services
+# Frontend: http://localhost:3000
+# API: http://localhost:8000
+# Database: localhost:5434</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="deployment-card">
+                            <h3>Production Environment</h3>
+                            <div class="deployment-content">
+                                <h4>Kubernetes Deployment</h4>
+                                <ul>
+                                    <li>Multi-region deployment</li>
+                                    <li>Auto-scaling</li>
+                                    <li>Load balancing</li>
+                                    <li>Health checks</li>
+                                </ul>
+                                
+                                <div class="code-block">
+                                    <pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webcraft-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webcraft-api
+  template:
+    metadata:
+      labels:
+        app: webcraft-api
+    spec:
+      containers:
+      - name: api
+        image: webcraft/api:latest
+        ports:
+        - containerPort: 8000</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="deployment-card">
+                            <h3>Cloud Infrastructure</h3>
+                            <div class="deployment-content">
+                                <h4>AWS/GCP Architecture</h4>
+                                <ul>
+                                    <li>Container Registry</li>
+                                    <li>Managed Databases</li>
+                                    <li>CDN Integration</li>
+                                    <li>Monitoring & Logging</li>
+                                </ul>
+                                
+                                <div class="infrastructure-diagram">
+                                    <div class="cloud-component">
+                                        <i class="fab fa-aws"></i>
+                                        <span>Load Balancer</span>
+                                    </div>
+                                    <div class="cloud-component">
+                                        <i class="fas fa-server"></i>
+                                        <span>API Servers</span>
+                                    </div>
+                                    <div class="cloud-component">
+                                        <i class="fas fa-database"></i>
+                                        <span>Database Cluster</span>
+                                    </div>
+                                    <div class="cloud-component">
+                                        <i class="fas fa-memory"></i>
+                                        <span>Redis Cache</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="monitoring-observability">
+                    <h2>Monitoring & Observability</h2>
+                    
+                    <div class="monitoring-stack">
+                        <div class="monitoring-component">
+                            <h3>Application Monitoring</h3>
+                            <ul>
+                                <li><strong>Health Checks:</strong> Service availability monitoring</li>
+                                <li><strong>Performance Metrics:</strong> Response times, throughput</li>
+                                <li><strong>Error Tracking:</strong> Exception monitoring and alerting</li>
+                                <li><strong>Custom Metrics:</strong> Business-specific KPIs</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="monitoring-component">
+                            <h3>Infrastructure Monitoring</h3>
+                            <ul>
+                                <li><strong>Resource Usage:</strong> CPU, memory, disk monitoring</li>
+                                <li><strong>Network Metrics:</strong> Bandwidth, latency, errors</li>
+                                <li><strong>Database Performance:</strong> Query performance, connections</li>
+                                <li><strong>Container Metrics:</strong> Pod health, resource limits</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="monitoring-component">
+                            <h3>Logging & Tracing</h3>
+                            <ul>
+                                <li><strong>Centralized Logging:</strong> ELK stack integration</li>
+                                <li><strong>Distributed Tracing:</strong> Request flow tracking</li>
+                                <li><strong>Audit Logs:</strong> Security and compliance logging</li>
+                                <li><strong>Log Aggregation:</strong> Multi-service log correlation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="next-steps">
+                    <h2>Next Steps</h2>
+                    <p>Now that you understand the system architecture, explore these detailed guides:</p>
+                    
+                    <div class="next-steps-grid">
+                        <div class="next-step-card">
+                            <i class="fas fa-server"></i>
+                            <h3>Backend Architecture</h3>
+                            <p>Deep dive into FastAPI, database design, and service layer architecture.</p>
+                            <a href="backend-architecture.html" class="btn primary">Learn More</a>
+                        </div>
+                        
+                        <div class="next-step-card">
+                            <i class="fas fa-desktop"></i>
+                            <h3>Frontend Architecture</h3>
+                            <p>Explore Next.js, React components, and the visual editor system.</p>
+                            <a href="frontend-architecture.html" class="btn primary">Learn More</a>
+                        </div>
+                        
+                        <div class="next-step-card">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <h3>Module System</h3>
+                            <p>Understand the extensible plugin architecture and module development.</p>
+                            <a href="module-system.html" class="btn primary">Learn More</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <footer>
+                <p>&copy; 2024 WebCraft Developer Documentation. Built with ❤️ for the developer community.</p>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        function searchDocs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            // Implement search functionality
+            console.log('Searching for:', searchTerm);
+        }
+        
+        // Add search functionality
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchDocs();
+            }
+        });
+    </script>
+</body>
+</html>

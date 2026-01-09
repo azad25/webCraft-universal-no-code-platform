@@ -547,22 +547,7 @@ def downgrade() -> None:
     op.drop_table('apps')
     op.drop_table('templates')
     op.drop_table('organizations')
-    op.drop_table('users')        sa.Column('storage_provider', sa.String(50), default='local'),
-        sa.Column('storage_path', sa.String(500), nullable=False),
-        sa.Column('public_url', sa.String(500), nullable=True),
-        sa.Column('width', sa.Integer(), nullable=True),
-        sa.Column('height', sa.Integer(), nullable=True),
-        sa.Column('thumbnail_url', sa.String(500), nullable=True),
-        sa.Column('metadata', postgresql.JSONB(), default={}),
-        sa.Column('folder', sa.String(255), default='/'),
-        sa.Column('app_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('apps.id'), nullable=False),
-        sa.Column('uploaded_by_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id'), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.func.now()),
-        sa.Column('is_active', sa.Boolean(), default=True),
-    )
-    op.create_index('idx_file_app', 'app_files', ['app_id'])
-    op.create_index('idx_file_folder', 'app_files', ['app_id', 'folder'])
+    op.drop_table('users')
 
     # App Forms table
     op.create_table('app_forms',
@@ -792,18 +777,7 @@ def downgrade() -> None:
     op.drop_table('apps')
     op.drop_table('templates')
     op.drop_table('organizations')
-    op.drop_table('users')Column('key_hash', sa.String(255), unique=True, nullable=False, index=True),
-        sa.Column('key_prefix', sa.String(20), nullable=False),
-        sa.Column('scopes', postgresql.JSONB(), default=[]),
-        sa.Column('rate_limit', sa.Integer(), default=1000),
-        sa.Column('last_used', sa.DateTime(), nullable=True),
-        sa.Column('usage_count', sa.Integer(), default=0),
-        sa.Column('expires_at', sa.DateTime(), nullable=True),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id'), nullable=False),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.func.now()),
-        sa.Column('is_active', sa.Boolean(), default=True),
-    )
+    op.drop_table('users')
 
     # Integrations table
     op.create_table('integrations',

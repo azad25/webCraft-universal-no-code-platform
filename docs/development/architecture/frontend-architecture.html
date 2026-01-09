@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Architecture - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                
+                <li class="nav-section">Getting Started</li>
+                <li><a href="../getting-started/quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="../getting-started/installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="../getting-started/environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="../getting-started/project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="system-overview.html"><i class="fas fa-sitemap"></i> System Overview</a></li>
+                <li><a href="backend-architecture.html"><i class="fas fa-server"></i> Backend Architecture</a></li>
+                <li><a href="frontend-architecture.html" class="active"><i class="fas fa-desktop"></i> Frontend Architecture</a></li>
+                <li><a href="module-system.html"><i class="fas fa-puzzle-piece"></i> Module System</a></li>
+                <li><a href="data-flow.html"><i class="fas fa-exchange-alt"></i> Data Flow</a></li>
+                <li><a href="design-patterns.html"><i class="fas fa-code-branch"></i> Design Patterns</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html"><i class="fab fa-react"></i> Next.js Setup</a></li>
+                <li><a href="../frontend/component-architecture.html"><i class="fas fa-puzzle-piece"></i> Component Architecture</a></li>
+                <li><a href="../frontend/editor-system.html"><i class="fas fa-edit"></i> Editor System</a></li>
+                <li><a href="../frontend/widget-development.html"><i class="fas fa-cube"></i> Widget Development</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <header>
+                <h1>Frontend Architecture</h1>
+                <div class="search-box">
+                    <input type="text" placeholder="Search documentation..." id="searchInput">
+                    <button onclick="searchDocs()"><i class="fas fa-search"></i></button>
+                </div>
+            </header>
+            
+            <div class="content-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Frontend Architecture:</strong> This document provides a comprehensive overview of WebCraft's frontend architecture, built with Next.js 15, React 18, and modern web technologies.
+                </div>
+
+                <section class="frontend-overview">
+                    <h2>Frontend Technology Stack</h2>
+                    
+                    <div class="tech-stack-grid">
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fab fa-react"></i>
+                            </div>
+                            <h3>Next.js 15</h3>
+                            <p>Full-stack React framework with App Router, Server Components, and edge runtime support.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>App Router architecture</li>
+                                    <li>Server Components</li>
+                                    <li>Edge Runtime</li>
+                                    <li>Built-in optimizations</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fab fa-react"></i>
+                            </div>
+                            <h3>React 18</h3>
+                            <p>Modern React with concurrent features, automatic batching, and Suspense.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Concurrent rendering</li>
+                                    <li>Automatic batching</li>
+                                    <li>Suspense</li>
+                                    <li>Strict mode improvements</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fab fa-js"></i>
+                            </div>
+                            <h3>TypeScript 5</h3>
+                            <p>Strongly typed JavaScript with advanced type system and better developer experience.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Static type checking</li>
+                                    <li>Advanced types</li>
+                                    <li>IDE support</li>
+                                    <li>Better refactoring</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <h3>Tailwind CSS 3</h3>
+                            <p>Utility-first CSS framework with JIT compilation and responsive design utilities.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Utility-first approach</li>
+                                    <li>JIT compilation</li>
+                                    <li>Responsive utilities</li>
+                                    <li>Custom theme support</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3>Redux Toolkit</h3>
+                            <p>State management with Redux Toolkit for predictable state updates and better developer experience.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Immutability helpers</li>
+                                    <li>Async thunk support</li>
+                                    <li>DevTools integration</li>
+                                    <li>RTK Query</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-arrows-alt"></i>
+                            </div>
+                            <h3>React DnD</h3>
+                            <p>Drag and drop functionality for the visual editor with touch support and accessibility.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Drag and drop</li>
+                                    <li>Touch support</li>
+                                    <li>Accessibility</li>
+                                    <li>Custom backends</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3>TanStack Query</h3>
+                            <p>Data fetching and caching with automatic background refetching and optimistic updates.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Automatic caching</li>
+                                    <li>Background refetching</li>
+                                    <li>Optimistic updates</li>
+                                    <li>Parallel queries</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <h3>Framer Motion</h3>
+                            <p>Animation library for React with gesture support and physics-based animations.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Gesture support</li>
+                                    <li>Physics animations</li>
+                                    <li>Layout animations</li>
+                                    <li>SVG animations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="project-structure">
+                    <h2>Frontend Project Structure</h2>
+                    
+                    <div class="structure-tree">
+                        <div class="tree-item">
+                            <span class="tree-icon">📁</span>
+                            <strong>apps/web/</strong> - Main frontend application
+                            <div class="tree-children">
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>app/</strong> - Next.js App Router
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>layout.tsx</code> - Root layout</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>page.tsx</code> - Home page</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>globals.css</code> - Global styles</div>
+                                        <div class="tree-item">
+                                            <span class="tree-icon">📁</span>
+                                            <strong>(auth)/</strong> - Authentication routes
+                                            <div class="tree-children">
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>login/page.tsx</code> - Login page</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>register/page.tsx</code> - Register page</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-item">
+                                            <span class="tree-icon">📁</span>
+                                            <strong>dashboard/</strong> - Dashboard routes
+                                            <div class="tree-children">
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>layout.tsx</code> - Dashboard layout</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>page.tsx</code> - Dashboard home</div>
+                                                <div class="tree-item">
+                                                    <span class="tree-icon">📁</span>
+                                                    <strong>[appId]/</strong> - App-specific routes
+                                                    <div class="tree-children">
+                                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>editor/page.tsx</code> - Visual editor</div>
+                                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>settings/page.tsx</code> - App settings</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>components/</strong> - React components
+                                    <div class="tree-children">
+                                        <div class="tree-item">
+                                            <span class="tree-icon">📁</span>
+                                            <strong>ui/</strong> - UI components
+                                            <div class="tree-children">
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Button.tsx</code> - Button component</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Input.tsx</code> - Input component</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Card.tsx</code> - Card component</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Modal.tsx</code> - Modal component</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-item">
+                                            <span class="tree-icon">📁</span>
+                                            <strong>editor/</strong> - Editor components
+                                            <div class="tree-children">
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Canvas.tsx</code> - Editor canvas</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>WidgetLibrary.tsx</code> - Widget sidebar</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>PropertyPanel.tsx</code> - Properties panel</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Toolbar.tsx</code> - Editor toolbar</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-item">
+                                            <span class="tree-icon">📁</span>
+                                            <strong>widgets/</strong> - Widget components
+                                            <div class="tree-children">
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>TextWidget.tsx</code> - Text widget</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>ImageWidget.tsx</code> - Image widget</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>ButtonWidget.tsx</code> - Button widget</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>FormWidget.tsx</code> - Form widget</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-item">
+                                            <span class="tree-icon">📁</span>
+                                            <strong>layout/</strong> - Layout components
+                                            <div class="tree-children">
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Header.tsx</code> - App header</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Sidebar.tsx</code> - App sidebar</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>Footer.tsx</code> - App footer</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>lib/</strong> - Utility functions
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>api.ts</code> - API client</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>auth.ts</code> - Authentication utilities</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>utils.ts</code> - General utilities</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>validation.ts</code> - Validation helpers</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>store/</strong> - Redux store
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>index.ts</code> - Store configuration</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>hooks.ts</code> - Typed hooks</div>
+                                        <div class="tree-item">
+                                            <span class="tree-icon">📁</span>
+                                            <strong>slices/</strong> - Redux slices
+                                            <div class="tree-children">
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>authSlice.ts</code> - Authentication state</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>editorSlice.ts</code> - Editor state</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>widgetsSlice.ts</code> - Widgets state</div>
+                                                <div class="tree-item"><span class="tree-icon">📄</span> <code>uiSlice.ts</code> - UI state</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>types/</strong> - TypeScript types
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>index.ts</code> - Main types</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>widgets.ts</code> - Widget types</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>editor.ts</code> - Editor types</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>api.ts</code> - API types</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>hooks/</strong> - Custom React hooks
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>useAuth.ts</code> - Authentication hook</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>useEditor.ts</code> - Editor hook</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>useWidgets.ts</code> - Widgets hook</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>useDragDrop.ts</code> - Drag & drop hook</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>styles/</strong> - CSS and styling
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>globals.css</code> - Global styles</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>tailwind.css</code> - Tailwind imports</div>
+                                        <div class="tree-item"><span class="tree-icon">📄</span> <code>variables.css</code> - CSS variables</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📄</span>
+                                    <strong>next.config.js</strong> - Next.js configuration
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📄</span>
+                                    <strong>package.json</strong> - Dependencies
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📄</span>
+                                    <strong>tsconfig.json</strong> - TypeScript configuration
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📄</span>
+                                    <strong>tailwind.config.js</strong> - Tailwind configuration
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="nextjs-architecture">
+                    <h2>Next.js Architecture</h2>
+                    
+                    <div class="nextjs-components">
+                        <div class="component-section">
+                            <h3>App Router Structure</h3>
+                            <p>Next.js 15 App Router with Server Components, layouts, and nested routing.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// app/layout.tsx - Root layout
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'WebCraft - Universal Platform',
+  description: 'Build web applications without code',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  )
+}
+
+// app/providers.tsx - Client providers
+'use client'
+
+import { Provider } from 'react-redux'
+import { store } from '@/store'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </Provider>
+  )
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="component-section">
+                            <h3>Server Components</h3>
+                            <p>Server Components for improved performance and SEO with client-side interactivity.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// app/dashboard/page.tsx - Server Component
+import { Suspense } from 'react'
+import { getApps } from '@/lib/api'
+import { AppList } from '@/components/dashboard/AppList'
+import { AppListSkeleton } from '@/components/dashboard/AppListSkeleton'
+
+export default async function DashboardPage() {
+  // This runs on the server
+  const apps = await getApps()
+  
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Your Applications</h1>
+      
+      <Suspense fallback={<AppListSkeleton />}>
+        <AppList apps={apps} />
+      </Suspense>
+    </div>
+  )
+}
+
+// components/dashboard/AppList.tsx - Client Component
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { App } from '@/types'
+
+interface AppListProps {
+  apps: App[]
+}
+
+export function AppList({ apps }: AppListProps) {
+  const router = useRouter()
+  
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {apps.map((app) => (
+        <div
+          key={app.id}
+          onClick={() => router.push(`/dashboard/${app.id}/editor`)}
+          className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow"
+        >
+          <h3 className="text-xl font-semibold mb-2">{app.name}</h3>
+          <p className="text-gray-600">{app.description}</p>
+        </div>
+      ))}
+    </div>
+  )
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="component-section">
+                            <h3>API Routes</h3>
+                            <p>API routes for server-side functionality with proper error handling and validation.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// app/api/auth/login/route.ts - API Route
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    // Validate input
+    const validatedData = loginSchema.parse(body)
+    
+    // Call backend API
+    const response = await fetch(`${process.env.API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(validatedData),
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      return NextResponse.json(
+        { error: error.message || 'Login failed' },
+        { status: response.status }
+      )
+    }
+    
+    const data = await response.json()
+    
+    // Set HTTP-only cookie
+    const responseWithCookie = NextResponse.json(data)
+    responseWithCookie.cookies.set('auth-token', data.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    })
+    
+    return responseWithCookie
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      )
+    }
+    
+    console.error('Login error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="component-architecture">
+                    <h2>Component Architecture</h2>
+                    
+                    <div class="component-patterns">
+                        <div class="pattern-section">
+                            <h3>Component Design Patterns</h3>
+                            <p>Atomic design principles with compound components and render props patterns.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// components/ui/Card.tsx - Compound component pattern
+import React from 'react'
+import { cn } from '@/lib/utils'
+
+interface CardProps {
+  children: React.ReactNode
+  className?: string
+}
+
+function Card({ children, className }: CardProps) {
+  return (
+    <div className={cn(
+      'bg-white rounded-lg shadow-md border',
+      className
+    )}>
+      {children}
+    </div>
+  )
+}
+
+interface CardHeaderProps {
+  children: React.ReactNode
+  className?: string
+}
+
+function CardHeader({ children, className }: CardHeaderProps) {
+  return (
+    <div className={cn('p-6 border-b', className)}>
+      {children}
+    </div>
+  )
+}
+
+interface CardContentProps {
+  children: React.ReactNode
+  className?: string
+}
+
+function CardContent({ children, className }: CardContentProps) {
+  return (
+    <div className={cn('p-6', className)}>
+      {children}
+    </div>
+  )
+}
+
+interface CardFooterProps {
+  children: React.ReactNode
+  className?: string
+}
+
+function CardFooter({ children, className }: CardFooterProps) {
+  return (
+    <div className={cn('p-6 border-t', className)}>
+      {children}
+    </div>
+  )
+}
+
+// Export compound component
+export const Card = Object.assign(Card, {
+  Header: CardHeader,
+  Content: CardContent,
+  Footer: CardFooter,
+})
+
+// Usage
+<Card>
+  <Card.Header>
+    <h3 className="text-lg font-semibold">Card Title</h3>
+  </Card.Header>
+  <Card.Content>
+    <p>Card content goes here</p>
+  </Card.Content>
+  <Card.Footer>
+    <button className="btn btn-primary">Action</button>
+  </Card.Footer>
+</Card></code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="pattern-section">
+                            <h3>Custom Hooks</h3>
+                            <p>Reusable custom hooks for common functionality with proper TypeScript typing.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// hooks/useAuth.ts - Authentication hook
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { login, logout, selectAuth } from '@/store/slices/authSlice'
+
+interface UseAuthReturn {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
+  login: (email: string, password: string) => Promise<void>
+  logout: () => void
+  clearError: () => void
+}
+
+export function useAuth(): UseAuthReturn {
+  const dispatch = useAppDispatch()
+  const router = useRouter()
+  const { user, isLoading, error } = useAppSelector(selectAuth)
+  
+  const handleLogin = useCallback(async (email: string, password: string) => {
+    try {
+      await dispatch(login({ email, password })).unwrap()
+      router.push('/dashboard')
+    } catch (error) {
+      // Error is handled in the slice
+      console.error('Login failed:', error)
+    }
+  }, [dispatch, router])
+  
+  const handleLogout = useCallback(() => {
+    dispatch(logout())
+    router.push('/login')
+  }, [dispatch, router])
+  
+  const clearError = useCallback(() => {
+    dispatch(clearAuthError())
+  }, [dispatch])
+  
+  return {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    error,
+    login: handleLogin,
+    logout: handleLogout,
+    clearError,
+  }
+}
+
+// hooks/useEditor.ts - Editor state hook
+import { useState, useCallback, useMemo } from 'react'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { 
+  selectEditor,
+  addWidget,
+  updateWidget,
+  deleteWidget,
+  setSelectedWidget,
+} from '@/store/slices/editorSlice'
+
+interface UseEditorReturn {
+  widgets: Widget[]
+  selectedWidget: Widget | null
+  addWidget: (type: WidgetType, position: Position) => void
+  updateWidget: (id: string, updates: Partial<Widget>) => void
+  deleteWidget: (id: string) => void
+  selectWidget: (id: string | null) => void
+  canUndo: boolean
+  canRedo: boolean
+}
+
+export function useEditor(): UseEditorReturn {
+  const dispatch = useAppDispatch()
+  const { widgets, selectedWidget, history } = useAppSelector(selectEditor)
+  
+  const canUndo = useMemo(() => history.past.length > 0, [history.past])
+  const canRedo = useMemo(() => history.future.length > 0, [history.future])
+  
+  const handleAddWidget = useCallback((type: WidgetType, position: Position) => {
+    const newWidget: Widget = {
+      id: generateId(),
+      type,
+      position,
+      properties: getDefaultProperties(type),
+      children: [],
+    }
+    dispatch(addWidget(newWidget))
+  }, [dispatch])
+  
+  const handleUpdateWidget = useCallback((id: string, updates: Partial<Widget>) => {
+    dispatch(updateWidget({ id, updates }))
+  }, [dispatch])
+  
+  const handleDeleteWidget = useCallback((id: string) => {
+    dispatch(deleteWidget(id))
+  }, [dispatch])
+  
+  const handleSelectWidget = useCallback((id: string | null) => {
+    dispatch(setSelectedWidget(id))
+  }, [dispatch])
+  
+  return {
+    widgets,
+    selectedWidget,
+    addWidget: handleAddWidget,
+    updateWidget: handleUpdateWidget,
+    deleteWidget: handleDeleteWidget,
+    selectWidget: handleSelectWidget,
+    canUndo,
+    canRedo,
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="state-management">
+                    <h2>State Management Architecture</h2>
+                    
+                    <div class="state-patterns">
+                        <div class="pattern-section">
+                            <h3>Redux Toolkit Setup</h3>
+                            <p>Modern Redux setup with RTK Query for data fetching and caching.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// store/index.ts - Store configuration
+import { configureStore } from '@reduxjs/toolkit'
+import { setupListeners } from '@reduxjs/toolkit/query'
+import { authSlice } from './slices/authSlice'
+import { editorSlice } from './slices/editorSlice'
+import { widgetsSlice } from './slices/widgetsSlice'
+import { uiSlice } from './slices/uiSlice'
+import { apiSlice } from './slices/apiSlice'
+
+export const store = configureStore({
+  reducer: {
+    auth: authSlice.reducer,
+    editor: editorSlice.reducer,
+    widgets: widgetsSlice.reducer,
+    ui: uiSlice.reducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST'],
+      },
+    }).concat(apiSlice.middleware),
+  devTools: process.env.NODE_ENV !== 'production',
+})
+
+setupListeners(store.dispatch)
+
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
+
+// store/hooks.ts - Typed hooks
+import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
+import type { RootState, AppDispatch } from './index'
+
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="pattern-section">
+                            <h3>Slice Patterns</h3>
+                            <p>Well-structured Redux slices with async thunks and proper TypeScript typing.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// store/slices/editorSlice.ts - Editor state management
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { Widget, Position, WidgetType } from '@/types'
+import { api } from '@/lib/api'
+
+interface EditorState {
+  widgets: Widget[]
+  selectedWidget: string | null
+  clipboard: Widget | null
+  history: {
+    past: Widget[][]
+    present: Widget[]
+    future: Widget[][]
+  }
+  isLoading: boolean
+  error: string | null
+}
+
+const initialState: EditorState = {
+  widgets: [],
+  selectedWidget: null,
+  clipboard: null,
+  history: {
+    past: [],
+    present: [],
+    future: [],
+  },
+  isLoading: false,
+  error: null,
+}
+
+// Async thunks
+export const loadAppWidgets = createAsyncThunk(
+  'editor/loadAppWidgets',
+  async (appId: string) => {
+    const response = await api.get(`/apps/${appId}/widgets`)
+    return response.data
+  }
+)
+
+export const saveAppWidgets = createAsyncThunk(
+  'editor/saveAppWidgets',
+  async ({ appId, widgets }: { appId: string; widgets: Widget[] }) => {
+    const response = await api.put(`/apps/${appId}/widgets`, { widgets })
+    return response.data
+  }
+)
+
+const editorSlice = createSlice({
+  name: 'editor',
+  initialState,
+  reducers: {
+    addWidget: (state, action: PayloadAction<Widget>) => {
+      state.widgets.push(action.payload)
+      state.selectedWidget = action.payload.id
+      saveToHistory(state)
+    },
+    
+    updateWidget: (state, action: PayloadAction<{ id: string; updates: Partial<Widget> }>) => {
+      const { id, updates } = action.payload
+      const widget = state.widgets.find(w => w.id === id)
+      if (widget) {
+        Object.assign(widget, updates)
+        saveToHistory(state)
+      }
+    },
+    
+    deleteWidget: (state, action: PayloadAction<string>) => {
+      state.widgets = state.widgets.filter(w => w.id !== action.payload)
+      if (state.selectedWidget === action.payload) {
+        state.selectedWidget = null
+      }
+      saveToHistory(state)
+    },
+    
+    setSelectedWidget: (state, action: PayloadAction<string | null>) => {
+      state.selectedWidget = action.payload
+    },
+    
+    copyWidget: (state, action: PayloadAction<string>) => {
+      const widget = state.widgets.find(w => w.id === action.payload)
+      if (widget) {
+        state.clipboard = { ...widget, id: generateId() }
+      }
+    },
+    
+    pasteWidget: (state) => {
+      if (state.clipboard) {
+        state.widgets.push(state.clipboard)
+        state.selectedWidget = state.clipboard.id
+        saveToHistory(state)
+      }
+    },
+    
+    undo: (state) => {
+      if (state.history.past.length > 0) {
+        const previous = state.history.past[state.history.past.length - 1]
+        state.history = {
+          past: state.history.past.slice(0, -1),
+          present: previous,
+          future: [state.history.present, ...state.history.future],
+        }
+        state.widgets = previous
+      }
+    },
+    
+    redo: (state) => {
+      if (state.history.future.length > 0) {
+        const next = state.history.future[0]
+        state.history = {
+          past: [...state.history.past, state.history.present],
+          present: next,
+          future: state.history.future.slice(1),
+        }
+        state.widgets = next
+      }
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadAppWidgets.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(loadAppWidgets.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.widgets = action.payload
+        state.history.present = action.payload
+      })
+      .addCase(loadAppWidgets.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.error.message || 'Failed to load widgets'
+      })
+      .addCase(saveAppWidgets.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(saveAppWidgets.fulfilled, (state) => {
+        state.isLoading = false
+      })
+      .addCase(saveAppWidgets.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.error.message || 'Failed to save widgets'
+      })
+  },
+})
+
+function saveToHistory(state: EditorState) {
+  state.history.past.push(state.history.present)
+  state.history.present = [...state.widgets]
+  state.history.future = []
+}
+
+export const {
+  addWidget,
+  updateWidget,
+  deleteWidget,
+  setSelectedWidget,
+  copyWidget,
+  pasteWidget,
+  undo,
+  redo,
+} = editorSlice.actions
+
+export default editorSlice.reducer</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="editor-architecture">
+                    <h2>Visual Editor Architecture</h2>
+                    
+                    <div class="editor-components">
+                        <div class="component-section">
+                            <h3>Drag and Drop System</h3>
+                            <p>React DnD integration with custom backends and widget management.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// components/editor/DragDropProvider.tsx - DnD setup
+'use client'
+
+import React from 'react'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { TouchBackend } from 'react-dnd-touch-backend'
+import { isMobile } from 'react-device-detect'
+
+interface DragDropProviderProps {
+  children: React.ReactNode
+}
+
+export function DragDropProvider({ children }: DragDropProviderProps) {
+  const Backend = isMobile ? TouchBackend : HTML5Backend
+  
+  return (
+    <DndProvider backend={Backend}>
+      {children}
+    </DndProvider>
+  )
+}
+
+// components/editor/DraggableWidget.tsx - Draggable widget
+import React from 'react'
+import { useDrag } from 'react-dnd'
+import { Widget } from '@/types'
+
+interface DraggableWidgetProps {
+  widget: Widget
+  children: React.ReactNode
+}
+
+export function DraggableWidget({ widget, children }: DraggableWidgetProps) {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'widget',
+    item: { widget },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  })
+  
+  return (
+    <div
+      ref={drag}
+      className={`cursor-move ${isDragging ? 'opacity-50' : ''}`}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+    >
+      {children}
+    </div>
+  )
+}
+
+// components/editor/DroppableCanvas.tsx - Droppable canvas
+import React from 'react'
+import { useDrop } from 'react-dnd'
+import { useAppDispatch } from '@/store/hooks'
+import { addWidget } from '@/store/slices/editorSlice'
+
+interface DroppableCanvasProps {
+  children: React.ReactNode
+  className?: string
+}
+
+export function DroppableCanvas({ children, className }: DroppableCanvasProps) {
+  const dispatch = useAppDispatch()
+  
+  const [{ isOver }, drop] = useDrop({
+    accept: ['widget', 'new-widget'],
+    drop: (item: any, monitor) => {
+      const offset = monitor.getClientOffset()
+      if (offset) {
+        const canvasRect = document.getElementById('canvas')?.getBoundingClientRect()
+        if (canvasRect) {
+          const position = {
+            x: offset.x - canvasRect.left,
+            y: offset.y - canvasRect.top,
+          }
+          
+          if (item.type === 'new-widget') {
+            // Create new widget
+            const newWidget = {
+              id: generateId(),
+              type: item.widgetType,
+              position,
+              properties: getDefaultProperties(item.widgetType),
+            }
+            dispatch(addWidget(newWidget))
+          } else {
+            // Move existing widget
+            dispatch(updateWidget({
+              id: item.widget.id,
+              updates: { position }
+            }))
+          }
+        }
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  })
+  
+  return (
+    <div
+      ref={drop}
+      id="canvas"
+      className={cn(
+        'relative min-h-screen bg-gray-50',
+        isOver && 'bg-blue-50',
+        className
+      )}
+    >
+      {children}
+    </div>
+  )
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="component-section">
+                            <h3>Widget System</h3>
+                            <p>Extensible widget system with dynamic loading and configuration.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// types/widgets.ts - Widget type definitions
+export interface Widget {
+  id: string
+  type: WidgetType
+  position: Position
+  size: Size
+  properties: WidgetProperties
+  children?: Widget[]
+  parentId?: string
+}
+
+export type WidgetType = 
+  | 'text'
+  | 'image' 
+  | 'button'
+  | 'form'
+  | 'container'
+  | 'grid'
+  | 'card'
+  | 'navigation'
+  | 'chart'
+  | 'table'
+
+export interface WidgetProperties {
+  [key: string]: any
+}
+
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface Size {
+  width: number
+  height: number
+}
+
+// components/widgets/WidgetRenderer.tsx - Dynamic widget renderer
+import React from 'react'
+import { Widget } from '@/types'
+import { TextWidget } from './TextWidget'
+import { ImageWidget } from './ImageWidget'
+import { ButtonWidget } from './ButtonWidget'
+import { FormWidget } from './FormWidget'
+import { ContainerWidget } from './ContainerWidget'
+
+const widgetComponents = {
+  text: TextWidget,
+  image: ImageWidget,
+  button: ButtonWidget,
+  form: FormWidget,
+  container: ContainerWidget,
+}
+
+interface WidgetRendererProps {
+  widget: Widget
+  isSelected: boolean
+  onSelect: (id: string) => void
+  onUpdate: (id: string, updates: Partial<Widget>) => void
+}
+
+export function WidgetRenderer({ 
+  widget, 
+  isSelected, 
+  onSelect, 
+  onUpdate 
+}: WidgetRendererProps) {
+  const WidgetComponent = widgetComponents[widget.type]
+  
+  if (!WidgetComponent) {
+    console.error(`Unknown widget type: ${widget.type}`)
+    return null
+  }
+  
+  return (
+    <WidgetComponent
+      widget={widget}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      onUpdate={onUpdate}
+    />
+  )
+}
+
+// components/widgets/TextWidget.tsx - Example widget implementation
+import React from 'react'
+import { Widget } from '@/types'
+import { cn } from '@/lib/utils'
+
+interface TextWidgetProps {
+  widget: Widget
+  isSelected: boolean
+  onSelect: (id: string) => void
+  onUpdate: (id: string, updates: Partial<Widget>) => void
+}
+
+export function TextWidget({ 
+  widget, 
+  isSelected, 
+  onSelect, 
+  onUpdate 
+}: TextWidgetProps) {
+  const { text, fontSize, color, alignment } = widget.properties
+  
+  return (
+    <div
+      className={cn(
+        'absolute border-2',
+        isSelected ? 'border-blue-500' : 'border-transparent hover:border-gray-300'
+      )}
+      style={{
+        left: widget.position.x,
+        top: widget.position.y,
+        width: widget.size.width,
+        height: widget.size.height,
+      }}
+      onClick={() => onSelect(widget.id)}
+    >
+      <div
+        className="w-full h-full p-2"
+        style={{
+          fontSize,
+          color,
+          textAlign: alignment,
+        }}
+      >
+        {text || 'Sample Text'}
+      </div>
+    </div>
+  )
+}
+
+// components/widgets/PropertyPanel.tsx - Widget property editor
+import React from 'react'
+import { Widget } from '@/types'
+
+interface PropertyPanelProps {
+  widget: Widget | null
+  onUpdate: (updates: Partial<Widget>) => void
+}
+
+export function PropertyPanel({ widget, onUpdate }: PropertyPanelProps) {
+  if (!widget) {
+    return (
+      <div className="p-4 text-gray-500">
+        Select a widget to edit its properties
+      </div>
+    )
+  }
+  
+  return (
+    <div className="p-4 space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Type</label>
+        <input
+          type="text"
+          value={widget.type}
+          disabled
+          className="w-full px-3 py-2 border rounded-md bg-gray-100"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-1">Position X</label>
+        <input
+          type="number"
+          value={widget.position.x}
+          onChange={(e) => onUpdate({
+            position: { ...widget.position, x: parseInt(e.target.value) }
+          })}
+          className="w-full px-3 py-2 border rounded-md"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-1">Position Y</label>
+        <input
+          type="number"
+          value={widget.position.y}
+          onChange={(e) => onUpdate({
+            position: { ...widget.position, y: parseInt(e.target.value) }
+          })}
+          className="w-full px-3 py-2 border rounded-md"
+        />
+      </div>
+      
+      {/* Widget-specific properties */}
+      {renderWidgetSpecificProperties(widget, onUpdate)}
+    </div>
+  )
+}
+
+function renderWidgetSpecificProperties(widget: Widget, onUpdate: (updates: Partial<Widget>) => void) {
+  switch (widget.type) {
+    case 'text':
+      return (
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1">Text</label>
+            <textarea
+              value={widget.properties.text || ''}
+              onChange={(e) => onUpdate({
+                properties: { ...widget.properties, text: e.target.value }
+              })}
+              className="w-full px-3 py-2 border rounded-md"
+              rows={3}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">Font Size</label>
+            <input
+              type="number"
+              value={widget.properties.fontSize || 16}
+              onChange={(e) => onUpdate({
+                properties: { ...widget.properties, fontSize: parseInt(e.target.value) }
+              })}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+        </>
+      )
+    
+    default:
+      return null
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="performance-optimization">
+                    <h2>Performance Optimization</h2>
+                    
+                    <div class="optimization-strategies">
+                        <div class="strategy-section">
+                            <h3>Code Splitting</h3>
+                            <p>Dynamic imports and lazy loading for optimal bundle sizes.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// Dynamic imports for large components
+import dynamic from 'next/dynamic'
+
+// Lazy load the editor components
+const VisualEditor = dynamic(
+  () => import('@/components/editor/VisualEditor'),
+  {
+    loading: () => <EditorSkeleton />,
+    ssr: false, // Disable SSR for drag-and-drop
+  }
+)
+
+// Lazy load widget components
+const WidgetRenderer = dynamic(
+  () => import('@/components/widgets/WidgetRenderer'),
+  {
+    loading: () => <WidgetSkeleton />,
+  }
+)
+
+// Route-based code splitting
+const Dashboard = dynamic(() => import('@/components/Dashboard'))
+const Editor = dynamic(() => import('@/components/Editor'))
+const Settings = dynamic(() => import('@/components/Settings'))
+
+// Usage in routing
+function App() {
+  const [currentRoute, setCurrentRoute] = useState('dashboard')
+  
+  return (
+    <div>
+      {currentRoute === 'dashboard' && <Dashboard />}
+      {currentRoute === 'editor' && <Editor />}
+      {currentRoute === 'settings' && <Settings />}
+    </div>
+  )
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-section">
+                            <h3>Memoization</h3>
+                            <p>React.memo, useMemo, and useCallback for preventing unnecessary re-renders.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// components/widgets/WidgetList.tsx - Memoized widget list
+import React, { memo, useMemo } from 'react'
+import { Widget } from '@/types'
+
+interface WidgetListProps {
+  widgets: Widget[]
+  selectedId: string | null
+  onSelect: (id: string) => void
+  filter?: string
+}
+
+const WidgetList = memo(function WidgetList({ 
+  widgets, 
+  selectedId, 
+  onSelect, 
+  filter 
+}: WidgetListProps) {
+  console.log('WidgetList rendered')
+  
+  const filteredWidgets = useMemo(() => {
+    if (!filter) return widgets
+    return widgets.filter(widget => 
+      widget.type.toLowerCase().includes(filter.toLowerCase())
+    )
+  }, [widgets, filter])
+  
+  return (
+    <div className="space-y-2">
+      {filteredWidgets.map(widget => (
+        <WidgetItem
+          key={widget.id}
+          widget={widget}
+          isSelected={widget.id === selectedId}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  )
+})
+
+// Memoized widget item
+const WidgetItem = memo(function WidgetItem({ 
+  widget, 
+  isSelected, 
+  onSelect 
+}: {
+  widget: Widget
+  isSelected: boolean
+  onSelect: (id: string) => void
+}) {
+  console.log(`WidgetItem ${widget.id} rendered`)
+  
+  return (
+    <div
+      className={`p-3 rounded cursor-pointer ${
+        isSelected ? 'bg-blue-100 border-blue-500' : 'bg-white hover:bg-gray-50'
+      }`}
+      onClick={() => onSelect(widget.id)}
+    >
+      <div className="font-medium">{widget.type}</div>
+      <div className="text-sm text-gray-600">
+        {widget.position.x}, {widget.position.y}
+      </div>
+    </div>
+  )
+}, (prevProps, nextProps) => {
+  // Custom comparison function
+  return (
+    prevProps.widget.id === nextProps.widget.id &&
+    prevProps.widget.position.x === nextProps.widget.position.x &&
+    prevProps.widget.position.y === nextProps.widget.position.y &&
+    prevProps.isSelected === nextProps.isSelected
+  )
+})
+
+// Custom hook with memoization
+function useExpensiveCalculation(data: number[]) {
+  return useMemo(() => {
+    console.log('Expensive calculation performed')
+    return data.reduce((sum, num) => sum + num * num, 0)
+  }, [data])
+}
+
+// Memoized callback
+function useWidgetHandlers(widgetId: string) {
+  const dispatch = useAppDispatch()
+  
+  const handleSelect = useCallback(() => {
+    dispatch(selectWidget(widgetId))
+  }, [dispatch, widgetId])
+  
+  const handleDelete = useCallback(() => {
+    dispatch(deleteWidget(widgetId))
+  }, [dispatch, widgetId])
+  
+  return { handleSelect, handleDelete }
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-section">
+                            <h3>Virtual Scrolling</h3>
+                            <p>Virtual scrolling for large lists and widget libraries.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// components/ui/VirtualList.tsx - Virtual scrolling component
+import React, { useRef, useCallback } from 'react'
+import { VariableSizeList as List } from 'react-window'
+
+interface VirtualListProps<T> {
+  items: T[]
+  itemHeight: (index: number) => number
+  renderItem: (item: T, index: number) => React.ReactNode
+  className?: string
+}
+
+export function VirtualList<T>({ 
+  items, 
+  itemHeight, 
+  renderItem, 
+  className 
+}: VirtualListProps<T>) {
+  const listRef = useRef<List>(null)
+  
+  const getItemSize = useCallback((index: number) => {
+    return itemHeight(index)
+  }, [itemHeight])
+  
+  const Row = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => (
+    <div style={style}>
+      {renderItem(items[index], index)}
+    </div>
+  ), [items, renderItem])
+  
+  return (
+    <List
+      ref={listRef}
+      height={600}
+      itemCount={items.length}
+      itemSize={getItemSize}
+      width="100%"
+      className={className}
+    >
+      {Row}
+    </List>
+  )
+}
+
+// Usage in widget library
+function WidgetLibrary({ widgets }: { widgets: Widget[] }) {
+  const itemHeight = useCallback((index: number) => {
+    const widget = widgets[index]
+    // Different heights based on widget complexity
+    switch (widget.type) {
+      case 'text': return 60
+      case 'image': return 80
+      case 'form': return 120
+      default: return 60
+    }
+  }, [widgets])
+  
+  return (
+    <VirtualList
+      items={widgets}
+      itemHeight={itemHeight}
+      renderItem={(widget) => <WidgetLibraryItem widget={widget} />}
+    />
+  )
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="testing-strategies">
+                    <h2>Testing Strategies</h2>
+                    
+                    <div class="testing-patterns">
+                        <div class="pattern-section">
+                            <h3>Unit Testing with Jest and React Testing Library</h3>
+                            <p>Comprehensive unit testing for components and hooks with proper mocking strategies.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// __tests__/components/ui/Button.test.tsx
+import React from 'react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { Button } from '@/components/ui/Button'
+
+describe('Button Component', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByRole('button')).toHaveTextContent('Click me')
+  })
+
+  it('handles click events', async () => {
+    const user = userEvent.setup()
+    const handleClick = jest.fn()
+    
+    render(<Button onClick={handleClick}>Click me</Button>)
+    
+    await user.click(screen.getByRole('button'))
+    expect(handleClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('disables button when loading', () => {
+    render(<Button loading>Submit</Button>)
+    expect(screen.getByRole('button')).toBeDisabled()
+  })
+
+  it('applies correct variant styles', () => {
+    const { rerender } = render(<Button variant="primary">Test</Button>)
+    expect(screen.getByRole('button')).toHaveClass('btn-primary')
+    
+    rerender(<Button variant="secondary">Test</Button>)
+    expect(screen.getByRole('button')).toHaveClass('btn-secondary')
+  })
+})
+
+// __tests__/hooks/useAuth.test.ts
+import { renderHook, act } from '@testing-library/react-hooks'
+import { Provider } from 'react-redux'
+import { store } from '@/store'
+import { useAuth } from '@/hooks/useAuth'
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <Provider store={store}>{children}</Provider>
+)
+
+describe('useAuth Hook', () => {
+  it('returns initial auth state', () => {
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(result.current.user).toBeNull()
+    expect(result.current.isLoading).toBe(false)
+  })
+
+  it('handles login correctly', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    
+    await act(async () => {
+      await result.current.login('test@example.com', 'password')
+    })
+    
+    expect(result.current.isAuthenticated).toBe(true)
+  })
+})</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="pattern-section">
+                            <h3>Integration Testing</h3>
+                            <p>End-to-end testing for critical user flows with proper test data management.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// __tests__/integration/editor-flow.test.tsx
+import React from 'react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+import { EditorFlow } from '@/components/editor/EditorFlow'
+
+const server = setupServer(
+  rest.get('/api/apps/:id', (req, res, ctx) => {
+    return res(ctx.json({
+      id: 'test-app',
+      name: 'Test Application',
+      widgets: []
+    }))
+  }),
+  rest.put('/api/apps/:id/widgets', (req, res, ctx) => {
+    return res(ctx.json({ success: true }))
+  })
+)
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+describe('Editor Flow Integration', () => {
+  it('allows user to create and save a page', async () => {
+    const user = userEvent.setup()
+    
+    render(<EditorFlow appId="test-app" />)
+    
+    // Wait for app to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Application')).toBeInTheDocument()
+    })
+    
+    // Add a text widget
+    await user.click(screen.getByRole('button', { name: /add text widget/i }))
+    
+    // Configure widget
+    await user.type(screen.getByLabelText('Text Content'), 'Hello World')
+    await user.type(screen.getByLabelText('Font Size'), '24')
+    
+    // Save changes
+    await user.click(screen.getByRole('button', { name: /save/i }))
+    
+    // Verify success message
+    await waitFor(() => {
+      expect(screen.getByText('Changes saved successfully')).toBeInTheDocument()
+    })
+  })
+  
+  it('handles errors gracefully', async () => {
+    server.use(
+      rest.put('/api/apps/:id/widgets', (req, res, ctx) => {
+        return res(ctx.status(500), ctx.json({ error: 'Save failed' }))
+      })
+    )
+    
+    const user = userEvent.setup()
+    render(<EditorFlow appId="test-app" />)
+    
+    await user.click(screen.getByRole('button', { name: /save/i }))
+    
+    await waitFor(() => {
+      expect(screen.getByText('Failed to save changes')).toBeInTheDocument()
+    })
+  })
+})</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="pattern-section">
+                            <h3>End-to-End Testing with Cypress</h3>
+                            <p>Comprehensive E2E tests covering critical user journeys.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-javascript">// cypress/e2e/page-builder.cy.js
+describe('Page Builder E2E', () => {
+  beforeEach(() => {
+    cy.login('test@example.com', 'password')
+    cy.visit('/dashboard')
+  })
+
+  it('creates a new page from scratch', () => {
+    // Create new app
+    cy.get('[data-testid="new-app-button"]').click()
+    cy.get('[data-testid="app-name-input"]').type('My Landing Page')
+    cy.get('[data-testid="create-app-button"]').click()
+    
+    // Navigate to editor
+    cy.get('[data-testid="open-editor-button"]').click()
+    
+    // Add components
+    cy.get('[data-testid="widget-text"]').dragTo('[data-testid="canvas"]')
+    cy.get('[data-testid="property-panel"]').within(() => {
+      cy.get('[data-testid="text-content"]').clear().type('Welcome to my page')
+      cy.get('[data-testid="font-size"]').clear().type('32')
+    })
+    
+    // Add image
+    cy.get('[data-testid="widget-image"]').dragTo('[data-testid="canvas"]')
+    cy.get('[data-testid="image-url"]').type('https://example.com/image.jpg')
+    
+    // Save and preview
+    cy.get('[data-testid="save-button"]').click()
+    cy.get('[data-testid="preview-button"]').click()
+    
+    // Verify preview
+    cy.get('[data-testid="preview-frame"]').within(() => {
+      cy.contains('Welcome to my page').should('be.visible')
+      cy.get('img').should('have.attr', 'src', 'https://example.com/image.jpg')
+    })
+  })
+
+  it('edits existing page', () => {
+    cy.get('[data-testid="app-card"]').first().click()
+    cy.get('[data-testid="open-editor-button"]').click()
+    
+    // Modify existing text
+    cy.get('[data-testid="canvas"]').within(() => {
+      cy.get('[data-testid="text-widget"]').first().click()
+    })
+    
+    cy.get('[data-testid="property-panel"]').within(() => {
+      cy.get('[data-testid="text-content"]').clear().type('Updated content')
+    })
+    
+    cy.get('[data-testid="save-button"]').click()
+    cy.get('[data-testid="success-message"]').should('contain', 'Changes saved')
+  })
+})</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="build-optimization">
+                    <h2>Build Optimization & Deployment</h2>
+                    
+                    <div class="optimization-strategies">
+                        <div class="strategy-section">
+                            <h3>Next.js Configuration</h3>
+                            <p>Optimized Next.js configuration for production builds.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-javascript">// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Enable React 18 features
+  reactStrictMode: true,
+  
+  // Optimize images
+  images: {
+    domains: ['localhost', 'webcraft-api.com'],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  
+  // Enable SWC minification
+  swcMinify: true,
+  
+  // Optimize production builds
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
+  // Experimental features
+  experimental: {
+    // Enable app directory
+    appDir: true,
+    
+    // Optimize server components
+    serverComponentsExternalPackages: ['prisma', '@prisma/client'],
+    
+    // Enable typed routes
+    typedRoutes: true,
+  },
+  
+  // Webpack configuration
+  webpack: (config, { dev, isServer }) => {
+    // Optimize bundle size
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          editor: {
+            test: /[\\/]components[\\/]editor[\\/]/,
+            name: 'editor',
+            chunks: 'all',
+            priority: 10,
+          },
+          widgets: {
+            test: /[\\/]components[\\/]widgets[\\/]/,
+            name: 'widgets',
+            chunks: 'all',
+            priority: 5,
+          },
+        },
+      }
+    }
+    
+    return config
+  },
+  
+  // Environment variables
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  
+  // Headers for security and performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
+          },
+        ],
+      },
+    ]
+  },
+}
+
+module.exports = nextConfig</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-section">
+                            <h3>Docker Configuration</h3>
+                            <p>Multi-stage Docker build for optimized production images.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-dockerfile"># Dockerfile
+# Stage 1: Dependencies
+FROM node:18-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
+  else echo "Warning: Lockfile not found. It is recommended to commit lockfiles to version control." && yarn install; \
+  fi
+
+# Stage 2: Builder
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Environment variables must be present at build time
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Build the application
+RUN yarn build
+
+# Stage 3: Runner
+FROM node:18-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start the application
+CMD ["node", "server.js"]</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-section">
+                            <h3>CI/CD Pipeline</h3>
+                            <p>GitHub Actions workflow for automated testing and deployment.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-yaml"># .github/workflows/frontend-deploy.yml
+name: Frontend Deploy
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: webcraft/frontend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run linting
+        run: yarn lint
+      
+      - name: Run type checking
+        run: yarn type-check
+      
+      - name: Run unit tests
+        run: yarn test --coverage
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Build application
+        run: yarn build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.API_URL }}
+          NEXT_PUBLIC_ENVIRONMENT: production
+      
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment"
+          # Add your deployment commands here
+          # kubectl apply -f k8s/frontend-deployment.yaml
+          # helm upgrade --install webcraft-frontend ./helm/frontend
+      
+      - name: Run E2E tests
+        run: |
+          echo "Running end-to-end tests"
+          # yarn cypress:run
+      
+      - name: Deploy to production
+        if: success()
+        run: |
+          echo "Deploying to production environment"
+          # Add production deployment commands</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="next-steps">
+                    <h2>Next Steps</h2>
+                    <p>Now that you understand the frontend architecture, explore these detailed guides:</p>
+                    
+                    <div class="next-steps-grid">
+                        <div class="next-step-card">
+                            <i class="fas fa-rocket"></i>
+                            <h3>Next.js Setup</h3>
+                            <p>Learn how to set up and configure Next.js for optimal development experience.</p>
+                            <a href="../frontend/nextjs-setup.html" class="btn primary">Learn More</a>
+                        </div>
+                        
+                        <div class="next-step-card">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <h3>Component Architecture</h3>
+                            <p>Deep dive into component design patterns and best practices.</p>
+                            <a href="../frontend/component-architecture.html" class="btn primary">Learn More</a>
+                        </div>
+                        
+                        <div class="next-step-card">
+                            <i class="fas fa-edit"></i>
+                            <h3>Editor System</h3>
+                            <p>Understand the visual editor implementation and drag-and-drop system.</p>
+                            <a href="../frontend/editor-system.html" class="btn primary">Learn More</a>
+                        </div>
+                        
+                        <div class="next-step-card">
+                            <i class="fas fa-cube"></i>
+                            <h3>Widget Development</h3>
+                            <p>Learn how to create custom widgets and extend the editor.</p>
+                            <a href="../frontend/widget-development.html" class="btn primary">Learn More</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <footer>
+                <p>&copy; 2024 WebCraft Developer Documentation. Built with ❤️ for the developer community.</p>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        function searchDocs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            // Implement search functionality
+            console.log('Searching for:', searchTerm);
+        }
+        
+        // Add search functionality
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchDocs();
+            }
+        });
+    </script>
+</body>
+</html>

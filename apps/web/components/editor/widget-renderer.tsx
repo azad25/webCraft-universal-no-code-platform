@@ -5,6 +5,7 @@ import { useDrag } from 'react-dnd'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useEditor } from '@/contexts/editor-context'
+import { getActionService } from '@/lib/action-service'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -105,6 +106,7 @@ import { MarqueeWidget } from './widgets/marquee-widget'
 import { MetricWidget } from './widgets/metric-widget'
 import { QuoteWidget } from './widgets/quote-widget'
 import { RatingWidget } from './widgets/rating-widget'
+import { CustomCodeWidget } from './widgets/custom-code-widget'
 import { SocialWidget } from './widgets/social-widget'
 import { AvatarGroupWidget } from './widgets/avatar-group-widget'
 import { EnhancedButtonWidget } from './widgets/enhanced-button-widget'
@@ -122,6 +124,7 @@ interface WidgetRendererProps {
   onSelect: () => void
   onOpenInlineEditor?: (element: any, position?: { x: number; y: number }) => void
   onStartResize?: (elementId: string) => void
+  appId?: string
 }
 
 // Direct editing state interface
@@ -198,6 +201,11 @@ const WIDGET_COMPONENTS: Record<string, React.ComponentType<any>> = {
   table: TableWidget,
   // Add dedicated table widget
   'data-table': TableWidget,
+  // Custom code widgets
+  'custom-code': CustomCodeWidget,
+  'custom-html': CustomCodeWidget,
+  'custom-css': CustomCodeWidget,
+  'custom-js': CustomCodeWidget,
 }
 
 export function WidgetRenderer({
@@ -207,7 +215,8 @@ export function WidgetRenderer({
   isPreview,
   onSelect,
   onOpenInlineEditor,
-  onStartResize
+  onStartResize,
+  appId
 }: WidgetRendererProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [directEdit, setDirectEdit] = useState<DirectEditState>({
@@ -282,17 +291,55 @@ export function WidgetRenderer({
 
   const [{ isDraggingPos }, dragPosition] = dragPositionResult
 
+  // Handle widget events (for actions)
+  const handleWidgetEvent = useCallback(async (eventType: string, eventData: Record<string, any>) => {
+    if (!appId || isPreview === false) return
+
+    try {
+      const actionService = getActionService(appId)
+      if (actionService) {
+        await actionService.executeWidgetEvent(
+          element.id,
+          eventType,
+          eventData,
+          {
+            timestamp: Date.now(),
+            elementType: element.type,
+            elementProps: element.props
+          }
+        )
+      }
+    } catch (error) {
+      console.error('Failed to execute widget event:', error)
+    }
+  }, [appId, isPreview, element.id, element.type, element.props])
+
   // Get the widget component
   const WidgetComponent = WIDGET_COMPONENTS[element.type]
 
   // Handle element click
   const handleClick = useCallback((e: React.MouseEvent) => {
+    // Don't interfere with contentEditable elements
+    const target = e.target as HTMLElement
+    if (target.contentEditable === 'true' || target.closest('[contenteditable="true"]')) {
+      return
+    }
+    
     e.stopPropagation()
     if (!isPreview) {
       console.log('Element clicked:', element.id, element.type)
       onSelect()
+    } else {
+      // In preview mode, execute actions
+      handleWidgetEvent('click', {
+        elementId: element.id,
+        elementType: element.type,
+        clickX: e.clientX,
+        clickY: e.clientY,
+        timestamp: Date.now()
+      })
     }
-  }, [isPreview, onSelect, element.id, element.type])
+  }, [isPreview, onSelect, element.id, element.type, handleWidgetEvent])
 
   // Handle single click for quick actions
   const handleSingleClick = useCallback((e: React.MouseEvent) => {
@@ -477,6 +524,13 @@ export function WidgetRenderer({
   // Handle double click for quick editing
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     if (isPreview) return
+    
+    // Don't interfere with contentEditable elements
+    const target = e.target as HTMLElement
+    if (target.contentEditable === 'true' || target.closest('[contenteditable="true"]')) {
+      return
+    }
+    
     e.stopPropagation()
     
     // Determine what to edit based on element type
@@ -500,6 +554,13 @@ export function WidgetRenderer({
   // Handle right-click context menu
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     if (isPreview) return
+    
+    // Don't interfere with contentEditable elements
+    const target = e.target as HTMLElement
+    if (target.contentEditable === 'true' || target.closest('[contenteditable="true"]')) {
+      return
+    }
+    
     e.preventDefault()
     e.stopPropagation()
     
@@ -513,6 +574,26 @@ export function WidgetRenderer({
       onOpenInlineEditor(element, position)
     }
   }, [isPreview, onOpenInlineEditor, element])
+
+  // Handle position dragging with grid snapping
+  const handlePositionDrag = useCallback((elementId: string, delta: { x: number; y: number }) => {
+    const gridSize = 8 // Default grid size
+    const newPosition = {
+      x: Math.round((element.position.x + delta.x) / gridSize) * gridSize,
+      y: Math.round((element.position.y + delta.y) / gridSize) * gridSize
+    }
+    updateElement(elementId, { position: newPosition })
+  }, [element.position, updateElement])
+
+  // Enhanced resize handling with constraints
+  const handleElementResize = useCallback((elementId: string, newSize: { width: number; height: number }) => {
+    // Apply minimum size constraints
+    const constrainedSize = {
+      width: Math.max(20, newSize.width),
+      height: Math.max(20, newSize.height)
+    }
+    updateElement(elementId, { size: constrainedSize })
+  }, [updateElement])
 
   // Handle prop changes from widget
   const handlePropsChange = useCallback((newProps: any) => {
@@ -543,7 +624,13 @@ export function WidgetRenderer({
     if (!isSelected || isPreview) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      // Don't interfere with contentEditable elements or form inputs
+      if (
+        e.target instanceof HTMLInputElement || 
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && 
+         (e.target.contentEditable === 'true' || e.target.closest('[contenteditable="true"]')))
+      ) {
         return
       }
 
@@ -612,7 +699,9 @@ export function WidgetRenderer({
         className={cn(
           "relative",
           !isPreview && !isSelected && "hover:outline hover:outline-1 hover:outline-primary/40 hover:outline-offset-2",
-          dragMode === 'position' && isSelected && !isPreview && "cursor-move"
+          dragMode === 'position' && isSelected && !isPreview && "cursor-move",
+          // Add better visual feedback for editable elements
+          !isPreview && isSelected && "ring-1 ring-primary/20 ring-offset-1"
         )}
       >
         <WidgetComponent
@@ -620,9 +709,16 @@ export function WidgetRenderer({
           isEditing={isEditing && !isPreview}
           isPreview={isPreview}
           isSelected={isSelected}
+          isHovered={isHovered}
           onChange={handlePropsChange}
           onStyleChange={handleStyleChange}
           elementId={element.id}
+          appId={appId}
+          
+          // Universal link props - passed to all widgets
+          linkConfig={element.props?.linkConfig}
+          href={element.props?.href}
+          target={element.props?.target}
         />
       </div>
 
@@ -784,6 +880,14 @@ export function WidgetRenderer({
                     Duplicate
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => {
+                    // Open action configuration panel
+                    // This would be handled by the parent component
+                    console.log('Configure actions for:', element.id)
+                  }}>
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Configure Actions
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => addElementAfter(element.id)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Section Below
@@ -837,7 +941,7 @@ export function WidgetRenderer({
           animate={{ opacity: 1 }}
           className="absolute -top-6 left-0 bg-muted text-muted-foreground px-2 py-0.5 rounded text-xs font-medium z-40 pointer-events-none"
         >
-          Click to select • {element.type} • {dragMode === 'position' ? 'Position Mode' : 'Stack Mode'}
+          Click to select • Double-click to edit • {element.type} • {dragMode === 'position' ? 'Position Mode' : 'Stack Mode'}
         </motion.div>
       )}
 
@@ -859,6 +963,7 @@ export function WidgetRenderer({
           position={toolbarPosition}
           isVisible={showWidgetToolbar}
           onClose={() => setShowWidgetToolbar(false)}
+          appId={appId}
         />
       )}
 
@@ -886,7 +991,7 @@ export function WidgetRenderer({
           exit={{ opacity: 0, y: 10 }}
           className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-black text-white px-3 py-1 rounded text-xs whitespace-nowrap z-50"
         >
-          Double-click to edit • Right-click for options
+          Double-click text to edit • Right-click for options • Enter to start editing
         </motion.div>
       )}
     </div>

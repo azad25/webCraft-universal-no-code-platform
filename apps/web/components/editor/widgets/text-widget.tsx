@@ -3,6 +3,8 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
 import { cn } from '@/lib/utils'
 
+import { LinkableWidgetWrapper } from './linkable-widget-wrapper'
+
 interface TextWidgetProps {
   text?: string
   tag?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span'
@@ -12,9 +14,22 @@ interface TextWidgetProps {
   textAlign?: 'left' | 'center' | 'right' | 'justify'
   lineHeight?: string
   letterSpacing?: string
+  
+  // Link support
+  linkConfig?: {
+    type: 'page' | 'section' | 'data' | 'custom' | 'external' | 'action'
+    target: string
+    label?: string
+    openInNewTab?: boolean
+    parameters?: Record<string, any>
+  }
+  href?: string
+  target?: string
+  
   isEditing?: boolean
   isPreview?: boolean
   isSelected?: boolean
+  isHovered?: boolean
   elementId?: string
   onChange?: (props: any) => void
   onStyleChange?: (style: any) => void
@@ -40,9 +55,16 @@ export function TextWidget({
   textAlign = 'left',
   lineHeight,
   letterSpacing,
+  
+  // Link props
+  linkConfig,
+  href,
+  target,
+  
   isEditing,
   isPreview,
   isSelected,
+  isHovered,
   elementId,
   onChange,
   onStyleChange
@@ -209,22 +231,40 @@ export function TextWidget({
   }
 
   // Render specific tag to avoid union type issues
-  switch (tag) {
-    case 'h1':
-      return <h1 ref={refCallback as any} {...commonProps} />
-    case 'h2':
-      return <h2 ref={refCallback as any} {...commonProps} />
-    case 'h3':
-      return <h3 ref={refCallback as any} {...commonProps} />
-    case 'h4':
-      return <h4 ref={refCallback as any} {...commonProps} />
-    case 'h5':
-      return <h5 ref={refCallback as any} {...commonProps} />
-    case 'h6':
-      return <h6 ref={refCallback as any} {...commonProps} />
-    case 'span':
-      return <span ref={refCallback as any} {...commonProps} />
-    default:
-      return <p ref={refCallback as any} {...commonProps} />
+  const renderTextElement = () => {
+    switch (tag) {
+      case 'h1':
+        return <h1 ref={refCallback as any} {...commonProps} />
+      case 'h2':
+        return <h2 ref={refCallback as any} {...commonProps} />
+      case 'h3':
+        return <h3 ref={refCallback as any} {...commonProps} />
+      case 'h4':
+        return <h4 ref={refCallback as any} {...commonProps} />
+      case 'h5':
+        return <h5 ref={refCallback as any} {...commonProps} />
+      case 'h6':
+        return <h6 ref={refCallback as any} {...commonProps} />
+      case 'span':
+        return <span ref={refCallback as any} {...commonProps} />
+      default:
+        return <p ref={refCallback as any} {...commonProps} />
+    }
   }
+
+  return (
+    <LinkableWidgetWrapper
+      linkConfig={linkConfig}
+      href={href}
+      target={target}
+      isPreview={isPreview}
+      isSelected={isSelected}
+      isHovered={isHovered}
+      elementId={elementId}
+      elementType="text"
+      onDoubleClick={handleDoubleClick}
+    >
+      {renderTextElement()}
+    </LinkableWidgetWrapper>
+  )
 }

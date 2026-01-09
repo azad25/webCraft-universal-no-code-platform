@@ -36,6 +36,8 @@ import {
 } from 'lucide-react';
 import { getDataSources, getDataSourceEndpoints } from '@/lib/data-source-api';
 import { apiClient } from '@/lib/api-client';
+import { useAppDispatch } from '@/store';
+import { addToast } from '@/store/slices/uiSlice';
 
 interface DataSource {
   id: string;
@@ -56,6 +58,7 @@ interface DataSourceManagerProps {
 }
 
 export function DataSourceManager({ appId, onDataSourceSelect }: DataSourceManagerProps) {
+  const dispatch = useAppDispatch();
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);

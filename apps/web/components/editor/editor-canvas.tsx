@@ -34,25 +34,27 @@ interface EditorCanvasProps {
   showPreview: boolean
   onOpenInlineEditor?: (element: any, position?: { x: number; y: number }) => void
   onStartResize?: (elementId: string) => void
+  appId?: string
 }
 
 const CANVAS_DIMENSIONS = {
-  desktop: { width: 1440, minWidth: 1024 },
-  tablet: { width: 768, minWidth: 768 },
-  mobile: { width: 375, minWidth: 375 }
+  desktop: { width: 1440, minWidth: 1024, gridSize: 8 },
+  tablet: { width: 768, minWidth: 768, gridSize: 8 },
+  mobile: { width: 375, minWidth: 375, gridSize: 4 }
 }
 
-export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onStartResize }: EditorCanvasProps) {
+export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onStartResize, appId }: EditorCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [showGrid, setShowGrid] = useState(false)
-  const [showRulers, setShowRulers] = useState(false)
+  const [showGrid, setShowGrid] = useState(true) // Enable grid by default for Figma-like experience
+  const [showRulers, setShowRulers] = useState(true) // Enable rulers by default
   const [zoom, setZoom] = useState(100)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isPanning, setIsPanning] = useState(false)
   const [tool, setTool] = useState<'select' | 'pan' | 'zoom'>('select')
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [dropPosition, setDropPosition] = useState<{ x: number; y: number; index: number } | null>(null)
+  const [snapToGrid, setSnapToGrid] = useState(true) // Grid snapping for precise positioning
   
   const {
     selectedElement,
@@ -109,16 +111,34 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
         const y = (offset.y - canvasRect.top) / (zoom / 100)
         
         if (item.type === 'widget') {
+          // Snap to grid for precise positioning
+          const gridSize = CANVAS_DIMENSIONS[previewMode].gridSize
+          const snappedX = snapToGrid ? Math.round(x / gridSize) * gridSize : x
+          const snappedY = snapToGrid ? Math.round(y / gridSize) * gridSize : y
+          
           addElement({
             type: item.widgetType,
-            position: { x: 0, y }, // Full width by default
+            position: { x: snappedX, y: snappedY },
             size: { 
-              width: CANVAS_DIMENSIONS[previewMode].width, 
+              width: Math.min(item.defaultWidth || 400, CANVAS_DIMENSIONS[previewMode].width - snappedX), 
               height: item.defaultHeight || 200 
             },
             props: item.defaultProps || {},
-            style: item.defaultStyle || {},
-            children: []
+            style: {
+              ...item.defaultStyle,
+              position: 'absolute', // Use absolute positioning for free movement
+              zIndex: 1
+            },
+            children: [],
+            // Enhanced capabilities for Figma-like editing
+            capabilities: {
+              resizable: true,
+              movable: true,
+              editable: true,
+              deletable: true,
+              duplicatable: true,
+              styleable: true
+            }
           })
         } else if (item.type === 'element' && item.dragMode === 'reorder' && dropPosition) {
           reorderElement(item.id, dropPosition.index)
@@ -192,19 +212,49 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
     return () => container.removeEventListener('wheel', handleWheel)
   }, [handleZoom])
 
-  // Fit to screen
+  // Fit to screen with smooth transition
   const fitToScreen = useCallback(() => {
     if (!containerRef.current) return
     const containerWidth = containerRef.current.clientWidth - 100
     const canvasWidth = CANVAS_DIMENSIONS[previewMode].width
     const newZoom = Math.min(100, (containerWidth / canvasWidth) * 100)
-    setZoom(Math.round(newZoom))
+    
+    // Smooth zoom transition
+    const currentZoom = zoom
+    const zoomDiff = Math.abs(newZoom - currentZoom)
+    
+    if (zoomDiff > 5) {
+      // Animate zoom change for significant differences
+      const steps = 10
+      const stepSize = (newZoom - currentZoom) / steps
+      let step = 0
+      
+      const animateZoom = () => {
+        if (step < steps) {
+          setZoom(Math.round(currentZoom + (stepSize * step)))
+          step++
+          requestAnimationFrame(animateZoom)
+        } else {
+          setZoom(Math.round(newZoom))
+        }
+      }
+      
+      requestAnimationFrame(animateZoom)
+    } else {
+      setZoom(Math.round(newZoom))
+    }
+    
     setPan({ x: 0, y: 0 })
-  }, [previewMode])
+  }, [previewMode, zoom])
 
-  // Reset view on preview mode change
+  // Reset view on preview mode change with smooth transition
   useEffect(() => {
-    fitToScreen()
+    // Add a small delay to allow the canvas to resize first
+    const timeoutId = setTimeout(() => {
+      fitToScreen()
+    }, 100)
+    
+    return () => clearTimeout(timeoutId)
   }, [previewMode, fitToScreen])
 
   return (
@@ -255,6 +305,15 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
           >
             <Ruler className="w-3.5 h-3.5" />
           </Button>
+
+          <Button
+            variant={snapToGrid ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setSnapToGrid(!snapToGrid)}
+            className="h-7 px-2 text-xs"
+          >
+            Snap
+          </Button>
         </div>
         
         <div className="flex items-center gap-2">
@@ -292,13 +351,14 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
         {showRulers && <RulerOverlay zoom={zoom} />}
         
         <div 
-          className="min-h-full flex items-start justify-center p-8"
+          className="min-h-full flex items-start justify-center p-8 transition-all duration-300 ease-in-out"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px)`
           }}
         >
           {/* Canvas Frame */}
           <motion.div
+            key={previewMode} // Force re-render on device change for smooth transition
             className="relative bg-white dark:bg-slate-900 shadow-2xl rounded-lg overflow-hidden"
             style={{
               width: CANVAS_DIMENSIONS[previewMode].width,
@@ -306,7 +366,9 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
               transform: `scale(${zoom / 100})`,
               transformOrigin: 'top center'
             }}
-            layout
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             {/* Drop Target */}
             <div
@@ -328,62 +390,69 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
               {/* Grid Overlay */}
               {showGrid && !showPreview && <GridOverlay />}
               
-              {/* Elements - Support both stacked and positioned layouts */}
+              {/* Elements - Enhanced for both stacked and positioned layouts */}
               <div className="relative min-h-[400px]">
-                {/* Stacked Elements (reorder mode) */}
-                <div className="relative space-y-0">
-                  {elements
-                    .filter(element => !element.position || element.position.x === 0) // Stacked elements
-                    .map((element, index) => (
-                    <motion.div
-                      key={element.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.2 }}
-                      className={cn(
-                        "relative w-full block",
-                        !showPreview && "hover:z-10"
-                      )}
-                      onMouseEnter={() => !showPreview && setHoveredElement(element)}
-                      onMouseLeave={() => setHoveredElement(null)}
-                      style={{ zIndex: selectedElement?.id === element.id ? 20 : 1 }}
-                    >
-                      <WidgetRenderer
-                        element={element}
-                        isSelected={selectedElement?.id === element.id}
-                        isHovered={hoveredElement?.id === element.id}
-                        isPreview={showPreview}
-                        onSelect={() => {
-                          console.log('Selecting element:', element.id, element.type)
-                          selectElement(element)
+                {/* All Elements with Universal Positioning */}
+                <AnimatePresence>
+                  {elements.map((element, index) => {
+                    const isPositioned = element.style?.position === 'absolute' || element.position?.x !== 0 || element.position?.y !== 0
+                    
+                    return (
+                      <motion.div
+                        key={element.id}
+                        layout={!isPositioned} // Only use layout animation for stacked elements
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          "relative group",
+                          !showPreview && "hover:z-10",
+                          isPositioned ? "absolute" : "block w-full"
+                        )}
+                        style={{
+                          ...(isPositioned ? {
+                            left: element.position?.x || 0,
+                            top: element.position?.y || 0,
+                            width: element.size?.width || 'auto',
+                            height: element.size?.height || 'auto',
+                            zIndex: selectedElement?.id === element.id ? 1000 : (element.style?.zIndex || 1)
+                          } : {
+                            zIndex: selectedElement?.id === element.id ? 20 : 1
+                          })
                         }}
-                        onOpenInlineEditor={onOpenInlineEditor}
-                        onStartResize={onStartResize}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Positioned Elements (position mode) */}
-                {elements
-                  .filter(element => element.position && element.position.x !== 0) // Positioned elements
-                  .map((element) => (
-                  <WidgetRenderer
-                    key={element.id}
-                    element={element}
-                    isSelected={selectedElement?.id === element.id}
-                    isHovered={hoveredElement?.id === element.id}
-                    isPreview={showPreview}
-                    onSelect={() => {
-                      console.log('Selecting positioned element:', element.id, element.type)
-                      selectElement(element)
-                    }}
-                    onOpenInlineEditor={onOpenInlineEditor}
-                    onStartResize={onStartResize}
-                  />
-                ))}
+                        onMouseEnter={() => !showPreview && setHoveredElement(element)}
+                        onMouseLeave={() => setHoveredElement(null)}
+                      >
+                        <WidgetRenderer
+                          element={element}
+                          isSelected={selectedElement?.id === element.id}
+                          isHovered={hoveredElement?.id === element.id}
+                          isPreview={showPreview}
+                          onSelect={() => {
+                            console.log('Selecting element:', element.id, element.type)
+                            selectElement(element)
+                          }}
+                          onOpenInlineEditor={onOpenInlineEditor}
+                          onStartResize={onStartResize}
+                          appId={appId}
+                        />
+                        
+                        {/* Grid Snap Indicators for positioned elements */}
+                        {!showPreview && isPositioned && selectedElement?.id === element.id && snapToGrid && (
+                          <div className="absolute -inset-1 pointer-events-none">
+                            <div className="absolute inset-0 border border-dashed border-blue-400 opacity-50" />
+                            {/* Grid snap points */}
+                            <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 rounded-full" />
+                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
+                            <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 rounded-full" />
+                            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
+                          </div>
+                        )}
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
               </div>
               
               {/* Drop Indicator */}

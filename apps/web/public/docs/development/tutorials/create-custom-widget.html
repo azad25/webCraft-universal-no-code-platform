@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Custom Widget - WebCraft Developer Docs</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="docs-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Developer Docs</h2>
+                <p>Build applications without code</p>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="../index.html" class="menu-link">Getting Started</a>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Architecture</a>
+                    <ul class="submenu">
+                        <li><a href="../architecture/system-overview.html" class="submenu-link">System Overview</a></li>
+                        <li><a href="../architecture/frontend-architecture.html" class="submenu-link">Frontend Architecture</a></li>
+                        <li><a href="../architecture/backend-architecture.html" class="submenu-link">Backend Architecture</a></li>
+                        <li><a href="../architecture/database-design.html" class="submenu-link">Database Design</a></li>
+                        <li><a href="../architecture/api-design.html" class="submenu-link">API Design</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Frontend Development</a>
+                    <ul class="submenu">
+                        <li><a href="../frontend/nextjs-setup.html" class="submenu-link">Next.js Setup</a></li>
+                        <li><a href="../frontend/react-components.html" class="submenu-link">React Components</a></li>
+                        <li><a href="../frontend/state-management.html" class="submenu-link">State Management</a></li>
+                        <li><a href="../frontend/styling-guide.html" class="submenu-link">Styling Guide</a></li>
+                        <li><a href="../frontend/drag-drop-system.html" class="submenu-link">Drag & Drop System</a></li>
+                        <li><a href="../frontend/widget-development.html" class="submenu-link">Widget Development</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Backend Development</a>
+                    <ul class="submenu">
+                        <li><a href="../backend/fastapi-setup.html" class="submenu-link">FastAPI Setup</a></li>
+                        <li><a href="../backend/database-operations.html" class="submenu-link">Database Operations</a></li>
+                        <li><a href="../backend/api-development.html" class="submenu-link">API Development</a></li>
+                        <li><a href="../backend/authentication.html" class="submenu-link">Authentication</a></li>
+                        <li><a href="../backend/module-system.html" class="submenu-link">Module System</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Database</a>
+                    <ul class="submenu">
+                        <li><a href="../database/postgresql-setup.html" class="submenu-link">PostgreSQL Setup</a></li>
+                        <li><a href="../database/schema-design.html" class="submenu-link">Schema Design</a></li>
+                        <li><a href="../database/migrations.html" class="submenu-link">Migrations</a></li>
+                        <li><a href="../database/performance.html" class="submenu-link">Performance</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">API Reference</a>
+                    <ul class="submenu">
+                        <li><a href="../api/authentication.html" class="submenu-link">Authentication</a></li>
+                        <li><a href="../api/widgets.html" class="submenu-link">Widgets API</a></li>
+                        <li><a href="../api/projects.html" class="submenu-link">Projects API</a></li>
+                        <li><a href="../api/modules.html" class="submenu-link">Modules API</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Advanced Topics</a>
+                    <ul class="submenu">
+                        <li><a href="../advanced/deployment.html" class="submenu-link">Deployment</a></li>
+                        <li><a href="../advanced/scaling.html" class="submenu-link">Scaling</a></li>
+                        <li><a href="../advanced/security.html" class="submenu-link">Security</a></li>
+                        <li><a href="../advanced/monitoring.html" class="submenu-link">Monitoring</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu active">
+                    <a href="#" class="menu-link">Tutorials</a>
+                    <ul class="submenu">
+                        <li><a href="build-first-app.html" class="submenu-link">Build Your First App</a></li>
+                        <li><a href="create-custom-widget.html" class="submenu-link active">Create Custom Widget</a></li>
+                        <li><a href="integrate-api.html" class="submenu-link">Integrate External API</a></li>
+                        <li><a href="deploy-production.html" class="submenu-link">Deploy to Production</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item">
+                    <a href="../troubleshooting.html" class="menu-link">Troubleshooting</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Create Custom Widget</h1>
+                <p>Learn how to build reusable custom widgets for WebCraft</p>
+            </header>
+
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>What You'll Build</h2>
+                    <p>In this tutorial, you'll create a custom "Testimonial Card" widget that displays customer testimonials with avatars, ratings, and animations. This widget will be reusable across different projects and configurable through the WebCraft interface.</p>
+                    
+                    <div class="tutorial-preview">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                    <div style="width: 60px; height: 60px; border-radius: 50%; background: #3498db; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin-right: 15px;">JD</div>
+                                    <div>
+                                        <div style="font-weight: bold; color: #2c3e50;">John Doe</div>
+                                        <div style="color: #7f8c8d; font-size: 14px;">CEO, TechCorp</div>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <span style="color: #f39c12;">★★★★★</span>
+                                </div>
+                                <p style="color: #7f8c8d; font-style: italic; line-height: 1.6;">"WebCraft has revolutionized how we build applications. The drag-and-drop interface is incredibly intuitive and the results are professional quality."</p>
+                            </div>
+                        </div>
+                        <p><em>Final result: A customizable testimonial card widget</em></p>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Prerequisites</h2>
+                    
+                    <div class="prerequisites">
+                        <ul>
+                            <li>✅ Basic understanding of React and TypeScript</li>
+                            <li>✅ WebCraft development environment set up</li>
+                            <li>✅ Familiarity with component-based architecture</li>
+                            <li>✅ Understanding of CSS and styling concepts</li>
+                        </ul>
+                    </div>
+
+                    <p>If you haven't set up your development environment yet, please follow the <a href="../frontend/nextjs-setup.html">Next.js Setup</a> guide first.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 1: Set Up Widget Development Environment</h2>
+                    
+                    <h3>Create Widget Directory Structure</h3>
+                    <ol>
+                        <li>
+                            <strong>Navigate to Widgets Directory</strong>
+                            <div class="code-block">
+                                <pre><code>cd apps/web/src/widgets</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Create Testimonial Widget Directory</strong>
+                            <div class="code-block">
+                                <pre><code>mkdir testimonial-card
+cd testimonial-card</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Create Widget Files</strong>
+                            <div class="code-block">
+                                <pre><code>touch index.tsx TestimonialCard.tsx TestimonialCard.types.ts testimonial-card.config.ts</code></pre>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <h3>Define Widget Types</h3>
+                    <p>Create the TypeScript types for your widget:</p>
+                    
+                    <div class="code-block">
+                        <pre><code>// TestimonialCard.types.ts
+export interface TestimonialCardProps {
+  avatar?: string;
+  avatarInitials?: string;
+  name: string;
+  title?: string;
+  company?: string;
+  rating: number;
+  testimonial: string;
+  theme?: 'light' | 'dark';
+  animation?: 'fade' | 'slide' | 'zoom';
+  className?: string;
+  style?: React.CSSProperties;
+  onClick?: () => void;
+}
+
+export interface TestimonialCardConfig {
+  name: string;
+  displayName: string;
+  description: string;
+  category: 'content' | 'layout' | 'form' | 'media';
+  icon: string;
+  properties: WidgetProperty[];
+  defaultProps: Partial<TestimonialCardProps>;
+  preview: {
+    width: number;
+    height: number;
+  };
+}
+
+export interface WidgetProperty {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'select' | 'color' | 'image';
+  label: string;
+  description?: string;
+  defaultValue?: any;
+  options?: { label: string; value: any }[];
+  required?: boolean;
+  validation?: {
+    min?: number;
+    max?: number;
+    pattern?: string;
+  };
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 2: Implement the Testimonial Card Component</h2>
+                    
+                    <h3>Create the Main Component</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// TestimonialCard.tsx
+import React from 'react';
+import { TestimonialCardProps } from './TestimonialCard.types';
+import styles from './TestimonialCard.module.css';
+
+export const TestimonialCard: React.FC<TestimonialCardProps> = ({
+  avatar,
+  avatarInitials,
+  name,
+  title,
+  company,
+  rating,
+  testimonial,
+  theme = 'light',
+  animation = 'fade',
+  className = '',
+  style,
+  onClick
+}) => {
+  const [isVisible, setIsVisible] = React.useState(false);
+  
+  React.useEffect(() => {
+    // Trigger animation on mount
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getAvatarContent = () => {
+    if (avatar) {
+      return (
+        &lt;img 
+          src={avatar} 
+          alt={name}
+          className={styles.avatarImage}
+          onError={(e) => {
+            // Fallback to initials if image fails to load
+            e.currentTarget.style.display = 'none';
+          }}
+        /&gt;
+      );
+    }
+    
+    if (avatarInitials) {
+      return (
+        &lt;div className={styles.avatarInitials}&gt;
+          {avatarInitials}
+        &lt;/div&gt;
+      );
+    }
+    
+    // Default to first letter of name
+    return (
+      &lt;div className={styles.avatarInitials}&gt;
+        {name.charAt(0).toUpperCase()}
+      &lt;/div&gt;
+    );
+  };
+
+  const renderStars = () => {
+    return Array.from({ length: 5 }, (_, index) => (
+      &lt;span 
+        key={index}
+        className={`${styles.star} ${index < rating ? styles.starFilled : styles.starEmpty}`}
+      &gt;
+        ★
+      &lt;/span&gt;
+    ));
+  };
+
+  const getAnimationClass = () => {
+    if (!isVisible) return styles.hidden;
+    
+    switch (animation) {
+      case 'slide':
+        return styles.slideIn;
+      case 'zoom':
+        return styles.zoomIn;
+      default:
+        return styles.fadeIn;
+    }
+  };
+
+  return (
+    &lt;div 
+      className={`
+        ${styles.testimonialCard}
+        ${styles[theme]}
+        ${getAnimationClass()}
+        ${className}
+      `}
+      style={style}
+      onClick={onClick}
+    &gt;
+      &lt;div className={styles.header}&gt;
+        &lt;div className={styles.avatar}&gt;
+          {getAvatarContent()}
+        &lt;/div&gt;
+        &lt;div className={styles.authorInfo}&gt;
+          &lt;h4 className={styles.name}&gt;{name}&lt;/h4&gt;
+          {(title || company) && (
+            &lt;p className={styles.title}&gt;
+              {title}{title && company && ', '}{company}
+            &lt;/p&gt;
+          )}
+        &lt;/div&gt;
+      &lt;/div&gt;
+      
+      &lt;div className={styles.rating}&gt;
+        {renderStars()}
+      &lt;/div&gt;
+      
+      &lt;blockquote className={styles.testimonial}&gt;
+        "{testimonial}"
+      &lt;/blockquote&gt;
+    &lt;/div&gt;
+  );
+};
+
+export default TestimonialCard;</code></pre>
+                    </div>
+
+                    <h3>Create CSS Module</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>/* TestimonialCard.module.css */
+.testimonialCard {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  max-width: 400px;
+}
+
+.testimonialCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.testimonialCard.dark {
+  background: #2c3e50;
+  color: white;
+}
+
+.testimonialCard.dark .title {
+  color: #bdc3c7;
+}
+
+.testimonialCard.dark .testimonial {
+  color: #ecf0f1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.avatar {
+  margin-right: 15px;
+}
+
+.avatarImage {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarInitials {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #3498db;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.authorInfo {
+  flex: 1;
+}
+
+.name {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.rating {
+  margin-bottom: 15px;
+}
+
+.star {
+  font-size: 18px;
+  margin-right: 2px;
+}
+
+.starFilled {
+  color: #f39c12;
+}
+
+.starEmpty {
+  color: #ddd;
+}
+
+.testimonial {
+  margin: 0;
+  font-style: italic;
+  line-height: 1.6;
+  color: #7f8c8d;
+}
+
+/* Animations */
+.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.fadeIn {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.slideIn {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.zoomIn {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.hidden {
+  opacity: 0;
+  transform: scale(0.9);
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 3: Create Widget Configuration</h2>
+                    
+                    <p>Define how your widget appears in the WebCraft editor:</p>
+                    
+                    <div class="code-block">
+                        <pre><code>// testimonial-card.config.ts
+import { TestimonialCardConfig } from './TestimonialCard.types';
+
+export const testimonialCardConfig: TestimonialCardConfig = {
+  name: 'testimonial-card',
+  displayName: 'Testimonial Card',
+  description: 'Display customer testimonials with avatars and ratings',
+  category: 'content',
+  icon: '💬',
+  properties: [
+    {
+      name: 'name',
+      type: 'string',
+      label: 'Customer Name',
+      description: 'Name of the person giving the testimonial',
+      required: true,
+      validation: {
+        min: 2,
+        max: 50
+      }
+    },
+    {
+      name: 'title',
+      type: 'string',
+      label: 'Job Title',
+      description: 'Job title or position',
+      required: false
+    },
+    {
+      name: 'company',
+      type: 'string',
+      label: 'Company',
+      description: 'Company or organization name',
+      required: false
+    },
+    {
+      name: 'avatar',
+      type: 'image',
+      label: 'Avatar Image',
+      description: 'Profile picture (optional)',
+      required: false
+    },
+    {
+      name: 'avatarInitials',
+      type: 'string',
+      label: 'Avatar Initials',
+      description: 'Initials to display if no avatar image',
+      required: false,
+      validation: {
+        max: 3
+      }
+    },
+    {
+      name: 'rating',
+      type: 'number',
+      label: 'Rating',
+      description: 'Star rating (1-5)',
+      required: true,
+      defaultValue: 5,
+      validation: {
+        min: 1,
+        max: 5
+      }
+    },
+    {
+      name: 'testimonial',
+      type: 'string',
+      label: 'Testimonial Text',
+      description: 'The testimonial content',
+      required: true,
+      validation: {
+        min: 10,
+        max: 500
+      }
+    },
+    {
+      name: 'theme',
+      type: 'select',
+      label: 'Theme',
+      description: 'Color theme',
+      defaultValue: 'light',
+      options: [
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' }
+      ]
+    },
+    {
+      name: 'animation',
+      type: 'select',
+      label: 'Animation',
+      description: 'Entry animation effect',
+      defaultValue: 'fade',
+      options: [
+        { label: 'Fade In', value: 'fade' },
+        { label: 'Slide In', value: 'slide' },
+        { label: 'Zoom In', value: 'zoom' }
+      ]
+    }
+  ],
+  defaultProps: {
+    rating: 5,
+    theme: 'light',
+    animation: 'fade'
+  },
+  preview: {
+    width: 400,
+    height: 250
+  }
+};</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 4: Create Widget Wrapper for WebCraft</h2>
+                    
+                    <h3>Create the Main Widget File</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// index.tsx
+import React from 'react';
+import { WidgetWrapper } from '@/components/widgets/WidgetWrapper';
+import { TestimonialCard } from './TestimonialCard';
+import { testimonialCardConfig } from './testimonial-card.config';
+import { TestimonialCardProps } from './TestimonialCard.types';
+
+interface WebCraftTestimonialCardProps extends TestimonialCardProps {
+  // WebCraft-specific props
+  isSelected?: boolean;
+  isHovered?: boolean;
+  onSelect?: () => void;
+  onUpdate?: (props: Partial<TestimonialCardProps>) => void;
+}
+
+export const WebCraftTestimonialCard: React.FC<WebCraftTestimonialCardProps> = (props) => {
+  const {
+    isSelected,
+    isHovered,
+    onSelect,
+    onUpdate,
+    ...testimonialProps
+  } = props;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect?.();
+  };
+
+  return (
+    &lt;WidgetWrapper
+      widgetId="testimonial-card"
+      isSelected={isSelected}
+      isHovered={isHovered}
+      onSelect={handleClick}
+      resizeHandles={['se']}
+      minWidth={300}
+      minHeight={200}
+    &gt;
+      &lt;TestimonialCard
+        {...testimonialProps}
+        onClick={handleClick}
+        style={{
+          ...testimonialProps.style,
+          outline: isSelected ? '2px solid #3498db' : 'none',
+          outlineOffset: '2px'
+        }}
+      /&gt;
+    &lt;/WidgetWrapper&gt;
+  );
+};
+
+// Register the widget with WebCraft
+export const testimonialCardWidget = {
+  ...testimonialCardConfig,
+  component: WebCraftTestimonialCard,
+  
+  // Serialization methods for saving/loading
+  serialize: (props: TestimonialCardProps) => {
+    return {
+      ...props,
+      // Remove any computed or runtime properties
+      style: undefined,
+      className: undefined
+    };
+  },
+  
+  deserialize: (data: any): TestimonialCardProps => {
+    return {
+      ...testimonialCardConfig.defaultProps,
+      ...data
+    };
+  },
+  
+  // Validation method
+  validate: (props: TestimonialCardProps) => {
+    const errors: string[] = [];
+    
+    if (!props.name || props.name.length < 2) {
+      errors.push('Name must be at least 2 characters');
+    }
+    
+    if (!props.testimonial || props.testimonial.length < 10) {
+      errors.push('Testimonial must be at least 10 characters');
+    }
+    
+    if (props.rating < 1 || props.rating > 5) {
+      errors.push('Rating must be between 1 and 5');
+    }
+    
+    return errors;
+  }
+};
+
+export default WebCraftTestimonialCard;</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 5: Register Widget with WebCraft</h2>
+                    
+                    <h3>Update Widget Registry</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// apps/web/src/widgets/index.ts
+import { testimonialCardWidget } from './testimonial-card';
+import { buttonWidget } from './button';
+import { textWidget } from './text';
+import { containerWidget } from './container';
+
+// Widget registry
+export const widgets = {
+  'testimonial-card': testimonialCardWidget,
+  'button': buttonWidget,
+  'text': textWidget,
+  'container': containerWidget,
+  // ... other widgets
+};
+
+// Type for widget names
+export type WidgetType = keyof typeof widgets;
+
+// Helper function to get widget by type
+export const getWidget = (type: WidgetType) => {
+  return widgets[type];
+};
+
+// Export all widget components for dynamic imports
+export const widgetComponents = {
+  'testimonial-card': React.lazy(() => import('./testimonial-card').then(m => ({ 
+    default: m.WebCraftTestimonialCard 
+  }))),
+  'button': React.lazy(() => import('./button').then(m => ({ default: m.default }))),
+  'text': React.lazy(() => import('./text').then(m => ({ default: m.default }))),
+  'container': React.lazy(() => import('./container').then(m => ({ default: m.default })))
+};</code></pre>
+                    </div>
+
+                    <h3>Update Widget Library Component</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// apps/web/src/components/widgets/WidgetLibrary.tsx
+import { widgets } from '@/widgets';
+
+export const WidgetLibrary: React.FC = () => {
+  const categories = {
+    content: [] as string[],
+    layout: [] as string[],
+    form: [] as string[],
+    media: [] as string[]
+  };
+
+  // Group widgets by category
+  Object.entries(widgets).forEach(([type, widget]) => {
+    categories[widget.category].push(type);
+  });
+
+  return (
+    &lt;div className="widget-library"&gt;
+      &lt;h3&gt;Widgets&lt;/h3&gt;
+      
+      {Object.entries(categories).map(([category, widgetTypes]) => (
+        widgetTypes.length > 0 && (
+          &lt;div key={category} className="widget-category"&gt;
+            &lt;h4&gt;{category.charAt(0).toUpperCase() + category.slice(1)}&lt;/h4&gt;
+            &lt;div className="widget-list"&gt;
+              {widgetTypes.map(widgetType => {
+                const widget = widgets[widgetType as keyof typeof widgets];
+                return (
+                  &lt;DraggableWidget
+                    key={widgetType}
+                    type={widgetType}
+                    icon={widget.icon}
+                    label={widget.displayName}
+                    description={widget.description}
+                  /&gt;
+                );
+              })}
+            &lt;/div&gt;
+          &lt;/div&gt;
+        )
+      ))}
+    &lt;/div&gt;
+  );
+};</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 6: Add Advanced Features</h2>
+                    
+                    <h3>Add Animation Variants</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// Enhanced TestimonialCard.tsx with more animations
+const getAnimationVariants = (animation: string) => {
+  switch (animation) {
+    case 'slide':
+      return {
+        hidden: { opacity: 0, y: 50 },
+        visible: { 
+          opacity: 1, 
+          y: 0,
+          transition: { duration: 0.6, ease: 'easeOut' }
+        }
+      };
+    case 'zoom':
+      return {
+        hidden: { opacity: 0, scale: 0.8 },
+        visible: { 
+          opacity: 1, 
+          scale: 1,
+          transition: { duration: 0.5, ease: 'easeOut' }
+        }
+      };
+    case 'bounce':
+      return {
+        hidden: { opacity: 0, y: 30 },
+        visible: { 
+          opacity: 1, 
+          y: 0,
+          transition: {
+            type: 'spring',
+            damping: 10,
+            stiffness: 100
+          }
+        }
+      };
+    default:
+      return {
+        hidden: { opacity: 0 },
+        visible: { 
+          opacity: 1,
+          transition: { duration: 0.6 }
+        }
+      };
+  }
+};
+
+// Use Framer Motion for advanced animations
+import { motion } from 'framer-motion';
+
+export const TestimonialCard: React.FC<TestimonialCardProps> = (props) => {
+  const [isVisible, setIsVisible] = React.useState(false);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const variants = getAnimationVariants(props.animation);
+
+  return (
+    &lt;motion.div
+      className={`${styles.testimonialCard} ${styles[props.theme || 'light']}`}
+      initial="hidden"
+      animate={isVisible ? "visible" : "hidden"}
+      variants={variants}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={props.onClick}
+    &gt;
+      {/* ... rest of the component */}
+    &lt;/motion.div&gt;
+  );
+};</code></pre>
+                    </div>
+
+                    <h3>Add Responsive Behavior</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// Add responsive props
+export interface TestimonialCardProps {
+  // ... existing props
+  responsive?: {
+    mobile?: Partial<TestimonialCardProps>;
+    tablet?: Partial<TestimonialCardProps>;
+    desktop?: Partial<TestimonialCardProps>;
+  };
+  breakpoints?: {
+    mobile?: number;
+    tablet?: number;
+    desktop?: number;
+  };
+}
+
+// Responsive hook
+import { useMediaQuery } from 'react-responsive';
+
+export const TestimonialCard: React.FC<TestimonialCardProps> = (props) => {
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const isTablet = useMediaQuery({ maxWidth: 1024, minWidth: 769 });
+  const isDesktop = useMediaQuery({ minWidth: 1025 });
+
+  // Get responsive props based on current breakpoint
+  const getResponsiveProps = () => {
+    if (isMobile && props.responsive?.mobile) {
+      return { ...props, ...props.responsive.mobile };
+    }
+    if (isTablet && props.responsive?.tablet) {
+      return { ...props, ...props.responsive.tablet };
+    }
+    if (isDesktop && props.responsive?.desktop) {
+      return { ...props, ...props.responsive.desktop };
+    }
+    return props;
+  };
+
+  const responsiveProps = getResponsiveProps();
+
+  return (
+    // Use responsiveProps instead of props
+    &lt;motion.div {...responsiveProps}&gt;
+      {/* ... component content */}
+    &lt;/motion.div&gt;
+  );
+};</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 7: Test Your Widget</h2>
+                    
+                    <h3>Create Test Component</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// TestimonialCard.test.tsx
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { TestimonialCard } from './TestimonialCard';
+
+describe('TestimonialCard', () => {
+  const defaultProps = {
+    name: 'John Doe',
+    title: 'CEO',
+    company: 'TechCorp',
+    rating: 5,
+    testimonial: 'This is an amazing product!',
+    theme: 'light' as const,
+    animation: 'fade' as const
+  };
+
+  it('renders with all props', () => {
+    render(&lt;TestimonialCard {...defaultProps} /&gt;);
+    
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.getByText('CEO, TechCorp')).toBeInTheDocument();
+    expect(screen.getByText('This is an amazing product!')).toBeInTheDocument();
+    expect(screen.getAllByText('★').length).toBe(5);
+  });
+
+  it('renders with avatar image', () => {
+    const avatarUrl = 'https://example.com/avatar.jpg';
+    render(&lt;TestimonialCard {...defaultProps} avatar={avatarUrl} /&gt;);
+    
+    const avatar = screen.getByRole('img');
+    expect(avatar).toHaveAttribute('src', avatarUrl);
+    expect(avatar).toHaveAttribute('alt', 'John Doe');
+  });
+
+  it('renders with avatar initials when no avatar provided', () => {
+    render(&lt;TestimonialCard {...defaultProps} avatarInitials="JD" /&gt;);
+    
+    expect(screen.getByText('JD')).toBeInTheDocument();
+  });
+
+  it('renders with default initials when no avatar or initials provided', () => {
+    render(&lt;TestimonialCard {...defaultProps} /&gt;);
+    
+    expect(screen.getByText('J')).toBeInTheDocument();
+  });
+
+  it('handles click events', () => {
+    const handleClick = jest.fn();
+    render(&lt;TestimonialCard {...defaultProps} onClick={handleClick} /&gt;);
+    
+    fireEvent.click(screen.getByRole('article'));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies theme classes correctly', () => {
+    const { container, rerender } = render(&lt;TestimonialCard {...defaultProps} theme="light" /&gt;);
+    expect(container.firstChild).toHaveClass('light');
+    
+    rerender(&lt;TestimonialCard {...defaultProps} theme="dark" /&gt;);
+    expect(container.firstChild).toHaveClass('dark');
+  });
+
+  it('renders correct number of filled stars', () => {
+    render(&lt;TestimonialCard {...defaultProps} rating={3} /&gt;);
+    
+    const filledStars = screen.getAllByText('★').filter(star => 
+      star.classList.contains('starFilled')
+    );
+    expect(filledStars.length).toBe(3);
+  });
+});
+
+// Storybook stories
+export default {
+  title: 'Widgets/TestimonialCard',
+  component: TestimonialCard,
+  argTypes: {
+    theme: {
+      control: { type: 'select' },
+      options: ['light', 'dark']
+    },
+    animation: {
+      control: { type: 'select' },
+      options: ['fade', 'slide', 'zoom', 'bounce']
+    },
+    rating: {
+      control: { type: 'range', min: 1, max: 5 }
+    }
+  }
+};
+
+export const Default = {
+  args: defaultProps
+};
+
+export const WithAvatar = {
+  args: {
+    ...defaultProps,
+    avatar: 'https://i.pravatar.cc/150?img=1'
+  }
+};
+
+export const DarkTheme = {
+  args: {
+    ...defaultProps,
+    theme: 'dark'
+  }
+};
+
+export const DifferentRating = {
+  args: {
+    ...defaultProps,
+    rating: 3
+  }
+};</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 8: Deploy and Use Your Widget</h2>
+                    
+                    <h3>Build the Widget</h3>
+                    
+                    <div class="code-block">
+                        <pre><code># Build the project
+npm run build
+
+# Run tests
+npm run test
+
+# Start development server
+npm run dev</code></pre>
+                    </div>
+
+                    <h3>Use Widget in WebCraft Editor</h3>
+                    
+                    <ol>
+                        <li>
+                            <strong>Open WebCraft Editor</strong>
+                            <p>Navigate to your local WebCraft instance</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Find Your Widget</strong>
+                            <p>Look for "Testimonial Card" in the widget library under the "Content" category</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Drag and Drop</strong>
+                            <p>Drag the widget onto your canvas</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Properties</strong>
+                            <p>Use the properties panel to customize:</p>
+                            <ul>
+                                <li>Customer name and details</li>
+                                <li>Avatar image or initials</li>
+                                <li>Star rating</li>
+                                <li>Testimonial text</li>
+                                <li>Theme and animation</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <h3>Advanced Usage Examples</h3>
+                    
+                    <div class="code-block">
+                        <pre><code>// Example: Multiple testimonials in a grid
+const testimonials = [
+  {
+    name: "Sarah Johnson",
+    title: "Marketing Director",
+    company: "Growth Inc.",
+    rating: 5,
+    testimonial: "WebCraft has transformed our development process. We can now build landing pages in minutes instead of weeks.",
+    avatar: "/images/sarah-avatar.jpg"
+  },
+  {
+    name: "Mike Chen",
+    title: "CTO",
+    company: "TechStart",
+    rating: 4,
+    testimonial: "The drag-and-drop interface is incredibly intuitive. Our whole team can contribute to building applications.",
+    avatarInitials: "MC"
+  },
+  {
+    name: "Emily Rodriguez",
+    title: "Product Manager",
+    company: "InnovateLabs",
+    rating: 5,
+    testimonial: "The custom widget system allows us to maintain brand consistency across all our applications.",
+    theme: "dark"
+  }
+];
+
+// Render testimonials
+{testimonials.map((testimonial, index) => (
+  &lt;TestimonialCard
+    key={index}
+    {...testimonial}
+    animation={index % 2 === 0 ? 'slide' : 'zoom'}
+    style={{ marginBottom: '20px' }}
+  /&gt;
+))}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Best Practices</h2>
+                    
+                    <div class="best-practices">
+                        <h3>Widget Development Guidelines</h3>
+                        <ul>
+                            <li><strong>Keep it Simple:</strong> Focus on one primary function per widget</li>
+                            <li><strong>Make it Configurable:</strong> Provide meaningful customization options</li>
+                            <li><strong>Ensure Responsiveness:</strong> Test on different screen sizes</li>
+                            <li><strong>Add Animations Thoughtfully:</strong> Use subtle animations that enhance UX</li>
+                            <li><strong>Document Thoroughly:</strong> Include clear descriptions and examples</li>
+                            <li><strong>Test Extensively:</strong> Write unit tests and test edge cases</li>
+                            <li><strong>Follow Naming Conventions:</strong> Use consistent naming patterns</li>
+                            <li><strong>Consider Accessibility:</strong> Add ARIA labels and keyboard support</li>
+                        </ul>
+
+                        <h3>Performance Optimization</h3>
+                        <ul>
+                            <li>Use React.memo for expensive components</li>
+                            <li>Implement proper shouldComponentUpdate logic</li>
+                            <li>Lazy load heavy assets like images</li>
+                            <li>Optimize CSS with CSS modules</li>
+                            <li>Use CSS-in-JS sparingly</li>
+                        </ul>
+
+                        <h3>Configuration Best Practices</h3>
+                        <ul>
+                            <li>Provide sensible defaults</li>
+                            <li>Validate all inputs</li>
+                            <li>Group related properties</li>
+                            <li>Use appropriate input types</li>
+                            <li>Add helpful descriptions</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <p>Congratulations! You've created your first custom widget. Here's what you can explore next:</p>
+                    
+                    <div class="next-steps">
+                        <a href="integrate-api.html" class="btn primary">Integrate External APIs</a>
+                        <a href="../frontend/widget-development.html" class="btn primary">Advanced Widget Development</a>
+                        <a href="../backend/module-system.html" class="btn secondary">Module System</a>
+                    </div>
+
+                    <h3>Advanced Topics to Explore</h3>
+                    <ul>
+                        <li><strong>Dynamic Data Binding:</strong> Connect widgets to APIs and databases</li>
+                        <li><strong>Widget Communication:</strong> Create widgets that interact with each other</li>
+                        <li><strong>Custom Styling:</strong> Build theme-aware widgets</li>
+                        <li><strong>Animation Libraries:</strong> Integrate Framer Motion or similar libraries</li>
+                        <li><strong>Form Integration:</strong> Create widgets that work with forms</li>
+                        <li><strong>Data Visualization:</strong> Build charts and graph widgets</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuItems = document.querySelectorAll('.has-submenu > .menu-link');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const parent = this.parentElement;
+                    const submenu = parent.querySelector('.submenu');
+                    
+                    if (submenu) {
+                        parent.classList.toggle('active');
+                        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                    }
+                });
+            });
+            
+            // Auto-expand active menu items
+            const activeLink = document.querySelector('.submenu-link.active');
+            if (activeLink) {
+                const parentMenu = activeLink.closest('.has-submenu');
+                if (parentMenu) {
+                    parentMenu.classList.add('active');
+                    const submenu = parentMenu.querySelector('.submenu');
+                    if (submenu) {
+                        submenu.style.display = 'block';
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

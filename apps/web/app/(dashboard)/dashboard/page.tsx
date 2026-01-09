@@ -36,7 +36,11 @@ import {
   Play,
   Bell,
   Image,
-  Workflow
+  Workflow,
+  HardDrive,
+  Rocket,
+  Lightbulb,
+  Gauge
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -52,61 +56,98 @@ const QUICK_ACTIONS = [
   {
     id: 'new-app',
     title: 'Create New App',
-    description: 'Start building with templates or from scratch',
+    description: 'Start building with AI-powered templates',
     icon: Plus,
     color: 'from-blue-500 to-purple-600',
     href: '/dashboard/apps/new',
+    badge: 'Popular'
+  },
+  {
+    id: 'ai-builder',
+    title: 'AI App Builder',
+    description: 'Generate apps with AI assistance',
+    icon: Sparkles,
+    color: 'from-purple-500 to-pink-600',
+    href: '/dashboard/ai/builder',
+    badge: 'New'
   },
   {
     id: 'templates',
     title: 'Browse Templates',
-    description: 'Professional templates for every use case',
+    description: '100+ professional templates',
     icon: Layers,
     color: 'from-green-500 to-teal-600',
     href: '/dashboard/templates',
   },
   {
     id: 'automations',
-    title: 'Automations',
-    description: 'Build powerful workflow automations',
-    icon: Zap,
+    title: 'Workflow Builder',
+    description: 'Build powerful automations',
+    icon: Workflow,
     color: 'from-orange-500 to-red-600',
     href: '/dashboard/automations',
   },
   {
-    id: 'analytics',
-    title: 'Analytics',
-    description: 'Track performance and user engagement',
-    icon: BarChart3,
-    color: 'from-purple-500 to-pink-600',
-    href: '/dashboard/analytics',
+    id: 'data-sources',
+    title: 'Connect Data',
+    description: 'APIs, databases & scrapers',
+    icon: Database,
+    color: 'from-cyan-500 to-blue-600',
+    href: '/dashboard/data-sources',
+  },
+  {
+    id: 'mobile-sdk',
+    title: 'Mobile SDKs',
+    description: 'Generate native mobile apps',
+    icon: Smartphone,
+    color: 'from-indigo-500 to-purple-600',
+    href: '/dashboard/mobile',
+    badge: 'Pro'
   },
 ]
 
 const FEATURE_HIGHLIGHTS = [
   {
     title: 'Visual Editor',
-    description: 'Drag-and-drop interface with 60+ widgets',
+    description: 'Drag-and-drop with 60+ widgets',
     icon: Palette,
     stats: '60+ Widgets',
+    color: 'bg-blue-500'
   },
   {
     title: 'AI Assistant',
-    description: 'Generate content and get design suggestions',
+    description: 'Generate content and designs',
     icon: Sparkles,
     stats: 'AI Powered',
+    color: 'bg-purple-500'
   },
   {
     title: 'Mobile Ready',
-    description: 'Responsive design and mobile SDKs',
+    description: 'Native iOS & Android SDKs',
     icon: Smartphone,
-    stats: 'iOS & Android',
+    stats: 'Cross Platform',
+    color: 'bg-green-500'
+  },
+  {
+    title: 'Automation',
+    description: '100+ integrations & workflows',
+    icon: Workflow,
+    stats: '100+ Integrations',
+    color: 'bg-orange-500'
+  },
+  {
+    title: 'Data Sources',
+    description: 'APIs, databases & web scraping',
+    icon: Database,
+    stats: 'Real-time Sync',
+    color: 'bg-cyan-500'
   },
   {
     title: 'Export Options',
-    description: 'Static sites, PWAs, and native apps',
+    description: 'Static sites, PWAs & native apps',
     icon: Code,
     stats: 'Multiple Formats',
+    color: 'bg-indigo-500'
   },
 ]
 
@@ -123,9 +164,11 @@ const APP_TYPE_ICONS = {
 
 const STATS_DATA = [
   { label: 'Total Apps', value: '12', change: '+2', icon: Globe, color: 'bg-blue-500' },
-  { label: 'Active Automations', value: '34', change: '+8', icon: Zap, color: 'bg-purple-500' },
+  { label: 'Active Automations', value: '34', change: '+8', icon: Workflow, color: 'bg-purple-500' },
   { label: 'Data Sources', value: '18', change: '+3', icon: Database, color: 'bg-green-500' },
-  { label: 'Monthly Executions', value: '2.4K', change: '+15%', icon: Activity, color: 'bg-orange-500' }
+  { label: 'Monthly Views', value: '24.5K', change: '+15%', icon: Eye, color: 'bg-orange-500' },
+  { label: 'API Calls', value: '156K', change: '+22%', icon: Activity, color: 'bg-cyan-500' },
+  { label: 'Storage Used', value: '2.4GB', change: '+0.3GB', icon: HardDrive, color: 'bg-indigo-500' }
 ]
 
 const RECENT_ACTIVITY = [
@@ -214,32 +257,44 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-6 py-6">
+      <div className="border-b border-border bg-gradient-to-r from-background via-background to-background/95 backdrop-blur-sm sticky top-0 z-40">
+        <div className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight mb-2 flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-7 h-7 text-white" />
                 </div>
-                {greeting}! 👋
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                Ready to build something amazing?
-              </p>
+                <div>
+                  <h1 className="text-4xl font-bold tracking-tight mb-1 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                    {greeting}! 👋
+                  </h1>
+                  <p className="text-xl text-muted-foreground">
+                    Build anything with WebCraft's universal platform
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 onClick={() => setShowMediaManager(true)}
-                className="hidden sm:flex"
+                className="hidden sm:flex hover:bg-primary/5"
               >
                 <Image className="w-4 h-4 mr-2" />
-                Media
+                Media Library
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard/ai')}
+                className="hidden md:flex hover:bg-primary/5"
+              >
+                <Bot className="w-4 h-4 mr-2" />
+                AI Assistant
               </Button>
               <Button
                 onClick={() => router.push('/dashboard/apps/new')}
-                className="btn-primary btn-lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Create App
@@ -268,7 +323,7 @@ export default function DashboardPage() {
 
           <TabsContent value="overview" className="space-y-8">
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {STATS_DATA.map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -276,21 +331,21 @@ export default function DashboardPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                 >
-                  <Card className="card-hover">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                          <p className="text-3xl font-bold mt-2">{stat.value}</p>
-                          <p className="text-sm text-success mt-2 flex items-center gap-1">
+                  <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-background to-background/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`w-10 h-10 ${stat.color} rounded-xl flex items-center justify-center shadow-sm`}>
+                          <stat.icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold">{stat.value}</p>
+                          <p className="text-xs text-success flex items-center gap-1 justify-end">
                             <TrendingUp className="w-3 h-3" />
                             {stat.change}
                           </p>
                         </div>
-                        <div className={`w-14 h-14 ${stat.color} rounded-xl flex items-center justify-center`}>
-                          <stat.icon className="w-7 h-7 text-white" />
-                        </div>
                       </div>
+                      <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -303,25 +358,41 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <h2 className="text-2xl font-semibold mb-6">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-semibold mb-1">Quick Actions</h2>
+                  <p className="text-muted-foreground">Start building your next project</p>
+                </div>
+                <Button variant="ghost" className="text-primary hover:text-primary-hover">
+                  View All Tools
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {QUICK_ACTIONS.map((action, index) => {
                   const Icon = action.icon
                   return (
                     <Card
                       key={action.id}
-                      className="card-interactive group relative overflow-hidden"
+                      className="card-interactive group relative overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300"
                       onClick={() => router.push(action.href)}
                     >
                       <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                       <CardHeader className="pb-3">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-3`}>
-                          <Icon className="w-6 h-6 text-white" />
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}>
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+                          {action.badge && (
+                            <Badge variant="secondary" className="text-xs font-medium">
+                              {action.badge}
+                            </Badge>
+                          )}
                         </div>
                         <CardTitle className="text-lg">{action.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <CardDescription className="mb-3">
+                        <CardDescription className="mb-4 text-sm">
                           {action.description}
                         </CardDescription>
                         <div className="flex items-center text-primary text-sm font-medium group-hover:translate-x-1 transition-transform">
@@ -439,16 +510,22 @@ export default function DashboardPage() {
                 className="space-y-6"
               >
                 {/* Usage Stats */}
-                <Card>
+                <Card className="border-0 shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-lg">Usage Overview</CardTitle>
-                    <CardDescription>Your current plan usage</CardDescription>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Gauge className="w-5 h-5 text-primary" />
+                      Usage Overview
+                    </CardTitle>
+                    <CardDescription>Your current plan usage and limits</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-5">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Apps</span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm font-medium flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-blue-500" />
+                          Apps
+                        </span>
+                        <span className="text-sm text-muted-foreground font-mono">
                           {usage.apps.current}/{usage.apps.limit}
                         </span>
                       </div>
@@ -457,8 +534,11 @@ export default function DashboardPage() {
                     
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Storage</span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm font-medium flex items-center gap-2">
+                          <HardDrive className="w-4 h-4 text-green-500" />
+                          Storage
+                        </span>
+                        <span className="text-sm text-muted-foreground font-mono">
                           {usage.storage.current}GB/{usage.storage.limit}GB
                         </span>
                       </div>
@@ -467,17 +547,26 @@ export default function DashboardPage() {
                     
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Bandwidth</span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm font-medium flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-orange-500" />
+                          Bandwidth
+                        </span>
+                        <span className="text-sm text-muted-foreground font-mono">
                           {usage.bandwidth.current}GB/{usage.bandwidth.limit}GB
                         </span>
                       </div>
                       <Progress value={(usage.bandwidth.current / usage.bandwidth.limit) * 100} className="h-2" />
                     </div>
                     
-                    <Button variant="outline" size="sm" className="w-full mt-4">
-                      Upgrade Plan
-                    </Button>
+                    <div className="pt-3 mt-4 border-t">
+                      <Button variant="outline" size="sm" className="w-full mb-2">
+                        <Rocket className="w-4 h-4 mr-2" />
+                        Upgrade Plan
+                      </Button>
+                      <p className="text-xs text-center text-muted-foreground">
+                        Get unlimited apps and storage
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -510,33 +599,42 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Feature Highlights */}
-                <Card>
+                <Card className="border-0 shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-lg">Platform Features</CardTitle>
-                    <CardDescription>What you can build with WebCraft</CardDescription>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Rocket className="w-5 h-5 text-primary" />
+                      Platform Capabilities
+                    </CardTitle>
+                    <CardDescription>Everything you need to build amazing apps</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {FEATURE_HIGHLIGHTS.map((feature) => {
                       const Icon = feature.icon
                       return (
-                        <div key={feature.title} className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-4 h-4 text-primary" />
+                        <div key={feature.title} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                          <div className={`w-10 h-10 ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                            <Icon className="w-5 h-5 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
-                              <h4 className="text-sm font-medium">{feature.title}</h4>
-                              <Badge variant="secondary" className="text-xs">
+                              <h4 className="text-sm font-semibold">{feature.title}</h4>
+                              <Badge variant="outline" className="text-xs font-medium">
                                 {feature.stats}
                               </Badge>
                             </div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground leading-relaxed">
                               {feature.description}
                             </p>
                           </div>
                         </div>
                       )
                     })}
+                    <div className="pt-2 mt-4 border-t">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Lightbulb className="w-4 h-4 mr-2" />
+                        Explore All Features
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>

@@ -34,6 +34,7 @@ const navigation = [
   { name: 'Pricing', href: '/pricing' },
   { name: 'Enterprise', href: '/enterprise' },
   { name: 'Resources', href: '/resources' },
+  { name: 'Docs', href: '/docs/index.html', external: true },
 ]
 
 export function Header() {
@@ -81,6 +82,7 @@ export function Header() {
                     'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
                     'hover:bg-accent hover:text-accent-foreground'
                   )}
+                  {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                 >
                   {item.name}
                   {item.children && <ChevronDown className="w-4 h-4" />}
@@ -158,6 +160,7 @@ export function Header() {
                       href={item.href}
                       className="block px-4 py-2 text-sm font-medium hover:bg-accent rounded-lg"
                       onClick={() => setMobileMenuOpen(false)}
+                      {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                     >
                       {item.name}
                     </Link>

@@ -20,6 +20,7 @@ import {
   Loader2
 } from 'lucide-react'
 import { fetchDataSourceData } from '@/lib/data-source-api'
+import { LinkableWidgetWrapper } from './linkable-widget-wrapper'
 
 interface Feature {
   icon: string
@@ -41,9 +42,25 @@ interface FeaturesWidgetProps {
   features?: Feature[]
   columns?: 2 | 3 | 4
   layout?: 'grid' | 'list' | 'cards'
+  
+  // Universal link support
+  linkConfig?: {
+    type: 'page' | 'section' | 'data' | 'custom' | 'external' | 'action'
+    target: string
+    label?: string
+    openInNewTab?: boolean
+    parameters?: Record<string, any>
+  }
+  href?: string
+  target?: string
+  
   isEditing?: boolean
   isPreview?: boolean
+  isSelected?: boolean
+  isHovered?: boolean
+  elementId?: string
   onChange?: (props: any) => void
+  onStyleChange?: (style: any) => void
 }
 
 const ICONS: Record<string, any> = {
@@ -79,9 +96,19 @@ export function FeaturesWidget({
   ],
   columns = 3,
   layout = 'grid',
+  
+  // Universal link props
+  linkConfig,
+  href,
+  target,
+  
   isEditing,
   isPreview,
-  onChange
+  isSelected,
+  isHovered,
+  elementId,
+  onChange,
+  onStyleChange
 }: FeaturesWidgetProps) {
   // Data source state
   const [featuresData, setFeaturesData] = useState<Feature[]>([])
@@ -145,7 +172,17 @@ export function FeaturesWidget({
     }
   }
   return (
-    <section className="w-full py-20 px-6">
+    <LinkableWidgetWrapper
+      linkConfig={linkConfig}
+      href={href}
+      target={target}
+      isPreview={isPreview}
+      isSelected={isSelected}
+      isHovered={isHovered}
+      elementId={elementId}
+      elementType="features"
+    >
+      <section className="w-full py-20 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -224,5 +261,6 @@ export function FeaturesWidget({
         </div>
       </div>
     </section>
+    </LinkableWidgetWrapper>
   )
 }

@@ -50,7 +50,7 @@ import {
   Link,
   ExternalLink
 } from 'lucide-react'
-import { fetchDataSourceData } from '@/lib/data-source-api'
+import { testDataSourceEndpoint } from '@/lib/data-source-api'
 import { ButtonAction } from '@/lib/button-actions'
 import { MenuBuilder, MenuItemConfig, createMenuBuilder } from '@/lib/menu-builder'
 
@@ -293,7 +293,7 @@ export function SidebarWidget({
     setIsLoadingData(true)
     
     try {
-      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      const response = await testDataSourceEndpoint(dataSourceId, dataEndpointId || '', {})
       
       // Transform API response to sidebar format
       let transformedData = response.data

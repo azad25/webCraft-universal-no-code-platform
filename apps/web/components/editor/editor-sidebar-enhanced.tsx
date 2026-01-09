@@ -180,4 +180,573 @@ const ENHANCED_CATEGORIES = {
       { id: 'real-time-chat', name: 'Real-time Chat', icon: MessageSquare, description: 'Live chat functionality', category: 'realtime' },
       { id: 'live-updates', name: 'Live Updates', icon: RefreshCw, description: 'Real-time data updates', category: 'realtime' },
       { id: 'collaboration', name: 'Collaboration', icon: Users, description: 'Multi-user collaboration', category: 'realtime' },
-      { id: 'video-call', name: 'Video Call', icon: Vid
+      { id: 'video-call', name: 'Video Call', icon: Video, description: 'Video conferencing', category: 'realtime' },
+      { id: 'screen-share', name: 'Screen Share', icon: Monitor, description: 'Screen sharing', category: 'realtime' },
+      { id: 'whiteboard', name: 'Whiteboard', icon: Paintbrush, description: 'Collaborative whiteboard', category: 'realtime' }
+    ]
+  }
+}
+
+// Action Templates for quick setup
+const ACTION_TEMPLATES = {
+  'create-user': {
+    name: 'Create User Account',
+    description: 'Register a new user with email verification',
+    actions: [
+      { type: 'validate-form', config: { required: ['email', 'password'] } },
+      { type: 'create-record', config: { collection: 'users' } },
+      { type: 'send-email', config: { template: 'welcome' } },
+      { type: 'redirect', config: { url: '/dashboard' } }
+    ]
+  },
+  'process-order': {
+    name: 'Process E-commerce Order',
+    description: 'Handle order creation and payment processing',
+    actions: [
+      { type: 'validate-cart', config: {} },
+      { type: 'process-payment', config: { provider: 'stripe' } },
+      { type: 'create-record', config: { collection: 'orders' } },
+      { type: 'update-inventory', config: {} },
+      { type: 'send-email', config: { template: 'order-confirmation' } }
+    ]
+  },
+  'lead-capture': {
+    name: 'Lead Capture & Nurture',
+    description: 'Capture leads and start nurturing sequence',
+    actions: [
+      { type: 'create-record', config: { collection: 'leads' } },
+      { type: 'add-to-crm', config: {} },
+      { type: 'trigger-workflow', config: { workflow: 'lead-nurture' } },
+      { type: 'send-notification', config: { message: 'New lead captured!' } }
+    ]
+  }
+}
+
+// Event Types for dynamic interactions
+const EVENT_TYPES = [
+  { id: 'click', name: 'Click', icon: MousePointer2, description: 'User clicks element' },
+  { id: 'submit', name: 'Form Submit', icon: Send, description: 'Form is submitted' },
+  { id: 'change', name: 'Value Change', icon: Edit, description: 'Input value changes' },
+  { id: 'load', name: 'Page Load', icon: RefreshCw, description: 'Page finishes loading' },
+  { id: 'scroll', name: 'Scroll', icon: ArrowRight, description: 'User scrolls page' },
+  { id: 'hover', name: 'Hover', icon: MousePointer2, description: 'Mouse hovers over element' },
+  { id: 'focus', name: 'Focus', icon: Target, description: 'Element receives focus' },
+  { id: 'blur', name: 'Blur', icon: Eye, description: 'Element loses focus' },
+  { id: 'timer', name: 'Timer', icon: Clock, description: 'Time-based trigger' },
+  { id: 'data-change', name: 'Data Change', icon: Database, description: 'Data source updates' }
+]
+
+interface EnhancedSidebarProps {
+  appId: string
+  onAddElement: (element: any) => void
+  currentPageId?: string
+  selectedElement?: any
+}
+
+export function EnhancedEditorSidebar({ 
+  appId, 
+  onAddElement, 
+  currentPageId, 
+  selectedElement 
+}: EnhancedSidebarProps) {
+  const [activeTab, setActiveTab] = useState('elements')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [showActionBuilder, setShowActionBuilder] = useState(false)
+  const [selectedActionTemplate, setSelectedActionTemplate] = useState<string | null>(null)
+
+  // Filter widgets based on search and category
+  const filteredWidgets = useMemo(() => {
+    const filtered: any = {}
+    
+    Object.entries(ENHANCED_CATEGORIES).forEach(([categoryKey, category]) => {
+      filtered[categoryKey] = category.widgets.filter(widget =>
+        widget.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        widget.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    })
+    
+    return filtered
+  }, [searchQuery])
+
+  const handleAddWidget = useCallback((widget: any, categoryKey: string) => {
+    if (!currentPageId) {
+      alert('Please select a page before adding elements')
+      return
+    }
+
+    const elementConfig = {
+      type: widget.id,
+      position: { x: 0, y: 0 },
+      size: { 
+        width: 1440,
+        height: widget.defaultHeight || 200 
+      },
+      props: {
+        ...widget.defaultProps,
+        title: widget.name,
+        category: widget.category
+      },
+      style: widget.defaultStyle || {},
+      children: [],
+      // Enhanced properties for actions and events
+      actions: widget.category === 'action' ? [] : undefined,
+      events: {},
+      dataBinding: widget.category === 'data' ? {} : undefined
+    }
+    
+    onAddElement(elementConfig)
+  }, [onAddElement, currentPageId])
+
+  return (
+    <div className="w-full h-full bg-card flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="p-4 border-b flex-shrink-0">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <Plus className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <h2 className="font-semibold">App Builder</h2>
+        </div>
+        
+        {/* Page Selection Warning */}
+        {!currentPageId && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2 text-yellow-800 text-sm">
+              <FileText className="w-4 h-4" />
+              <span className="font-medium">Select a page first</span>
+            </div>
+            <p className="text-xs text-yellow-700 mt-1">
+              Choose a page from the Pages tab to start building.
+            </p>
+          </div>
+        )}
+        
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search components..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+            disabled={!currentPageId}
+          />
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-shrink-0 px-4 pt-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="elements" className="text-xs">Elements</TabsTrigger>
+            <TabsTrigger value="actions" className="text-xs">Actions</TabsTrigger>
+            <TabsTrigger value="data" className="text-xs">Data</TabsTrigger>
+            <TabsTrigger value="templates" className="text-xs">Templates</TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* Elements Tab - Enhanced UI Components */}
+        <TabsContent value="elements" className="flex-1 mt-4 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="px-4 space-y-6 pb-4">
+              {Object.entries(ENHANCED_CATEGORIES).map(([categoryKey, category]) => {
+                const widgets = filteredWidgets[categoryKey] || []
+                if (widgets.length === 0) return null
+
+                const IconComponent = category.icon
+
+                return (
+                  <div key={categoryKey}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={cn(
+                        "w-5 h-5 rounded flex items-center justify-center text-white text-xs",
+                        category.color
+                      )}>
+                        <IconComponent className="w-3 h-3" />
+                      </div>
+                      <h3 className="font-medium text-sm">{category.name}</h3>
+                      <Badge variant="secondary" className="text-xs">
+                        {widgets.length}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-2">
+                      {widgets.map((widget: any) => (
+                        <DraggableWidget
+                          key={widget.id}
+                          widget={widget}
+                          category={categoryKey}
+                          onAdd={() => handleAddWidget(widget, categoryKey)}
+                          disabled={!currentPageId}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        {/* Actions Tab - Action Builder & Event Management */}
+        <TabsContent value="actions" className="flex-1 mt-4 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="px-4 space-y-6 pb-4">
+              {/* Quick Action Templates */}
+              <div>
+                <h3 className="font-medium text-sm mb-3">Quick Actions</h3>
+                <div className="space-y-2">
+                  {Object.entries(ACTION_TEMPLATES).map(([key, template]) => (
+                    <Card key={key} className="p-3 cursor-pointer hover:bg-accent/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{template.name}</p>
+                          <p className="text-xs text-muted-foreground">{template.description}</p>
+                        </div>
+                        <Button size="sm" variant="outline">
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Event Types */}
+              <div>
+                <h3 className="font-medium text-sm mb-3">Event Triggers</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {EVENT_TYPES.map((event) => (
+                    <Card key={event.id} className="p-2 cursor-pointer hover:bg-accent/50 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <event.icon className="w-4 h-4 text-primary" />
+                        <div>
+                          <p className="font-medium text-xs">{event.name}</p>
+                          <p className="text-xs text-muted-foreground">{event.description}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Custom Action Builder */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-sm">Custom Actions</h3>
+                  <Button size="sm" onClick={() => setShowActionBuilder(true)}>
+                    <Plus className="w-3 h-3 mr-1" />
+                    Build Action
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Create custom action sequences for complex workflows
+                </p>
+                <Card className="p-3 border-dashed">
+                  <div className="text-center text-muted-foreground">
+                    <Workflow className="w-8 h-8 mx-auto mb-2" />
+                    <p className="text-sm">No custom actions yet</p>
+                    <p className="text-xs">Click "Build Action" to create one</p>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        {/* Data Tab - Enhanced Data Management */}
+        <TabsContent value="data" className="flex-1 mt-4 overflow-hidden">
+          <DataManagementTab appId={appId} onAddElement={onAddElement} />
+        </TabsContent>
+
+        {/* Templates Tab - Pre-built Solutions */}
+        <TabsContent value="templates" className="flex-1 mt-4 overflow-hidden">
+          <TemplatesTab appId={appId} onAddElement={onAddElement} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+
+// Draggable Widget Component
+function DraggableWidget({ 
+  widget, 
+  category, 
+  onAdd, 
+  disabled 
+}: { 
+  widget: any
+  category: string
+  onAdd: () => void
+  disabled: boolean
+}) {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'widget',
+    item: {
+      type: 'widget',
+      widgetType: widget.id,
+      category,
+      widget
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging()
+    })
+  })
+
+  const IconComponent = widget.icon
+  const categoryColor = ENHANCED_CATEGORIES[category as keyof typeof ENHANCED_CATEGORIES]?.color || 'bg-gray-500'
+
+  return (
+    <motion.div
+      ref={drag as any}
+      className={cn(
+        "group p-3 rounded-lg border cursor-pointer transition-all duration-200",
+        "bg-card hover:bg-accent/50 hover:border-primary/50",
+        disabled && "opacity-50 cursor-not-allowed",
+        isDragging && "opacity-50 scale-95"
+      )}
+      whileHover={!disabled ? { scale: 1.02 } : {}}
+      whileTap={!disabled ? { scale: 0.98 } : {}}
+      onClick={!disabled ? onAdd : undefined}
+    >
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          "w-8 h-8 rounded-md flex items-center justify-center text-white text-sm",
+          categoryColor
+        )}>
+          <IconComponent className="w-4 h-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm truncate">{widget.name}</p>
+          <p className="text-xs text-muted-foreground truncate">{widget.description}</p>
+          {widget.category && (
+            <Badge variant="outline" className="mt-1 text-xs">
+              {widget.category}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// Data Management Tab Component
+function DataManagementTab({ appId, onAddElement }: { appId: string; onAddElement: (element: any) => void }) {
+  const [dataSources, setDataSources] = useState<any[]>([])
+  const [collections, setCollections] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    loadDataSources()
+  }, [appId])
+
+  const loadDataSources = async () => {
+    setLoading(true)
+    try {
+      // Load data sources and collections
+      const [sourcesRes, collectionsRes] = await Promise.all([
+        apiClient.get(`/data-sources?app_id=${appId}`).catch(() => ({ data: { data_sources: [] } })),
+        apiClient.get(`/apps/${appId}/collections`).catch(() => ({ data: { collections: [] } }))
+      ])
+      
+      setDataSources(sourcesRes.data.data_sources || [])
+      setCollections(collectionsRes.data.collections || [])
+    } catch (error) {
+      console.error('Failed to load data sources:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <ScrollArea className="h-full">
+      <div className="px-4 space-y-6 pb-4">
+        {/* Data Sources */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium text-sm">Data Sources</h3>
+            <Button size="sm" variant="outline">
+              <Plus className="w-3 h-3 mr-1" />
+              Add Source
+            </Button>
+          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader className="w-4 h-4 animate-spin" />
+            </div>
+          ) : dataSources.length > 0 ? (
+            <div className="space-y-2">
+              {dataSources.map((source) => (
+                <Card key={source.id} className="p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white">
+                      <Database className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{source.name}</p>
+                      <p className="text-xs text-muted-foreground">{source.base_url}</p>
+                    </div>
+                    <Badge variant={source.is_connected ? 'default' : 'destructive'}>
+                      {source.is_connected ? 'Connected' : 'Disconnected'}
+                    </Badge>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="p-4 border-dashed">
+              <div className="text-center text-muted-foreground">
+                <Database className="w-8 h-8 mx-auto mb-2" />
+                <p className="text-sm">No data sources</p>
+                <p className="text-xs">Connect APIs and databases</p>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Collections */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium text-sm">Collections</h3>
+            <Button size="sm" variant="outline">
+              <Plus className="w-3 h-3 mr-1" />
+              New Collection
+            </Button>
+          </div>
+          {collections.length > 0 ? (
+            <div className="space-y-2">
+              {collections.map((collection) => (
+                <Card key={collection.id} className="p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+                         style={{ backgroundColor: collection.color }}>
+                      <Table className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{collection.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {collection.record_count} records
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="p-4 border-dashed">
+              <div className="text-center text-muted-foreground">
+                <Table className="w-8 h-8 mx-auto mb-2" />
+                <p className="text-sm">No collections</p>
+                <p className="text-xs">Create data tables</p>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Data Widgets */}
+        <div>
+          <h3 className="font-medium text-sm mb-3">Data Widgets</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {ENHANCED_CATEGORIES.data.widgets.map((widget) => (
+              <Card key={widget.id} className="p-2 cursor-pointer hover:bg-accent/50 transition-colors">
+                <div className="flex items-center gap-2">
+                  <widget.icon className="w-4 h-4 text-purple-500" />
+                  <div>
+                    <p className="font-medium text-xs">{widget.name}</p>
+                    <p className="text-xs text-muted-foreground">{widget.description}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </ScrollArea>
+  )
+}
+
+// Templates Tab Component
+function TemplatesTab({ appId, onAddElement }: { appId: string; onAddElement: (element: any) => void }) {
+  const templates = [
+    {
+      id: 'ecommerce-store',
+      name: 'E-commerce Store',
+      description: 'Complete online store with cart and checkout',
+      category: 'E-commerce',
+      elements: ['product-grid', 'shopping-cart', 'checkout-form', 'payment-button']
+    },
+    {
+      id: 'crm-dashboard',
+      name: 'CRM Dashboard',
+      description: 'Customer relationship management interface',
+      category: 'Business',
+      elements: ['data-table', 'kpi-metrics', 'contact-form', 'activity-feed']
+    },
+    {
+      id: 'blog-platform',
+      name: 'Blog Platform',
+      description: 'Content management and publishing system',
+      category: 'Content',
+      elements: ['article-list', 'rich-editor', 'comment-system', 'social-share']
+    },
+    {
+      id: 'booking-system',
+      name: 'Booking System',
+      description: 'Appointment and reservation management',
+      category: 'Business',
+      elements: ['booking-calendar', 'time-slots', 'customer-form', 'payment-integration']
+    }
+  ]
+
+  return (
+    <ScrollArea className="h-full">
+      <div className="px-4 space-y-4 pb-4">
+        <div className="text-center py-4">
+          <h3 className="font-semibold mb-2">Pre-built Templates</h3>
+          <p className="text-sm text-muted-foreground">
+            Start with complete solutions for common use cases
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {templates.map((template) => (
+            <Card key={template.id} className="p-4 cursor-pointer hover:shadow-md transition-all">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Package className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm mb-1">{template.name}</h4>
+                  <p className="text-xs text-muted-foreground mb-2">{template.description}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">{template.category}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {template.elements.length} components
+                    </span>
+                  </div>
+                </div>
+                <Button size="sm">
+                  <Plus className="w-3 h-3 mr-1" />
+                  Use Template
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </ScrollArea>
+  )
+}

@@ -34,7 +34,8 @@ import { Switch } from '@/components/ui/switch'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { apiClient } from '@/lib/api-client'
-import { toast } from 'sonner'
+import { useAppDispatch } from '@/store'
+import { addToast } from '@/store/slices/uiSlice'
 
 interface StaticExportManagerProps {
   appId: string
@@ -76,6 +77,7 @@ interface ExportOptions {
 }
 
 export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
+  const dispatch = useAppDispatch()
   const [currentJob, setCurrentJob] = useState<ExportJob | null>(null)
   const [exportHistory, setExportHistory] = useState<ExportJob[]>([])
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
@@ -139,9 +141,17 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
     try {
       const response = await apiClient.post(`/api/v1/apps/${appId}/export/lighthouse`)
       setLighthouseScore(response.data)
-      toast.success('Lighthouse audit completed')
+      dispatch(addToast({
+        type: 'success',
+        title: 'Lighthouse audit completed',
+        message: 'Performance audit results are now available'
+      }))
     } catch (error: any) {
-      toast.error('Failed to run Lighthouse audit')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Failed to run Lighthouse audit',
+        message: error.response?.data?.detail || 'An error occurred during the audit'
+      }))
     }
   }
 
@@ -166,9 +176,17 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
       // Poll for status
       pollExportStatus(jobId)
       
-      toast.success('Export started')
+      dispatch(addToast({
+        type: 'success',
+        title: 'Export started',
+        message: 'Your static site export is now being generated'
+      }))
     } catch (error: any) {
-      toast.error('Failed to start export')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Failed to start export',
+        message: error.response?.data?.detail || 'An error occurred while starting the export'
+      }))
       setIsExporting(false)
     }
   }
@@ -183,18 +201,30 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
         
         if (job.status === 'completed') {
           setIsExporting(false)
-          toast.success('Export completed successfully!')
+          dispatch(addToast({
+            type: 'success',
+            title: 'Export completed successfully!',
+            message: 'Your static site is ready for download'
+          }))
           loadExportHistory()
         } else if (job.status === 'failed') {
           setIsExporting(false)
-          toast.error(`Export failed: ${job.error_message}`)
+          dispatch(addToast({
+            type: 'error',
+            title: 'Export failed',
+            message: job.error_message || 'An error occurred during export'
+          }))
         } else {
           // Continue polling
           setTimeout(poll, 2000)
         }
       } catch (error) {
         setIsExporting(false)
-        toast.error('Failed to check export status')
+        dispatch(addToast({
+          type: 'error',
+          title: 'Failed to check export status',
+          message: 'Unable to retrieve export progress'
+        }))
       }
     }
     
@@ -220,18 +250,30 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
         
-        toast.success('Download started')
+        dispatch(addToast({
+          type: 'success',
+          title: 'Download started',
+          message: 'Your export file is being downloaded'
+        }))
       } else {
         throw new Error('Download failed')
       }
     } catch (error) {
-      toast.error('Failed to download export')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Failed to download export',
+        message: 'Unable to download the export file'
+      }))
     }
   }
 
   const exportToGitHub = async () => {
     if (!githubSettings.github_token) {
-      toast.error('GitHub token is required')
+      dispatch(addToast({
+        type: 'error',
+        title: 'GitHub token is required',
+        message: 'Please provide a valid GitHub token to continue'
+      }))
       return
     }
     
@@ -247,13 +289,17 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
         }
       })
       
-      toast.success('Exported to GitHub successfully!')
-      
-      if (response.data.pages_url) {
-        toast.success(`Site available at: ${response.data.pages_url}`)
-      }
+      dispatch(addToast({
+        type: 'success',
+        title: 'Exported to GitHub successfully!',
+        message: response.data.pages_url ? `Site available at: ${response.data.pages_url}` : 'Your code has been pushed to GitHub'
+      }))
     } catch (error: any) {
-      toast.error('Failed to export to GitHub')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Failed to export to GitHub',
+        message: error.response?.data?.detail || 'An error occurred during GitHub export'
+      }))
     } finally {
       setIsExporting(false)
     }
@@ -261,7 +307,11 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
 
   const exportToNetlify = async () => {
     if (!netlifySettings.netlify_token) {
-      toast.error('Netlify token is required')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Netlify token is required',
+        message: 'Please provide a valid Netlify token to continue'
+      }))
       return
     }
     
@@ -275,9 +325,17 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
         }
       })
       
-      toast.success(`Deployed to Netlify: ${response.data.site_url}`)
+      dispatch(addToast({
+        type: 'success',
+        title: 'Deployed to Netlify successfully!',
+        message: `Your site is live at: ${response.data.site_url}`
+      }))
     } catch (error: any) {
-      toast.error('Failed to deploy to Netlify')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Failed to deploy to Netlify',
+        message: error.response?.data?.detail || 'An error occurred during Netlify deployment'
+      }))
     } finally {
       setIsExporting(false)
     }
@@ -285,7 +343,11 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
 
   const exportToVercel = async () => {
     if (!vercelSettings.vercel_token) {
-      toast.error('Vercel token is required')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Vercel token is required',
+        message: 'Please provide a valid Vercel token to continue'
+      }))
       return
     }
     
@@ -299,9 +361,17 @@ export function StaticExportManager({ appId, app }: StaticExportManagerProps) {
         }
       })
       
-      toast.success(`Deployed to Vercel: ${response.data.deployment_url}`)
+      dispatch(addToast({
+        type: 'success',
+        title: 'Deployed to Vercel successfully!',
+        message: `Your site is live at: ${response.data.deployment_url}`
+      }))
     } catch (error: any) {
-      toast.error('Failed to deploy to Vercel')
+      dispatch(addToast({
+        type: 'error',
+        title: 'Failed to deploy to Vercel',
+        message: error.response?.data?.detail || 'An error occurred during Vercel deployment'
+      }))
     } finally {
       setIsExporting(false)
     }

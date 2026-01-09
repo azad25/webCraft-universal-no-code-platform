@@ -1,85 +1,131 @@
 'use client'
 
+import React from 'react'
+import { cn } from '@/lib/utils'
+
 interface RulerOverlayProps {
-  zoom: number
+  zoom?: number
+  className?: string
 }
 
-export function RulerOverlay({ zoom }: RulerOverlayProps) {
+export function RulerOverlay({ zoom = 100, className }: RulerOverlayProps) {
   const scale = zoom / 100
-  const majorTick = 100
-  const minorTick = 10
-  
+  const rulerHeight = 20
+  const rulerWidth = 20
+  const majorTickInterval = 100 // Major ticks every 100px
+  const minorTickInterval = 10  // Minor ticks every 10px
+
+  // Calculate visible area
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1440
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800
+
+  const renderTicks = (isHorizontal: boolean, length: number) => {
+    const ticks = []
+    const tickCount = Math.ceil(length / (minorTickInterval * scale))
+
+    for (let i = 0; i <= tickCount; i++) {
+      const position = i * minorTickInterval * scale
+      const isMajor = i % (majorTickInterval / minorTickInterval) === 0
+      const tickSize = isMajor ? (isHorizontal ? 12 : 12) : (isHorizontal ? 6 : 6)
+      
+      if (isHorizontal) {
+        ticks.push(
+          <g key={i}>
+            <line
+              x1={position}
+              y1={rulerHeight - tickSize}
+              x2={position}
+              y2={rulerHeight}
+              stroke="rgba(0,0,0,0.6)"
+              strokeWidth="1"
+            />
+            {isMajor && position > 0 && (
+              <text
+                x={position}
+                y={rulerHeight - tickSize - 2}
+                fontSize="10"
+                fill="rgba(0,0,0,0.8)"
+                textAnchor="middle"
+                dominantBaseline="bottom"
+              >
+                {Math.round(position / scale)}
+              </text>
+            )}
+          </g>
+        )
+      } else {
+        ticks.push(
+          <g key={i}>
+            <line
+              x1={rulerWidth - tickSize}
+              y1={position}
+              x2={rulerWidth}
+              y2={position}
+              stroke="rgba(0,0,0,0.6)"
+              strokeWidth="1"
+            />
+            {isMajor && position > 0 && (
+              <text
+                x={rulerWidth - tickSize - 2}
+                y={position}
+                fontSize="10"
+                fill="rgba(0,0,0,0.8)"
+                textAnchor="end"
+                dominantBaseline="middle"
+              >
+                {Math.round(position / scale)}
+              </text>
+            )}
+          </g>
+        )
+      }
+    }
+
+    return ticks
+  }
+
   return (
-    <>
+    <div className={cn("absolute inset-0 pointer-events-none z-10", className)}>
       {/* Horizontal Ruler */}
-      <div className="absolute top-0 left-8 right-0 h-6 bg-muted border-b z-20 overflow-hidden">
-        <svg className="w-full h-full" style={{ transform: `scaleX(${scale})`, transformOrigin: 'left' }}>
-          {Array.from({ length: 200 }).map((_, i) => {
-            const x = i * minorTick
-            const isMajor = i % 10 === 0
-            return (
-              <g key={i}>
-                <line
-                  x1={x}
-                  y1={isMajor ? 0 : 16}
-                  x2={x}
-                  y2={24}
-                  stroke="currentColor"
-                  strokeWidth={0.5}
-                  className="text-muted-foreground/50"
-                />
-                {isMajor && (
-                  <text
-                    x={x + 2}
-                    y={12}
-                    fontSize={9}
-                    className="fill-muted-foreground"
-                  >
-                    {x}
-                  </text>
-                )}
-              </g>
-            )
-          })}
+      <div 
+        className="absolute top-0 left-0 right-0 bg-gray-100 border-b border-gray-300"
+        style={{ height: rulerHeight }}
+      >
+        <svg
+          width="100%"
+          height={rulerHeight}
+          className="absolute inset-0"
+        >
+          {renderTicks(true, viewportWidth)}
         </svg>
       </div>
-      
+
       {/* Vertical Ruler */}
-      <div className="absolute top-6 left-0 bottom-0 w-6 bg-muted border-r z-20 overflow-hidden">
-        <svg className="w-full h-full" style={{ transform: `scaleY(${scale})`, transformOrigin: 'top' }}>
-          {Array.from({ length: 200 }).map((_, i) => {
-            const y = i * minorTick
-            const isMajor = i % 10 === 0
-            return (
-              <g key={i}>
-                <line
-                  x1={isMajor ? 0 : 16}
-                  y1={y}
-                  x2={24}
-                  y2={y}
-                  stroke="currentColor"
-                  strokeWidth={0.5}
-                  className="text-muted-foreground/50"
-                />
-                {isMajor && (
-                  <text
-                    x={2}
-                    y={y + 10}
-                    fontSize={9}
-                    className="fill-muted-foreground"
-                    transform={`rotate(-90, 12, ${y + 5})`}
-                  >
-                    {y}
-                  </text>
-                )}
-              </g>
-            )
-          })}
+      <div 
+        className="absolute top-0 left-0 bottom-0 bg-gray-100 border-r border-gray-300"
+        style={{ width: rulerWidth }}
+      >
+        <svg
+          width={rulerWidth}
+          height="100%"
+          className="absolute inset-0"
+        >
+          {renderTicks(false, viewportHeight)}
         </svg>
       </div>
-      
+
       {/* Corner */}
-      <div className="absolute top-0 left-0 w-6 h-6 bg-muted border-r border-b z-30" />
-    </>
+      <div 
+        className="absolute top-0 left-0 bg-gray-200 border-r border-b border-gray-300 flex items-center justify-center"
+        style={{ width: rulerWidth, height: rulerHeight }}
+      >
+        <div className="w-2 h-2 bg-gray-400 rounded-full" />
+      </div>
+
+      {/* Zoom Indicator */}
+      <div className="absolute top-1 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
+        {zoom}%
+      </div>
+    </div>
   )
 }

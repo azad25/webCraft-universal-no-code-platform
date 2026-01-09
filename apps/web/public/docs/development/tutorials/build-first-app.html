@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Your First App - WebCraft Developer Docs</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="docs-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Developer Docs</h2>
+                <p>Build applications without code</p>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="../index.html" class="menu-link">Getting Started</a>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Architecture</a>
+                    <ul class="submenu">
+                        <li><a href="../architecture/system-overview.html" class="submenu-link">System Overview</a></li>
+                        <li><a href="../architecture/frontend-architecture.html" class="submenu-link">Frontend Architecture</a></li>
+                        <li><a href="../architecture/backend-architecture.html" class="submenu-link">Backend Architecture</a></li>
+                        <li><a href="../architecture/database-design.html" class="submenu-link">Database Design</a></li>
+                        <li><a href="../architecture/api-design.html" class="submenu-link">API Design</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Frontend Development</a>
+                    <ul class="submenu">
+                        <li><a href="../frontend/nextjs-setup.html" class="submenu-link">Next.js Setup</a></li>
+                        <li><a href="../frontend/react-components.html" class="submenu-link">React Components</a></li>
+                        <li><a href="../frontend/state-management.html" class="submenu-link">State Management</a></li>
+                        <li><a href="../frontend/styling-guide.html" class="submenu-link">Styling Guide</a></li>
+                        <li><a href="../frontend/drag-drop-system.html" class="submenu-link">Drag & Drop System</a></li>
+                        <li><a href="../frontend/widget-development.html" class="submenu-link">Widget Development</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Backend Development</a>
+                    <ul class="submenu">
+                        <li><a href="../backend/fastapi-setup.html" class="submenu-link">FastAPI Setup</a></li>
+                        <li><a href="../backend/database-operations.html" class="submenu-link">Database Operations</a></li>
+                        <li><a href="../backend/api-development.html" class="submenu-link">API Development</a></li>
+                        <li><a href="../backend/authentication.html" class="submenu-link">Authentication</a></li>
+                        <li><a href="../backend/module-system.html" class="submenu-link">Module System</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Database</a>
+                    <ul class="submenu">
+                        <li><a href="../database/postgresql-setup.html" class="submenu-link">PostgreSQL Setup</a></li>
+                        <li><a href="../database/schema-design.html" class="submenu-link">Schema Design</a></li>
+                        <li><a href="../database/migrations.html" class="submenu-link">Migrations</a></li>
+                        <li><a href="../database/performance.html" class="submenu-link">Performance</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">API Reference</a>
+                    <ul class="submenu">
+                        <li><a href="../api/authentication.html" class="submenu-link">Authentication</a></li>
+                        <li><a href="../api/widgets.html" class="submenu-link">Widgets API</a></li>
+                        <li><a href="../api/projects.html" class="submenu-link">Projects API</a></li>
+                        <li><a href="../api/modules.html" class="submenu-link">Modules API</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Advanced Topics</a>
+                    <ul class="submenu">
+                        <li><a href="../advanced/deployment.html" class="submenu-link">Deployment</a></li>
+                        <li><a href="../advanced/scaling.html" class="submenu-link">Scaling</a></li>
+                        <li><a href="../advanced/security.html" class="submenu-link">Security</a></li>
+                        <li><a href="../advanced/monitoring.html" class="submenu-link">Monitoring</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu active">
+                    <a href="#" class="menu-link">Tutorials</a>
+                    <ul class="submenu">
+                        <li><a href="build-first-app.html" class="submenu-link active">Build Your First App</a></li>
+                        <li><a href="create-custom-widget.html" class="submenu-link">Create Custom Widget</a></li>
+                        <li><a href="integrate-api.html" class="submenu-link">Integrate External API</a></li>
+                        <li><a href="deploy-production.html" class="submenu-link">Deploy to Production</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item">
+                    <a href="../troubleshooting.html" class="menu-link">Troubleshooting</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Build Your First App</h1>
+                <p>A step-by-step guide to creating your first application with WebCraft</p>
+            </header>
+
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>What You'll Build</h2>
+                    <p>In this tutorial, you'll create a simple landing page application with a header, hero section, features showcase, and contact form. This will introduce you to the core concepts of WebCraft including:</p>
+                    
+                    <ul>
+                        <li>Using the drag-and-drop interface</li>
+                        <li>Configuring widgets and components</li>
+                        <li>Managing layouts and styling</li>
+                        <li>Adding interactivity</li>
+                        <li>Previewing and publishing your app</li>
+                    </ul>
+
+                    <div class="tutorial-preview">
+                        <img src="/api/placeholder/800/400" alt="Landing Page Preview" style="width: 100%; border-radius: 8px; margin: 20px 0;">
+                        <p><em>Final result: A professional landing page built with WebCraft</em></p>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Prerequisites</h2>
+                    
+                    <div class="prerequisites">
+                        <ul>
+                            <li>✅ WebCraft development environment set up</li>
+                            <li>✅ Basic understanding of HTML/CSS concepts</li>
+                            <li>✅ Familiarity with drag-and-drop interfaces</li>
+                            <li>✅ Modern web browser (Chrome, Firefox, Safari, Edge)</li>
+                        </ul>
+                    </div>
+
+                    <p>If you haven't set up your development environment yet, please follow the <a href="../index.html">Getting Started</a> guide first.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 1: Create a New Project</h2>
+                    
+                    <ol>
+                        <li>
+                            <strong>Open WebCraft</strong>
+                            <p>Navigate to your local WebCraft instance (typically <code>http://localhost:3000</code>)</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Create New Project</strong>
+                            <p>Click the "Create New Project" button on the dashboard</p>
+                            <div class="code-block">
+                                <pre><code>// Project configuration
+{
+  "name": "My Landing Page",
+  "description": "A simple landing page for my product",
+  "template": "blank", // Start with a blank canvas
+  "responsive": true,
+  "theme": "default"
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Enter Project Details</strong>
+                            <ul>
+                                <li><strong>Project Name:</strong> "My Landing Page"</li>
+                                <li><strong>Description:</strong> "A simple landing page for my product"</li>
+                                <li><strong>Template:</strong> Select "Blank Canvas"</li>
+                                <li><strong>Responsive:</strong> Enable responsive design</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Click Create</strong>
+                            <p>You'll be redirected to the WebCraft editor</p>
+                        </li>
+                    </ol>
+
+                    <div class="tip-box">
+                        <strong>💡 Pro Tip:</strong> Starting with a blank canvas gives you full control over your design, but you can also choose from pre-built templates to speed up development.
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 2: Familiarize Yourself with the Editor</h2>
+                    
+                    <p>The WebCraft editor has several key areas:</p>
+                    
+                    <div class="editor-layout">
+                        <h3>Editor Interface</h3>
+                        <ol>
+                            <li>
+                                <strong>Left Sidebar - Widget Library</strong>
+                                <ul>
+                                    <li>Basic widgets (Text, Image, Button)</li>
+                                    <li>Layout widgets (Container, Grid, Flex)</li>
+                                    <li>Form widgets (Input, Select, Checkbox)</li>
+                                    <li>Advanced widgets (Chart, Map, Video)</li>
+                                </ul>
+                            </li>
+                            
+                            <li>
+                                <strong>Center Canvas</strong>
+                                <ul>
+                                    <li>Your design workspace</li>
+                                    <li>Drag-and-drop area</li>
+                                    <li>Responsive preview modes</li>
+                                    <li>Zoom controls</li>
+                                </ul>
+                            </li>
+                            
+                            <li>
+                                <strong>Right Sidebar - Properties Panel</strong>
+                                <ul>
+                                    <li>Widget properties and settings</li>
+                                    <li>Style customization</li>
+                                    <li>Animation settings</li>
+                                    <li>Event handlers</li>
+                                </ul>
+                            </li>
+                            
+                            <li>
+                                <strong>Top Toolbar</strong>
+                                <ul>
+                                    <li>Save, preview, and publish buttons</li>
+                                    <li>Undo/redo controls</li>
+                                    <li>View mode selector</li>
+                                    <li>Project settings</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="code-block">
+                        <pre><code>// Editor state structure
+{
+  "canvas": {
+    "width": 1200,
+    "height": 800,
+    "zoom": 1.0,
+    "device": "desktop" // desktop, tablet, mobile
+  },
+  "selectedWidget": null,
+  "widgets": [],
+  "history": {
+    "undo": [],
+    "redo": []
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 3: Build the Header Section</h2>
+                    
+                    <h3>Add a Container for the Header</h3>
+                    <ol>
+                        <li>
+                            <strong>Drag a Container Widget</strong>
+                            <p>From the left sidebar, drag a "Container" widget to the top of your canvas</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Container Properties</strong>
+                            <div class="code-block">
+                                <pre><code>// Container configuration
+{
+  "width": "100%",
+  "height": "80px",
+  "backgroundColor": "#ffffff",
+  "borderBottom": "1px solid #e0e0e0",
+  "padding": "0 20px",
+  "display": "flex",
+  "alignItems": "center",
+  "justifyContent": "space-between"
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Logo Text</strong>
+                            <ul>
+                                <li>Drag a "Text" widget inside the container</li>
+                                <li>Set text to "YourBrand"</li>
+                                <li>Configure text properties:
+                                    <ul>
+                                        <li>Font size: 24px</li>
+                                        <li>Font weight: bold</li>
+                                        <li>Color: #333333</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Navigation Menu</strong>
+                            <ul>
+                                <li>Drag a "Flex Container" next to the logo</li>
+                                <li>Add three "Button" widgets inside the flex container</li>
+                                <li>Set button texts: "Home", "Features", "Contact"</li>
+                                <li>Configure button styles:
+                                    <ul>
+                                        <li>Background: transparent</li>
+                                        <li>Text color: #666666</li>
+                                        <li>Border: none</li>
+                                        <li>Margin: 0 10px</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="code-block">
+                        <pre><code>// Header widget structure
+{
+  "id": "header-container",
+  "type": "container",
+  "children": [
+    {
+      "id": "logo-text",
+      "type": "text",
+      "properties": {
+        "text": "YourBrand",
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333"
+      }
+    },
+    {
+      "id": "nav-container",
+      "type": "flex-container",
+      "children": [
+        {
+          "id": "nav-home",
+          "type": "button",
+          "properties": {
+            "text": "Home",
+            "variant": "text",
+            "color": "#666666"
+          }
+        },
+        // ... other navigation items
+      ]
+    }
+  ]
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 4: Create the Hero Section</h2>
+                    
+                    <h3>Add Hero Container</h3>
+                    <ol>
+                        <li>
+                            <strong>Drag a New Container</strong>
+                            <p>Place it below the header, spanning the full width</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Hero Container</strong>
+                            <div class="code-block">
+                                <pre><code>// Hero container configuration
+{
+  "width": "100%",
+  "height": "500px",
+  "backgroundColor": "#f8f9fa",
+  "display": "flex",
+  "flexDirection": "column",
+  "alignItems": "center",
+  "justifyContent": "center",
+  "textAlign": "center",
+  "padding": "40px 20px"
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Hero Title</strong>
+                            <ul>
+                                <li>Drag a "Text" widget into the hero container</li>
+                                <li>Set text to "Build Amazing Apps Without Code"</li>
+                                <li>Configure properties:
+                                    <ul>
+                                        <li>Font size: 48px</li>
+                                        <li>Font weight: bold</li>
+                                        <li>Color: #2c3e50</li>
+                                        <li>Margin bottom: 20px</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Hero Subtitle</strong>
+                            <ul>
+                                <li>Drag another "Text" widget</li>
+                                <li>Set text to "Create professional applications with our intuitive drag-and-drop interface"</li>
+                                <li>Configure properties:
+                                    <ul>
+                                        <li>Font size: 20px</li>
+                                        <li>Color: #7f8c8d</li>
+                                        <li>Margin bottom: 30px</li>
+                                        <li>Max width: 600px</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Call-to-Action Button</strong>
+                            <ul>
+                                <li>Drag a "Button" widget</li>
+                                <li>Set text to "Get Started"</li>
+                                <li>Configure properties:
+                                    <ul>
+                                        <li>Background color: #3498db</li>
+                                        <li>Text color: white</li>
+                                        <li>Font size: 18px</li>
+                                        <li>Padding: 15px 30px</li>
+                                        <li>Border radius: 5px</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ol>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 5: Add Features Section</h2>
+                    
+                    <h3>Create Features Container</h3>
+                    <ol>
+                        <li>
+                            <strong>Add Section Container</strong>
+                            <p>Drag a container below the hero section</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Section</strong>
+                            <div class="code-block">
+                                <pre><code>// Features section configuration
+{
+  "width": "100%",
+  "padding": "80px 20px",
+  "backgroundColor": "#ffffff"
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Section Title</strong>
+                            <ul>
+                                <li>Text: "Why Choose WebCraft?"</li>
+                                <li>Font size: 36px</li>
+                                <li>Text align: center</li>
+                                <li>Margin bottom: 50px</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Create Features Grid</strong>
+                            <ul>
+                                <li>Drag a "Grid" widget into the section</li>
+                                <li>Set grid properties:
+                                    <ul>
+                                        <li>Columns: 3</li>
+                                        <li>Gap: 30px</li>
+                                        <li>Max width: 1200px</li>
+                                        <li>Margin: 0 auto</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Feature Cards</strong>
+                            <p>For each feature (repeat 3 times):</p>
+                            <ul>
+                                <li>Drag a "Card" widget into a grid cell</li>
+                                <li>Configure card properties:
+                                    <ul>
+                                        <li>Padding: 30px</li>
+                                        <li>Background: white</li>
+                                        <li>Border: 1px solid #e0e0e0</li>
+                                        <li>Border radius: 8px</li>
+                                        <li>Text align: center</li>
+                                    </ul>
+                                </li>
+                                <li>Add content to each card:
+                                    <ul>
+                                        <li>Icon (use Text widget with emoji: 🚀, ⚡, 🔧)</li>
+                                        <li>Title (Text widget)</li>
+                                        <li>Description (Text widget)</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="code-block">
+                        <pre><code>// Feature card content examples
+[
+  {
+    "icon": "🚀",
+    "title": "Fast Development",
+    "description": "Build apps 10x faster with our intuitive interface"
+  },
+  {
+    "icon": "⚡",
+    "title": "Powerful Features",
+    "description": "Advanced functionality without complex coding"
+  },
+  {
+    "icon": "🔧",
+    "title": "Fully Customizable",
+    "description": "Tailor every aspect to your specific needs"
+  }
+]</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 6: Create Contact Form</h2>
+                    
+                    <h3>Add Contact Section</h3>
+                    <ol>
+                        <li>
+                            <strong>Create Contact Container</strong>
+                            <p>Drag a container at the bottom of your page</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Contact Section</strong>
+                            <div class="code-block">
+                                <pre><code>// Contact section configuration
+{
+  "width": "100%",
+  "padding": "80px 20px",
+  "backgroundColor": "#f8f9fa"
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Contact Title</strong>
+                            <ul>
+                                <li>Text: "Get In Touch"</li>
+                                <li>Font size: 36px</li>
+                                <li>Text align: center</li>
+                                <li>Margin bottom: 50px</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Create Form Container</strong>
+                            <ul>
+                                <li>Drag a container for the form</li>
+                                <li>Set max width: 600px</li>
+                                <li>Center align: margin auto</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Form Fields</strong>
+                            <ul>
+                                <li>Name input field</li>
+                                <li>Email input field</li>
+                                <li>Message textarea</li>
+                                <li>Submit button</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Form Fields</strong>
+                            <div class="code-block">
+                                <pre><code>// Form field configurations
+{
+  "nameField": {
+    "type": "input",
+    "placeholder": "Your Name",
+    "required": true
+  },
+  "emailField": {
+    "type": "input",
+    "placeholder": "Your Email",
+    "inputType": "email",
+    "required": true
+  },
+  "messageField": {
+    "type": "textarea",
+    "placeholder": "Your Message",
+    "rows": 5,
+    "required": true
+  },
+  "submitButton": {
+    "type": "button",
+    "text": "Send Message",
+    "variant": "primary"
+  }
+}</code></pre>
+                            </div>
+                        </li>
+                    </ol>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 7: Add Styling and Responsiveness</h2>
+                    
+                    <h3>Apply Global Styles</h3>
+                    <ol>
+                        <li>
+                            <strong>Access Global Styles</strong>
+                            <p>Click on the "Global Styles" button in the top toolbar</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Typography</strong>
+                            <div class="code-block">
+                                <pre><code>// Global typography settings
+{
+  "fontFamily": "Inter, sans-serif",
+  "headingFontFamily": "Inter, sans-serif",
+  "baseFontSize": "16px",
+  "lineHeight": "1.6",
+  "headingWeights": {
+    "h1": "700",
+    "h2": "600", 
+    "h3": "600"
+  }
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Set Color Scheme</strong>
+                            <div class="code-block">
+                                <pre><code>// Color scheme
+{
+  "primaryColor": "#3498db",
+  "secondaryColor": "#2ecc71",
+  "textColor": "#2c3e50",
+  "backgroundColor": "#ffffff",
+  "borderColor": "#e0e0e0"
+}</code></pre>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <h3>Configure Responsive Breakpoints</h3>
+                    <ol>
+                        <li>
+                            <strong>Switch to Mobile View</strong>
+                            <p>Use the device selector in the top toolbar</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Adjust Layout for Mobile</strong>
+                            <ul>
+                                <li>Stack navigation items vertically</li>
+                                <li>Reduce font sizes</li>
+                                <li>Adjust padding and margins</li>
+                                <li>Make form fields full width</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Test Tablet View</strong>
+                            <p>Repeat the process for tablet breakpoints</p>
+                        </li>
+                    </ol>
+
+                    <div class="code-block">
+                        <pre><code>// Responsive configuration
+{
+  "breakpoints": {
+    "mobile": "768px",
+    "tablet": "1024px",
+    "desktop": "1200px"
+  },
+  "mobileAdjustments": {
+    "heroTitleSize": "32px",
+    "sectionTitleSize": "24px",
+    "featureGridColumns": 1,
+    "navigationLayout": "vertical"
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 8: Add Interactivity</h2>
+                    
+                    <h3>Configure Button Actions</h3>
+                    <ol>
+                        <li>
+                            <strong>Select the CTA Button</strong>
+                            <p>Click on the "Get Started" button in the hero section</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Click Handler</strong>
+                            <p>In the properties panel, find the "Events" section</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Scroll Action</strong>
+                            <div class="code-block">
+                                <pre><code>// Button click handler
+{
+  "event": "click",
+  "action": "scrollTo",
+  "target": "#features-section",
+  "duration": 800,
+  "easing": "easeInOut"
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Form Submission</strong>
+                            <p>For the contact form submit button:</p>
+                            <div class="code-block">
+                                <pre><code>// Form submission handler
+{
+  "event": "submit",
+  "action": "apiCall",
+  "endpoint": "/api/contact",
+  "method": "POST",
+  "data": {
+    "name": "{{nameField.value}}",
+    "email": "{{emailField.value}}",
+    "message": "{{messageField.value}}"
+  },
+  "successMessage": "Thank you! We'll be in touch soon.",
+  "errorMessage": "Sorry, there was an error sending your message."
+}</code></pre>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <h3>Add Smooth Scrolling</h3>
+                    <div class="code-block">
+                        <pre><code>// Smooth scrolling configuration
+{
+  "scrollBehavior": "smooth",
+  "navigation": {
+    "home": "#hero-section",
+    "features": "#features-section",
+    "contact": "#contact-section"
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 9: Preview and Test</h2>
+                    
+                    <h3>Preview Your App</h3>
+                    <ol>
+                        <li>
+                            <strong>Click Preview Button</strong>
+                            <p>Use the preview button in the top toolbar</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Test All Functionality</strong>
+                            <ul>
+                                <li>Test navigation links</li>
+                                <li>Verify responsive design</li>
+                                <li>Test form submission</li>
+                                <li>Check all interactive elements</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong>Test on Different Devices</strong>
+                            <p>Use browser developer tools to simulate different screen sizes</p>
+                        </li>
+                    </ol>
+
+                    <h3>Debug Common Issues</h3>
+                    <div class="troubleshooting-item">
+                        <h4>Layout Issues</h4>
+                        <ul>
+                            <li>Check container widths and positioning</li>
+                            <li>Verify responsive breakpoints</li>
+                            <li>Ensure proper flexbox/grid settings</li>
+                        </ul>
+                    </div>
+
+                    <div class="troubleshooting-item">
+                        <h4>Interactive Elements Not Working</h4>
+                        <ul>
+                            <li>Verify event handler configurations</li>
+                            <li>Check target element IDs</li>
+                            <li>Test API endpoints</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Step 10: Publish Your App</h2>
+                    
+                    <h3>Save Your Project</h3>
+                    <ol>
+                        <li>
+                            <strong>Click Save</strong>
+                            <p>Use Ctrl+S (Cmd+S on Mac) or click the save button</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Add Version Notes</strong>
+                            <p>Document what changed in this version</p>
+                        </li>
+                    </ol>
+
+                    <h3>Publish Settings</h3>
+                    <ol>
+                        <li>
+                            <strong>Click Publish Button</strong>
+                            <p>Access publish settings from the top toolbar</p>
+                        </li>
+                        
+                        <li>
+                            <strong>Configure Publishing Options</strong>
+                            <div class="code-block">
+                                <pre><code>// Publishing configuration
+{
+  "domain": "my-landing-page.webcraft.app",
+  "ssl": true,
+  "analytics": true,
+  "seo": {
+    "title": "My Amazing Product - Build Apps Without Code",
+    "description": "Create professional applications with our intuitive drag-and-drop interface",
+    "keywords": ["no-code", "app builder", "drag and drop"]
+  },
+  "performance": {
+    "minify": true,
+    "compress": true,
+    "cache": true
+  }
+}</code></pre>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <strong>Deploy to Production</strong>
+                            <p>Click "Publish Now" to deploy your app</p>
+                        </li>
+                    </ol>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <p>Congratulations! You've built your first WebCraft application. Here's what you can explore next:</p>
+                    
+                    <div class="next-steps">
+                        <a href="create-custom-widget.html" class="btn primary">Create Custom Widgets</a>
+                        <a href="../frontend/widget-development.html" class="btn primary">Advanced Widget Development</a>
+                        <a href="integrate-api.html" class="btn secondary">Integrate External APIs</a>
+                    </div>
+
+                    <h3>Advanced Features to Explore</h3>
+                    <ul>
+                        <li><strong>Custom Widgets:</strong> Build your own reusable components</li>
+                        <li><strong>Database Integration:</strong> Connect to external data sources</li>
+                        <li><strong>User Authentication:</strong> Add login and user management</li>
+                        <li><strong>E-commerce Features:</strong> Add shopping carts and payment processing</li>
+                        <li><strong>Real-time Features:</strong> Implement live chat or notifications</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Complete Code Reference</h2>
+                    <p>Here's the complete configuration for your landing page:</p>
+                    
+                    <div class="code-block">
+                        <pre><code>// Complete landing page configuration
+{
+  "name": "My Landing Page",
+  "version": "1.0.0",
+  "pages": [
+    {
+      "id": "home",
+      "name": "Home",
+      "widgets": [
+        // Header section
+        {
+          "id": "header",
+          "type": "container",
+          "properties": { /* header properties */ },
+          "children": [/* header children */]
+        },
+        // Hero section
+        {
+          "id": "hero",
+          "type": "container",
+          "properties": { /* hero properties */ },
+          "children": [/* hero children */]
+        },
+        // Features section
+        {
+          "id": "features",
+          "type": "container",
+          "properties": { /* features properties */ },
+          "children": [/* features children */]
+        },
+        // Contact section
+        {
+          "id": "contact",
+          "type": "container",
+          "properties": { /* contact properties */ },
+          "children": [/* contact children */]
+        }
+      ]
+    }
+  ],
+  "globalStyles": {
+    "fontFamily": "Inter, sans-serif",
+    "colors": {
+      "primary": "#3498db",
+      "secondary": "#2ecc71",
+      "text": "#2c3e50",
+      "background": "#ffffff"
+    }
+  },
+  "interactions": {
+    "smoothScrolling": true,
+    "formSubmission": {
+      "endpoint": "/api/contact",
+      "method": "POST"
+    }
+  }
+}</code></pre>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuItems = document.querySelectorAll('.has-submenu > .menu-link');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const parent = this.parentElement;
+                    const submenu = parent.querySelector('.submenu');
+                    
+                    if (submenu) {
+                        parent.classList.toggle('active');
+                        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                    }
+                });
+            });
+            
+            // Auto-expand active menu items
+            const activeLink = document.querySelector('.submenu-link.active');
+            if (activeLink) {
+                const parentMenu = activeLink.closest('.has-submenu');
+                if (parentMenu) {
+                    parentMenu.classList.add('active');
+                    const submenu = parentMenu.querySelector('.submenu');
+                    if (submenu) {
+                        submenu.style.display = 'block';
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

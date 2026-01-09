@@ -121,6 +121,7 @@ class App(BaseModel):
     template = relationship("Template", back_populates="apps")
     pages = relationship("Page", back_populates="app")
     widgets = relationship("AppWidget", back_populates="app")
+    custom_assets = relationship("CustomAsset", back_populates="app")
     
     # Indexes for performance
     __table_args__ = (
@@ -208,6 +209,7 @@ class Page(BaseModel):
     # App relationship
     app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
     app = relationship("App", back_populates="pages")
+    custom_assets = relationship("CustomAsset", back_populates="page")
     
     # Indexes
     __table_args__ = (
@@ -872,11 +874,171 @@ class AppFormSubmission(BaseModel):
     )
 
 
+class CustomAsset(Base):
+    """Custom assets for apps (HTML, CSS, JS, images, videos, audio)"""
+    __tablename__ = "custom_assets"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    app_id = Column(UUID(as_uuid=True), ForeignKey('apps.id'), nullable=False)
+    name = Column(String(255), nullable=False)
+    type = Column(String(20), nullable=False)  # 'html', 'css', 'js', 'image', 'video', 'audio'
+    
+    # For code assets (HTML, CSS, JS)
+    content = Column(Text, nullable=True)
+    
+    # For media assets (images, videos, audio)
+    url = Column(String(500), nullable=True)
+    size = Column(Integer, nullable=True)  # File size in bytes
+    
+    # Asset metadata (renamed from metadata to avoid SQLAlchemy conflict)
+    asset_metadata = Column(JSON, nullable=True, default={})
+    
+    # Asset settings
+    is_global = Column(Boolean, default=False)  # Global assets apply to all pages
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Page relationship (NULL for global assets)
+    page_id = Column(UUID(as_uuid=True), ForeignKey("pages.id"), nullable=True)
+    
+    # Relationships
+    app = relationship("App", back_populates="custom_assets")
+    page = relationship("Page", back_populates="custom_assets")
+    
+    __table_args__ = (
+        Index('idx_custom_asset_app', 'app_id'),
+        Index('idx_custom_asset_type', 'type'),
+        Index('idx_custom_asset_page', 'page_id'),
+    )
+
+
 # Database initialization
 async def init_db():
     """Initialize database tables"""
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully")
+
+
+# ============================================
+# CROSS-APP COMMUNICATION MODELS
+# ============================================
+
+class SharedCollection(BaseModel):
+    """Collections that can be shared across apps"""
+    __tablename__ = "shared_collections"
+    
+    collection_id = Column(UUID(as_uuid=True), ForeignKey("app_collections.id"), nullable=False)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    visibility = Column(String(50), default="private")  # private, shared, public
+    allowed_apps = Column(JSON, default=list)  # List of app IDs with access
+    permissions = Column(JSON, default=dict)  # Permissions per app: {app_id: [read, write, delete]}
+    
+    # Relationships
+    collection = relationship("AppCollection", backref="shared_config")
+    owner = relationship("User")
+    
+    __table_args__ = (
+        Index('idx_shared_collection_owner', 'owner_id'),
+        Index('idx_shared_collection_visibility', 'visibility'),
+    )
+
+
+class AppConnection(BaseModel):
+    """Connections between apps for communication"""
+    __tablename__ = "app_connections"
+    
+    source_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    target_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    connection_type = Column(String(50), nullable=False)  # webhook, data_sync, event_trigger
+    config = Column(JSON, default=dict)
+    
+    # Relationships
+    source_app = relationship("App", foreign_keys=[source_app_id])
+    target_app = relationship("App", foreign_keys=[target_app_id])
+    
+    __table_args__ = (
+        Index('idx_app_connection_source', 'source_app_id'),
+        Index('idx_app_connection_target', 'target_app_id'),
+        Index('idx_app_connection_type', 'connection_type'),
+    )
+
+
+class CrossAppEvent(BaseModel):
+    """Events that can be triggered across apps"""
+    __tablename__ = "cross_app_events"
+    
+    source_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    target_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=True)  # Null for broadcast
+    event_type = Column(String(100), nullable=False)
+    event_data = Column(JSON, default=dict)
+    status = Column(String(50), default="pending")  # pending, processing, completed, failed
+    processed_at = Column(DateTime, nullable=True)
+    error_message = Column(Text, nullable=True)
+    
+    # Relationships
+    source_app = relationship("App", foreign_keys=[source_app_id])
+    target_app = relationship("App", foreign_keys=[target_app_id])
+    
+    __table_args__ = (
+        Index('idx_cross_app_event_source', 'source_app_id'),
+        Index('idx_cross_app_event_target', 'target_app_id'),
+        Index('idx_cross_app_event_type', 'event_type'),
+        Index('idx_cross_app_event_status', 'status'),
+    )
+
+
+class AppMessage(BaseModel):
+    """Messages between apps"""
+    __tablename__ = "app_messages"
+    
+    from_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    to_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    message_type = Column(String(100), nullable=False)
+    subject = Column(String(255), nullable=True)
+    payload = Column(JSON, default=dict)
+    is_read = Column(Boolean, default=False)
+    read_at = Column(DateTime, nullable=True)
+    
+    # Relationships
+    from_app = relationship("App", foreign_keys=[from_app_id])
+    to_app = relationship("App", foreign_keys=[to_app_id])
+    
+    __table_args__ = (
+        Index('idx_app_message_from', 'from_app_id'),
+        Index('idx_app_message_to', 'to_app_id'),
+        Index('idx_app_message_type', 'message_type'),
+        Index('idx_app_message_read', 'is_read'),
+    )
+
+
+class DataSyncJob(BaseModel):
+    """Data synchronization jobs between apps"""
+    __tablename__ = "data_sync_jobs"
+    
+    source_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    target_app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    source_collection_id = Column(UUID(as_uuid=True), ForeignKey("app_collections.id"), nullable=False)
+    target_collection_id = Column(UUID(as_uuid=True), ForeignKey("app_collections.id"), nullable=False)
+    sync_type = Column(String(50), default="one_way")  # one_way, two_way, real_time
+    field_mappings = Column(JSON, default=dict)  # Field mapping between collections
+    sync_frequency = Column(String(50), default="manual")  # manual, hourly, daily, real_time
+    last_sync_at = Column(DateTime, nullable=True)
+    next_sync_at = Column(DateTime, nullable=True)
+    sync_status = Column(String(50), default="active")  # active, paused, error
+    error_message = Column(Text, nullable=True)
+    
+    # Relationships
+    source_app = relationship("App", foreign_keys=[source_app_id])
+    target_app = relationship("App", foreign_keys=[target_app_id])
+    source_collection = relationship("AppCollection", foreign_keys=[source_collection_id])
+    target_collection = relationship("AppCollection", foreign_keys=[target_collection_id])
+    
+    __table_args__ = (
+        Index('idx_data_sync_source', 'source_app_id'),
+        Index('idx_data_sync_target', 'target_app_id'),
+        Index('idx_data_sync_status', 'sync_status'),
+    )
 
 
 # Dependency to get database session

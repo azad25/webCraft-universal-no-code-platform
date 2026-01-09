@@ -31,7 +31,9 @@ import {
   Upload,
   Share
 } from 'lucide-react'
-import { fetchDataSourceData } from '@/lib/data-source-api'
+import { SmartLink } from '@/components/ui/smart-link'
+import { getActionService } from '@/lib/action-service'
+import { testDataSourceEndpoint } from '@/lib/data-source-api'
 
 interface ButtonAction {
   type: 'navigate' | 'download' | 'email' | 'phone' | 'data-action' | 'media' | 'custom'
@@ -56,10 +58,26 @@ interface ButtonWidgetProps {
   fullWidth?: boolean
   alignment?: 'left' | 'center' | 'right'
   
-  // Enhanced linking and actions
-  action?: ButtonAction
+  // Smart linking
+  linkConfig?: {
+    type: 'page' | 'section' | 'data' | 'custom' | 'external' | 'action'
+    target: string
+    label?: string
+    openInNewTab?: boolean
+    parameters?: Record<string, any>
+    conditions?: string[]
+    tracking?: {
+      event: string
+      properties?: Record<string, any>
+    }
+  }
   
   // Legacy support
+  href?: string
+  target?: string
+  
+  // Enhanced linking and actions (deprecated - use linkConfig)
+  action?: ButtonAction
   link?: string
   
   // Data source integration for dynamic buttons
@@ -116,10 +134,13 @@ export function ButtonWidget({
   fullWidth = false,
   alignment = 'left',
   
-  // Enhanced action
-  action = { type: 'navigate', target: '#' },
+  // Smart linking
+  linkConfig,
   
   // Legacy support
+  href,
+  target,
+  action = { type: 'navigate', target: '#' },
   link,
   
   // Data source props
@@ -155,7 +176,7 @@ export function ButtonWidget({
     setIsLoadingData(true)
     
     try {
-      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      const response = await testDataSourceEndpoint(dataSourceId, dataEndpointId || '', {})
       
       // Transform API response to button format
       let transformedData = response.data
@@ -307,19 +328,19 @@ export function ButtonWidget({
       
       switch (actionConfig.dataAction) {
         case 'create':
-          await fetchDataSourceData(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload, false, 'POST')
+          await testDataSourceEndpoint(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload)
           break
         case 'update':
-          await fetchDataSourceData(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload, false, 'PUT')
+          await testDataSourceEndpoint(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload)
           break
         case 'delete':
-          await fetchDataSourceData(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload, false, 'DELETE')
+          await testDataSourceEndpoint(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload)
           break
         case 'fetch':
-          await fetchDataSourceData(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload, true)
+          await testDataSourceEndpoint(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload)
           break
         case 'export':
-          const data = await fetchDataSourceData(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload, true)
+          const data = await testDataSourceEndpoint(actionConfig.dataSourceId, actionConfig.dataEndpointId, payload)
           downloadAsJSON(data, 'export.json')
           break
       }
@@ -376,6 +397,29 @@ export function ButtonWidget({
       e.preventDefault()
       return
     }
+    
+    // Execute widget actions if available
+    if (elementId) {
+      const actionService = getActionService()
+      if (actionService) {
+        actionService.executeWidgetEvent(
+          elementId,
+          'click',
+          {
+            buttonText: localText,
+            buttonVariant: variant,
+            timestamp: Date.now()
+          }
+        ).catch(error => {
+          console.error('Failed to execute button actions:', error)
+          // Fallback to legacy action execution
+          executeAction(e)
+        })
+        return
+      }
+    }
+    
+    // Fallback to legacy action execution
     executeAction(e)
   }
 
@@ -441,50 +485,59 @@ export function ButtonWidget({
         whileTap={!inlineEditing && !isEditing ? { scale: 0.98 } : undefined}
         className={cn(fullWidth ? "w-full" : "inline-block")}
       >
-        <Button
-          variant={variant}
-          size={size}
-          disabled={isProcessing || isLoadingData}
-          className={cn(
-            "gap-2 relative",
-            fullWidth && "w-full",
-            (inlineEditing || isEditing) && "cursor-text",
-            isSelected && !inlineEditing && "ring-2 ring-primary/50"
-          )}
+        <SmartLink
+          linkConfig={linkConfig}
+          href={href || link}
+          target={target}
+          isPreview={isPreview}
+          className={cn(fullWidth ? "w-full" : "inline-block")}
           onClick={handleClick}
-          onDoubleClick={handleDoubleClick}
         >
-          {isProcessing ? (
-            <>
-              <RefreshCw className="w-4 h-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              {IconComponent && iconPosition === 'left' && (
-                <IconComponent className="w-4 h-4 flex-shrink-0" />
-              )}
-              {inlineEditing ? (
-                <span
-                  ref={textRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onInput={handleInput}
-                  onBlur={handleBlur}
-                  onKeyDown={handleKeyDown}
-                  className="outline-none min-w-[20px]"
-                >
-                  {localText}
-                </span>
-              ) : (
-                <span>{localText}</span>
-              )}
-              {IconComponent && iconPosition === 'right' && (
-                <IconComponent className="w-4 h-4 flex-shrink-0" />
-              )}
-            </>
-          )}
-        </Button>
+          <Button
+            variant={variant}
+            size={size}
+            disabled={isProcessing || isLoadingData}
+            className={cn(
+              "gap-2 relative",
+              fullWidth && "w-full",
+              (inlineEditing || isEditing) && "cursor-text",
+              isSelected && !inlineEditing && "ring-2 ring-primary/50"
+            )}
+            onDoubleClick={handleDoubleClick}
+            asChild={false}
+          >
+            {isProcessing ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                {IconComponent && iconPosition === 'left' && (
+                  <IconComponent className="w-4 h-4 flex-shrink-0" />
+                )}
+                {inlineEditing ? (
+                  <span
+                    ref={textRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    onInput={handleInput}
+                    onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
+                    className="outline-none min-w-[20px]"
+                  >
+                    {localText}
+                  </span>
+                ) : (
+                  <span>{localText}</span>
+                )}
+                {IconComponent && iconPosition === 'right' && (
+                  <IconComponent className="w-4 h-4 flex-shrink-0" />
+                )}
+              </>
+            )}
+          </Button>
+        </SmartLink>
       </motion.div>
       
       {/* Action Type Indicator */}

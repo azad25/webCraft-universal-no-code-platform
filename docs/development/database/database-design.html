@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Design & Architecture - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="docs-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Documentation</h2>
+                <p>Developer Guide</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="../index.html">Getting Started</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="../architecture/frontend-architecture.html">Frontend Architecture</a></li>
+                <li><a href="../architecture/backend-architecture.html">Backend Architecture</a></li>
+                <li><a href="../architecture/system-design.html">System Design</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html">Next.js Setup</a></li>
+                <li><a href="../frontend/react-components.html">React Components</a></li>
+                <li><a href="../frontend/state-management.html">State Management</a></li>
+                <li><a href="../frontend/styling.html">Styling & Theming</a></li>
+                
+                <li class="nav-section">Backend Development</li>
+                <li><a href="../backend/fastapi-setup.html">FastAPI Setup</a></li>
+                <li><a href="../backend/api-development.html">API Development</a></li>
+                <li><a href="../backend/authentication.html">Authentication</a></li>
+                <li><a href="../backend/authorization.html">Authorization</a></li>
+                
+                <li class="nav-section">Database</li>
+                <li class="active"><a href="database-design.html">Database Design</a></li>
+                <li><a href="postgresql-setup.html">PostgreSQL Setup</a></li>
+                <li><a href="redis-setup.html">Redis Setup</a></li>
+                <li><a href="migrations.html">Migrations</a></li>
+                <li><a href="performance.html">Performance Optimization</a></li>
+                
+                <li class="nav-section">API Reference</li>
+                <li><a href="../api/rest-endpoints.html">REST Endpoints</a></li>
+                <li><a href="../api/authentication.html">API Authentication</a></li>
+                <li><a href="../api/rate-limiting.html">Rate Limiting</a></li>
+                <li><a href="../api/webhooks.html">Webhooks</a></li>
+                
+                <li class="nav-section">Advanced Topics</li>
+                <li><a href="../advanced/testing.html">Testing Strategies</a></li>
+                <li><a href="../advanced/deployment.html">Deployment</a></li>
+                <li><a href="../advanced/performance.html">Performance</a></li>
+                <li><a href="../advanced/monitoring.html">Monitoring</a></li>
+                <li><a href="../advanced/security.html">Security</a></li>
+                
+                <li class="nav-section">Tutorials</li>
+                <li><a href="../tutorials/build-first-app.html">Build Your First App</a></li>
+                <li><a href="../tutorials/create-custom-widget.html">Create Custom Widget</a></li>
+                <li><a href="../tutorials/integrate-api.html">Integrate External APIs</a></li>
+                <li><a href="../tutorials/deploy-production.html">Deploy to Production</a></li>
+                
+                <li class="nav-section">Troubleshooting</li>
+                <li><a href="../troubleshooting/common-issues.html">Common Issues</a></li>
+                <li><a href="../troubleshooting/debugging.html">Debugging Guide</a></li>
+                <li><a href="../troubleshooting/faq.html">FAQ</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header class="content-header">
+                <h1>Database Design & Architecture</h1>
+                <p>Comprehensive guide to WebCraft's database architecture and design patterns</p>
+            </header>
+
+            <div class="content-body">
+                <section id="overview">
+                    <h2>Overview</h2>
+                    <p>WebCraft uses a multi-database architecture designed for scalability, performance, and reliability. Our database layer consists of:</p>
+                    <ul>
+                        <li><strong>PostgreSQL 15</strong> - Primary relational database for structured data</li>
+                        <li><strong>Redis 7</strong> - In-memory data store for caching and session management</li>
+                        <li><strong>TimescaleDB</strong> - Time-series data extension for analytics and metrics</li>
+                    </ul>
+                </section>
+
+                <section id="database-architecture">
+                    <h2>Database Architecture</h2>
+                    
+                    <h3>Multi-Tenant Architecture</h3>
+                    <p>WebCraft implements a multi-tenant architecture with row-level security:</p>
+                    <pre><code class="language-sql">-- Tenant isolation using PostgreSQL RLS
+CREATE TABLE workspaces (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY workspace_isolation ON workspaces
+    USING (id = current_setting('app.current_workspace_id')::UUID);</code></pre>
+
+                    <h3>Schema Organization</h3>
+                    <pre><code class="language-sql">-- Schema structure for multi-tenancy
+CREATE SCHEMA auth;
+CREATE SCHEMA workspace;
+CREATE SCHEMA analytics;
+CREATE SCHEMA system;
+
+-- Authentication tables
+CREATE TABLE auth.users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    is_verified BOOLEAN DEFAULT false
+);
+
+-- Workspace-specific tables
+CREATE TABLE workspace.projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    settings JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+                </section>
+
+                <section id="data-models">
+                    <h2>Core Data Models</h2>
+                    
+                    <h3>User Management</h3>
+                    <pre><code class="language-sql">-- User and workspace relationship
+CREATE TABLE workspace_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    user_id UUID NOT NULL REFERENCES auth.users(id),
+    role VARCHAR(50) NOT NULL CHECK (role IN ('owner', 'admin', 'editor', 'viewer')),
+    permissions JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(workspace_id, user_id)
+);
+
+-- User profile extension
+CREATE TABLE user_profiles (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    avatar_url TEXT,
+    bio TEXT,
+    preferences JSONB DEFAULT '{}',
+    timezone VARCHAR(50) DEFAULT 'UTC'
+);</code></pre>
+
+                    <h3>Project & Page Structure</h3>
+                    <pre><code class="language-sql">-- Pages within projects
+CREATE TABLE pages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES workspace.projects(id),
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    content JSONB DEFAULT '{}',
+    settings JSONB DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    is_published BOOLEAN DEFAULT false,
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(project_id, slug)
+);
+
+-- Component/widget definitions
+CREATE TABLE components (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES workspace.projects(id),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    category VARCHAR(100),
+    properties JSONB DEFAULT '{}',
+    styles JSONB DEFAULT '{}',
+    events JSONB DEFAULT '{}',
+    is_custom BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+
+                    <h3>Analytics & Metrics</h3>
+                    <pre><code class="language-sql">-- Page analytics using TimescaleDB
+CREATE TABLE page_analytics (
+    time TIMESTAMP WITH TIME ZONE NOT NULL,
+    page_id UUID NOT NULL REFERENCES pages(id),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    views INTEGER DEFAULT 0,
+    unique_visitors INTEGER DEFAULT 0,
+    avg_time_on_page INTEGER, -- seconds
+    bounce_rate DECIMAL(5,2),
+    device_type VARCHAR(50),
+    country VARCHAR(2)
+);
+
+-- Convert to TimescaleDB hypertable
+SELECT create_hypertable('page_analytics', 'time');
+
+-- Create indexes for performance
+CREATE INDEX idx_page_analytics_time_workspace ON page_analytics (time DESC, workspace_id);
+CREATE INDEX idx_page_analytics_page ON page_analytics (page_id, time DESC);</code></pre>
+                </section>
+
+                <section id="performance-optimization">
+                    <h2>Performance Optimization</h2>
+                    
+                    <h3>Indexing Strategy</h3>
+                    <pre><code class="language-sql">-- Performance indexes
+CREATE INDEX idx_workspaces_slug ON workspaces (slug);
+CREATE INDEX idx_projects_workspace ON projects (workspace_id);
+CREATE INDEX idx_pages_project_path ON pages (project_id, path);
+CREATE INDEX idx_components_project_type ON components (project_id, type);
+
+-- Composite indexes for complex queries
+CREATE INDEX idx_page_analytics_workspace_time ON page_analytics (workspace_id, time DESC);
+CREATE INDEX idx_workspace_members_user_role ON workspace_members (user_id, role);
+
+-- Partial indexes for filtered queries
+CREATE INDEX idx_pages_published ON pages (project_id) WHERE is_published = true;
+CREATE INDEX idx_users_active ON auth.users (email) WHERE is_active = true;</code></pre>
+
+                    <h3>Partitioning Strategy</h3>
+                    <pre><code class="language-sql">-- Partition large tables by workspace
+CREATE TABLE page_analytics_partitioned (
+    LIKE page_analytics INCLUDING ALL
+) PARTITION BY RANGE (workspace_id);
+
+-- Create partitions for each workspace range
+CREATE TABLE page_analytics_workspace_1 PARTITION OF page_analytics_partitioned
+    FOR VALUES FROM ('00000000-0000-0000-0000-000000000000') TO ('10000000-0000-0000-0000-000000000000');
+
+-- Function to automatically create partitions
+CREATE OR REPLACE FUNCTION create_workspace_partition(workspace_id UUID)
+RETURNS VOID AS $$
+BEGIN
+    EXECUTE format('
+        CREATE TABLE IF NOT EXISTS page_analytics_workspace_%s 
+        PARTITION OF page_analytics_partitioned 
+        FOR VALUES FROM (%L) TO (%L)',
+        replace(workspace_id::text, '-', '_'),
+        workspace_id,
+        workspace_id
+    );
+END;
+$$ LANGUAGE plpgsql;</code></pre>
+                </section>
+
+                <section id="redis-caching">
+                    <h2>Redis Caching Architecture</h2>
+                    
+                    <h3>Cache Structure</h3>
+                    <pre><code class="language-python"># Redis cache keys structure
+CACHE_KEYS = {
+    'workspace': 'workspace:{workspace_id}',
+    'project': 'project:{project_id}',
+    'page': 'page:{page_id}',
+    'component': 'component:{component_id}',
+    'user_session': 'session:{session_id}',
+    'rate_limit': 'rate_limit:{user_id}:{endpoint}',
+    'analytics': 'analytics:{workspace_id}:{date}',
+}
+
+# Cache TTL settings
+CACHE_TTL = {
+    'workspace': 3600,      # 1 hour
+    'project': 1800,         # 30 minutes
+    'page': 900,             # 15 minutes
+    'component': 3600,       # 1 hour
+    'user_session': 86400,   # 24 hours
+    'rate_limit': 60,        # 1 minute
+    'analytics': 300,        # 5 minutes
+}</code></pre>
+
+                    <h3>Caching Patterns</h3>
+                    <pre><code class="language-python"># Cache-aside pattern implementation
+async def get_workspace_with_cache(workspace_id: str) -> Workspace:
+    cache_key = CACHE_KEYS['workspace'].format(workspace_id=workspace_id)
+    
+    # Try cache first
+    cached_data = await redis_client.get(cache_key)
+    if cached_data:
+        return Workspace.parse_raw(cached_data)
+    
+    # Cache miss - fetch from database
+    workspace = await db.get_workspace(workspace_id)
+    if workspace:
+        # Store in cache with TTL
+        await redis_client.setex(
+            cache_key,
+            CACHE_TTL['workspace'],
+            workspace.json()
+        )
+    
+    return workspace
+
+# Cache invalidation
+async def invalidate_workspace_cache(workspace_id: str):
+    cache_key = CACHE_KEYS['workspace'].format(workspace_id=workspace_id)
+    await redis_client.delete(cache_key)
+    
+    # Invalidate related caches
+    project_keys = await redis_client.keys(f"project:*:workspace:{workspace_id}")
+    if project_keys:
+        await redis_client.delete(*project_keys)</code></pre>
+                </section>
+
+                <section id="best-practices">
+                    <h2>Database Best Practices</h2>
+                    
+                    <h3>Connection Pooling</h3>
+                    <pre><code class="python"># SQLAlchemy connection pool configuration
+DATABASE_CONFIG = {
+    'pool_size': 20,
+    'max_overflow': 40,
+    'pool_pre_ping': True,
+    'pool_recycle': 3600,
+    'echo': False,
+    'connect_args': {
+        'connect_timeout': 10,
+        'application_name': 'webcraft_api'
+    }
+}
+
+# Async engine configuration
+async_engine = create_async_engine(
+    DATABASE_URL,
+    **DATABASE_CONFIG,
+    isolation_level="READ_COMMITTED"
+)</code></pre>
+
+                    <h3>Query Optimization</h3>
+                    <ul>
+                        <li>Use EXPLAIN ANALYZE to analyze query performance</li>
+                        <li>Avoid N+1 queries by using eager loading</li>
+                        <li>Use database views for complex queries</li>
+                        <li>Implement proper indexing for foreign keys</li>
+                        <li>Use database constraints for data integrity</li>
+                    </ul>
+
+                    <h3>Data Migration Strategy</h3>
+                    <pre><code class="python"># Alembic migration example
+from alembic import op
+import sqlalchemy as sa
+
+def upgrade():
+    # Create new table with proper constraints
+    op.create_table(
+        'new_table',
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('name', sa.String(255), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('name')
+    )
+    
+    # Migrate data from old table
+    op.execute("""
+        INSERT INTO new_table (id, name, created_at)
+        SELECT id, name, CURRENT_TIMESTAMP FROM old_table
+    """)
+    
+    # Drop old table
+    op.drop_table('old_table')</code></pre>
+                </section>
+
+                <section id="monitoring">
+                    <h2>Database Monitoring</h2>
+                    
+                    <h3>Key Metrics to Monitor</h3>
+                    <ul>
+                        <li>Query performance and slow queries</li>
+                        <li>Connection pool utilization</li>
+                        <li>Cache hit rates</li>
+                        <li>Database size and growth</li>
+                        <li>Replication lag (if applicable)</li>
+                        <li>Lock contention</li>
+                    </ul>
+
+                    <h3>Health Checks</h3>
+                    <pre><code class="python"># Database health check endpoint
+@app.get("/health/database")
+async def database_health():
+    try:
+        # Test database connection
+        async with db_session() as session:
+            result = await session.execute(text("SELECT 1"))
+            
+        # Test Redis connection
+        redis_ping = await redis_client.ping()
+        
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "redis": "connected" if redis_ping else "disconnected",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }</code></pre>
+                </section>
+
+                <div class="next-steps">
+                    <h3>Next Steps</h3>
+                    <p>Continue learning about WebCraft's database implementation:</p>
+                    <div class="next-step-buttons">
+                        <a href="postgresql-setup.html" class="btn primary">PostgreSQL Setup</a>
+                        <a href="redis-setup.html" class="btn secondary">Redis Setup</a>
+                        <a href="migrations.html" class="btn secondary">Database Migrations</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

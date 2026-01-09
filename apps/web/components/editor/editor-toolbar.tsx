@@ -209,22 +209,36 @@ export function EditorToolbar({
           <div className="flex items-center bg-muted rounded-lg p-0.5">
             {previewModes.map((mode) => {
               const Icon = mode.icon
+              const isActive = previewMode === mode.id
               return (
                 <Tooltip key={mode.id}>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={previewMode === mode.id ? 'secondary' : 'ghost'}
+                      variant={isActive ? 'secondary' : 'ghost'}
                       size="sm"
-                      onClick={() => onPreviewModeChange(mode.id)}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        if (previewMode !== mode.id) {
+                          onPreviewModeChange(mode.id)
+                        }
+                      }}
                       className={cn(
-                        "h-7 w-7 p-0 transition-all",
-                        previewMode === mode.id && "shadow-sm"
+                        "h-7 w-7 p-0 transition-all duration-200",
+                        isActive && "shadow-sm ring-1 ring-primary/20",
+                        !isActive && "hover:bg-muted-foreground/10"
                       )}
                     >
-                      <Icon className="w-3.5 h-3.5" />
+                      <Icon className={cn(
+                        "w-3.5 h-3.5 transition-colors",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>{mode.label} ({mode.shortcut})</TooltipContent>
+                  <TooltipContent>
+                    {mode.label} ({mode.shortcut})
+                    {isActive && " - Active"}
+                  </TooltipContent>
                 </Tooltip>
               )
             })}

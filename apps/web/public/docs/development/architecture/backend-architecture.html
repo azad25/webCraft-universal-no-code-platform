@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Architecture - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                
+                <li class="nav-section">Getting Started</li>
+                <li><a href="../getting-started/quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="../getting-started/installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="../getting-started/environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="../getting-started/project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="system-overview.html"><i class="fas fa-sitemap"></i> System Overview</a></li>
+                <li><a href="backend-architecture.html" class="active"><i class="fas fa-server"></i> Backend Architecture</a></li>
+                <li><a href="frontend-architecture.html"><i class="fas fa-desktop"></i> Frontend Architecture</a></li>
+                <li><a href="module-system.html"><i class="fas fa-puzzle-piece"></i> Module System</a></li>
+                <li><a href="data-flow.html"><i class="fas fa-exchange-alt"></i> Data Flow</a></li>
+                <li><a href="design-patterns.html"><i class="fas fa-code-branch"></i> Design Patterns</a></li>
+                
+                <li class="nav-section">Backend Development</li>
+                <li><a href="../backend/fastapi-setup.html"><i class="fab fa-python"></i> FastAPI Setup</a></li>
+                <li><a href="../backend/database-models.html"><i class="fas fa-database"></i> Database Models</a></li>
+                <li><a href="../backend/api-routers.html"><i class="fas fa-route"></i> API Routers</a></li>
+                <li><a href="../backend/services.html"><i class="fas fa-cogs"></i> Services Layer</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html"><i class="fab fa-react"></i> Next.js Setup</a></li>
+                <li><a href="../frontend/component-architecture.html"><i class="fas fa-puzzle-piece"></i> Component Architecture</a></li>
+                <li><a href="../frontend/editor-system.html"><i class="fas fa-edit"></i> Editor System</a></li>
+                <li><a href="../frontend/widget-development.html"><i class="fas fa-cube"></i> Widget Development</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <header>
+                <h1>Backend Architecture</h1>
+                <div class="search-box">
+                    <input type="text" placeholder="Search documentation..." id="searchInput">
+                    <button onclick="searchDocs()"><i class="fas fa-search"></i></button>
+                </div>
+            </header>
+            
+            <div class="content-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Backend Architecture:</strong> This document provides a comprehensive overview of WebCraft's backend architecture, built with FastAPI, Python 3.11, and modern async patterns.
+                </div>
+
+                <section class="backend-overview">
+                    <h2>Backend Technology Stack</h2>
+                    
+                    <div class="tech-stack-grid">
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fab fa-python"></i>
+                            </div>
+                            <h3>Python 3.11</h3>
+                            <p>Modern Python with async/await support, type hints, and performance optimizations.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Async/await patterns</li>
+                                    <li>Type annotations</li>
+                                    <li>Performance improvements</li>
+                                    <li>Modern syntax features</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <h3>FastAPI</h3>
+                            <p>High-performance web framework with automatic API documentation and validation.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Automatic API docs</li>
+                                    <li>Pydantic validation</li>
+                                    <li>High performance</li>
+                                    <li>WebSocket support</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3>SQLAlchemy 2.0</h3>
+                            <p>Advanced ORM with relationship management, query optimization, and migration support.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Async ORM support</li>
+                                    <li>Relationship management</li>
+                                    <li>Query optimization</li>
+                                    <li>Migration tools</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-memory"></i>
+                            </div>
+                            <h3>Redis</h3>
+                            <p>High-performance caching, session management, and real-time data processing.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Session storage</li>
+                                    <li>Caching layer</li>
+                                    <li>Pub/Sub messaging</li>
+                                    <li>Rate limiting</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-stream"></i>
+                            </div>
+                            <h3>Kafka</h3>
+                            <p>Distributed event streaming platform for real-time data processing and messaging.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>Event streaming</li>
+                                    <li>Real-time processing</li>
+                                    <li>Scalable messaging</li>
+                                    <li>Fault tolerance</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <div class="tech-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h3>Security</h3>
+                            <p>Comprehensive security with JWT authentication, OAuth2, and input validation.</p>
+                            <div class="tech-details">
+                                <h4>Key Features:</h4>
+                                <ul>
+                                    <li>JWT authentication</li>
+                                    <li>OAuth2 integration</li>
+                                    <li>Input validation</li>
+                                    <li>Rate limiting</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="project-structure">
+                    <h2>Project Structure</h2>
+                    
+                    <div class="structure-tree">
+                        <div class="tree-item">
+                            <span class="tree-icon">📁</span>
+                            <strong>apps/api/</strong> - Main backend application
+                            <div class="tree-children">
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>core/</strong> - Core utilities and configurations
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>database.py</code> - Database connection and session management</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>config.py</code> - Application configuration</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>auth.py</code> - Authentication utilities</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>redis_client.py</code> - Redis connection and operations</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>kafka_client.py</code> - Kafka producer and consumer</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>logging.py</code> - Logging configuration</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>module_system.py</code> - Module registry and management</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>routers/</strong> - API endpoint definitions
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>auth.py</code> - Authentication endpoints</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>apps.py</code> - App management endpoints</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>widgets.py</code> - Widget CRUD operations</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>automations.py</code> - Automation workflow endpoints</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>integrations.py</code> - Third-party integrations</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>ai.py</code> - AI service endpoints</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>media.py</code> - File upload and management</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>services/</strong> - Business logic layer
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>app_builder.py</code> - App creation and management</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>ai_service.py</code> - AI provider integrations</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>automation_service.py</code> - Workflow execution engine</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>storage_service.py</code> - File storage management</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>email_service.py</code> - Email notifications</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>scheduler_service.py</code> - Background job scheduling</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>models/</strong> - Database models
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>user.py</code> - User model and authentication</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>app.py</code> - Application model</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>widget.py</code> - Widget definitions</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>automation.py</code> - Automation workflows</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>integration.py</code> - Third-party integrations</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>middleware/</strong> - Request/response middleware
+                                    <div class="tree-children">
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>rate_limiting.py</code> - API rate limiting</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>auth_middleware.py</code> - Authentication validation</div>
+                                        <div class="tree-item"><span class="tree-icon">🐍</span> <code>logging_middleware.py</code> - Request logging</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📁</span>
+                                    <strong>migrations/</strong> - Database migrations
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">🐍</span>
+                                    <strong>main.py</strong> - Application entry point
+                                </div>
+                                
+                                <div class="tree-item">
+                                    <span class="tree-icon">📄</span>
+                                    <strong>requirements.txt</strong> - Python dependencies
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="fastapi-architecture">
+                    <h2>FastAPI Architecture</h2>
+                    
+                    <div class="fastapi-components">
+                        <div class="component-section">
+                            <h3>Application Factory Pattern</h3>
+                            <p>WebCraft uses the application factory pattern for better testability and configuration management.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># main.py - Application factory
+from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize services on startup"""
+    # Initialize database
+    await init_db()
+    
+    # Initialize Redis
+    await init_redis()
+    
+    # Initialize Kafka
+    await init_kafka()
+    
+    # Initialize module system
+    await init_modules()
+    
+    yield
+    
+    # Cleanup on shutdown
+    await cleanup_services()
+
+# Create FastAPI app
+app = FastAPI(
+    title="WebCraft Universal Platform API",
+    description="No-code platform for building web applications",
+    version="1.0.0",
+    lifespan=lifespan
+)</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="component-section">
+                            <h3>Router Registration</h3>
+                            <p>Modular router registration with automatic prefixing and middleware application.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Router registration pattern
+from routers import auth, apps, widgets, automations
+
+def register_routers(app: FastAPI):
+    """Register all API routers"""
+    routers = [
+        (auth.router, "/auth", ["Authentication"]),
+        (apps.router, "/apps", ["Applications"]),
+        (widgets.router, "/widgets", ["Widgets"]),
+        (automations.router, "/automations", ["Automations"]),
+        (integrations.router, "/integrations", ["Integrations"]),
+        (ai.router, "/ai", ["AI Services"]),
+    ]
+    
+    for router, prefix, tags in routers:
+        app.include_router(
+            router,
+            prefix=f"/api/v1{prefix}",
+            tags=tags
+        )
+
+# Register routers
+register_routers(app)</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="component-section">
+                            <h3>Middleware Stack</h3>
+                            <p>Comprehensive middleware stack for security, performance, and monitoring.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Middleware configuration
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from middleware.rate_limiting import RateLimitMiddleware
+from middleware.auth_middleware import AuthMiddleware
+
+def setup_middleware(app: FastAPI):
+    """Configure middleware stack"""
+    
+    # CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    # GZip compression
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
+    
+    # Rate limiting
+    app.add_middleware(RateLimitMiddleware)
+    
+    # Authentication
+    app.add_middleware(AuthMiddleware)
+    
+    # Custom logging
+    app.add_middleware(LoggingMiddleware)
+
+setup_middleware(app)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="database-architecture">
+                    <h2>Database Architecture</h2>
+                    
+                    <div class="database-design">
+                        <div class="design-section">
+                            <h3>Multi-Tenant Architecture</h3>
+                            <p>WebCraft implements a multi-tenant database architecture with proper isolation and security.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Multi-tenant database session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+class TenantSession:
+    """Multi-tenant database session manager"""
+    
+    def __init__(self):
+        self.engine = create_async_engine(
+            settings.DATABASE_URL,
+            echo=settings.DEBUG,
+            pool_size=20,
+            max_overflow=0,
+        )
+        
+        self.async_session = sessionmaker(
+            self.engine,
+            class_=AsyncSession,
+            expire_on_commit=False
+        )
+    
+    async def get_session(self, tenant_id: str = None) -> AsyncSession:
+        """Get database session with tenant isolation"""
+        session = self.async_session()
+        
+        if tenant_id:
+            # Set tenant context for queries
+            await session.execute(
+                text("SET app.current_tenant = :tenant_id"),
+                {"tenant_id": tenant_id}
+            )
+        
+        return session
+
+# Dependency injection
+db_session = TenantSession()
+
+async def get_db(tenant_id: str = Depends(get_current_tenant)) -> AsyncSession:
+    """Database dependency for FastAPI"""
+    async with db_session.get_session(tenant_id) as session:
+        yield session</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="design-section">
+                            <h3>Model Relationships</h3>
+                            <p>Well-defined model relationships with proper indexing and constraints.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Example model with relationships
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    apps = relationship("App", back_populates="owner", cascade="all, delete-orphan")
+    integrations = relationship("Integration", back_populates="user")
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_user_email', 'email'),
+        Index('idx_user_username', 'username'),
+    )
+
+class App(Base):
+    __tablename__ = "apps"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    slug = Column(String, unique=True, index=True, nullable=False)
+    description = Column(Text)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # Relationships
+    owner = relationship("User", back_populates="apps")
+    widgets = relationship("Widget", back_populates="app", cascade="all, delete-orphan")
+    pages = relationship("Page", back_populates="app", cascade="all, delete-orphan")
+    
+    # Methods
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "description": self.description,
+            "owner_id": self.owner_id,
+            "created_at": self.created_at.isoformat(),
+        }</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="design-section">
+                            <h3>Database Migrations</h3>
+                            <p>Automated database migrations using Alembic with proper rollback support.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Alembic migration example
+"""Create apps table
+
+Revision ID: 001_initial_schema
+Revises: 
+Create Date: 2024-01-01 00:00:00.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+# revision identifiers
+revision = '001_initial_schema'
+down_revision = None
+branch_labels = None
+depends_on = None
+
+def upgrade() -> None:
+    # Create users table
+    op.create_table('users',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('email', sa.String(), nullable=False),
+        sa.Column('username', sa.String(), nullable=False),
+        sa.Column('hashed_password', sa.String(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('email'),
+        sa.UniqueConstraint('username')
+    )
+    
+    # Create indexes
+    op.create_index('idx_user_email', 'users', ['email'])
+    op.create_index('idx_user_username', 'users', ['username'])
+    
+    # Create apps table
+    op.create_table('apps',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(), nullable=False),
+        sa.Column('slug', sa.String(), nullable=False),
+        sa.Column('description', sa.Text(), nullable=True),
+        sa.Column('owner_id', sa.Integer(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('slug')
+    )
+
+def downgrade() -> None:
+    op.drop_table('apps')
+    op.drop_index('idx_user_username', table_name='users')
+    op.drop_index('idx_user_email', table_name='users')
+    op.drop_table('users')</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="service-layer">
+                    <h2>Service Layer Architecture</h2>
+                    
+                    <div class="service-components">
+                        <div class="service-section">
+                            <h3>Service Base Class</h3>
+                            <p>Abstract base class for all services with common functionality.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Base service class
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from core.logging import get_logger
+
+class BaseService(ABC):
+    """Abstract base class for all services"""
+    
+    def __init__(self, db: AsyncSession):
+        self.db = db
+        self.logger = get_logger(self.__class__.__name__)
+    
+    @abstractmethod
+    async def validate(self, data: Dict[str, Any]) -> bool:
+        """Validate input data"""
+        pass
+    
+    @abstractmethod
+    async def execute(self, **kwargs) -> Any:
+        """Execute service logic"""
+        pass
+    
+    async def log_operation(self, operation: str, details: Dict[str, Any]):
+        """Log service operations"""
+        self.logger.info(f"{operation}: {details}")
+    
+    async def handle_error(self, error: Exception, context: Dict[str, Any]):
+        """Handle service errors"""
+        self.logger.error(f"Service error: {error}", extra=context)
+        raise error
+
+# Example service implementation
+class AppBuilderService(BaseService):
+    """Service for building and managing applications"""
+    
+    async def validate(self, data: Dict[str, Any]) -> bool:
+        """Validate app creation data"""
+        required_fields = ['name', 'owner_id']
+        for field in required_fields:
+            if field not in data:
+                raise ValueError(f"Missing required field: {field}")
+        return True
+    
+    async def execute(self, **kwargs) -> App:
+        """Create a new application"""
+        try:
+            await self.validate(kwargs)
+            
+            app = App(
+                name=kwargs['name'],
+                slug=self.generate_slug(kwargs['name']),
+                description=kwargs.get('description', ''),
+                owner_id=kwargs['owner_id']
+            )
+            
+            self.db.add(app)
+            await self.db.commit()
+            await self.db.refresh(app)
+            
+            await self.log_operation("app_created", {
+                "app_id": app.id,
+                "name": app.name,
+                "owner_id": app.owner_id
+            })
+            
+            return app
+            
+        except Exception as e:
+            await self.handle_error(e, {"operation": "create_app", "data": kwargs})
+    
+    def generate_slug(self, name: str) -> str:
+        """Generate URL-friendly slug from app name"""
+        import re
+        slug = re.sub(r'[^\w\s-]', '', name.lower())
+        slug = re.sub(r'[-\s]+', '-', slug)
+        return slug.strip('-')</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="service-section">
+                            <h3>Dependency Injection</h3>
+                            <p>FastAPI dependency injection for service management and lifecycle.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Service dependency injection
+from fastapi import Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from services.app_builder import AppBuilderService
+from services.ai_service import AIService
+from services.automation_service import AutomationService
+
+# Service factories
+async def get_app_builder_service(
+    db: AsyncSession = Depends(get_db)
+) -> AppBuilderService:
+    """Get app builder service instance"""
+    return AppBuilderService(db)
+
+async def get_ai_service(
+    db: AsyncSession = Depends(get_db)
+) -> AIService:
+    """Get AI service instance"""
+    return AIService(db)
+
+async def get_automation_service(
+    db: AsyncSession = Depends(get_db)
+) -> AutomationService:
+    """Get automation service instance"""
+    return AutomationService(db)
+
+# Usage in routers
+@router.post("/apps")
+async def create_app(
+    app_data: AppCreate,
+    current_user: User = Depends(get_current_user),
+    app_service: AppBuilderService = Depends(get_app_builder_service)
+):
+    """Create a new application"""
+    try:
+        app = await app_service.execute(
+            name=app_data.name,
+            description=app_data.description,
+            owner_id=current_user.id
+        )
+        return app
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="async-patterns">
+                    <h2>Async Programming Patterns</h2>
+                    
+                    <div class="async-examples">
+                        <div class="async-section">
+                            <h3>Async Database Operations</h3>
+                            <p>Efficient async database operations with proper connection management.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Async database operations
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_
+
+class AsyncRepository:
+    """Generic async repository pattern"""
+    
+    def __init__(self, model: Type[Base], db: AsyncSession):
+        self.model = model
+        self.db = db
+    
+    async def create(self, **kwargs) -> Base:
+        """Create a new record"""
+        instance = self.model(**kwargs)
+        self.db.add(instance)
+        await self.db.commit()
+        await self.db.refresh(instance)
+        return instance
+    
+    async def get_by_id(self, id: int) -> Optional[Base]:
+        """Get record by ID"""
+        result = await self.db.execute(
+            select(self.model).where(self.model.id == id)
+        )
+        return result.scalar_one_or_none()
+    
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Base]:
+        """Get all records with pagination"""
+        result = await self.db.execute(
+            select(self.model)
+            .offset(skip)
+            .limit(limit)
+        )
+        return result.scalars().all()
+    
+    async def update(self, id: int, **kwargs) -> Optional[Base]:
+        """Update record by ID"""
+        instance = await self.get_by_id(id)
+        if instance:
+            for key, value in kwargs.items():
+                setattr(instance, key, value)
+            await self.db.commit()
+            await self.db.refresh(instance)
+        return instance
+    
+    async def delete(self, id: int) -> bool:
+        """Delete record by ID"""
+        instance = await self.get_by_id(id)
+        if instance:
+            await self.db.delete(instance)
+            await self.db.commit()
+            return True
+        return False
+
+# Usage example
+user_repo = AsyncRepository(User, db)
+user = await user_repo.create(
+    email="user@example.com",
+    username="johndoe",
+    hashed_password="hashed_password_here"
+)</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="async-section">
+                            <h3>Concurrent API Calls</h3>
+                            <p>Efficient concurrent API calls using asyncio.gather for better performance.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Concurrent API calls
+import asyncio
+import aiohttp
+from typing import List, Dict, Any
+
+class ConcurrentAPIClient:
+    """Client for making concurrent API calls"""
+    
+    def __init__(self, max_concurrent: int = 10):
+        self.max_concurrent = max_concurrent
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+    
+    async def fetch_single(self, session: aiohttp.ClientSession, url: str, **kwargs) -> Dict[str, Any]:
+        """Fetch single URL with semaphore"""
+        async with self.semaphore:
+            try:
+                async with session.get(url, **kwargs) as response:
+                    return await response.json()
+            except Exception as e:
+                return {"error": str(e), "url": url}
+    
+    async def fetch_multiple(self, urls: List[str], **kwargs) -> List[Dict[str, Any]]:
+        """Fetch multiple URLs concurrently"""
+        async with aiohttp.ClientSession() as session:
+            tasks = [
+                self.fetch_single(session, url, **kwargs)
+                for url in urls
+            ]
+            return await asyncio.gather(*tasks)
+    
+    async def fetch_with_retry(self, url: str, max_retries: int = 3, **kwargs) -> Dict[str, Any]:
+        """Fetch URL with retry logic"""
+        for attempt in range(max_retries):
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, **kwargs) as response:
+                        if response.status == 200:
+                            return await response.json()
+                        elif response.status >= 500 and attempt < max_retries - 1:
+                            await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                            continue
+                        else:
+                            return {"error": f"HTTP {response.status}", "url": url}
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+                return {"error": str(e), "url": url}
+
+# Usage example
+api_client = ConcurrentAPIClient(max_concurrent=5)
+
+# Fetch multiple URLs
+urls = [
+    "https://api.example.com/data1",
+    "https://api.example.com/data2",
+    "https://api.example.com/data3",
+]
+
+results = await api_client.fetch_multiple(urls)
+for result in results:
+    if "error" not in result:
+        print(f"Success: {result}")
+    else:
+        print(f"Error: {result['error']}")</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="api-design">
+                    <h2>RESTful API Design</h2>
+                    
+                    <div class="api-patterns">
+                        <div class="pattern-section">
+                            <h3>Resource-Based URLs</h3>
+                            <p>Clean, resource-based URL patterns following RESTful conventions.</p>
+                            
+                            <div class="api-endpoints">
+                                <div class="endpoint-group">
+                                    <h4>Applications</h4>
+                                    <div class="endpoint">
+                                        <span class="method get">GET</span>
+                                        <span class="path">/api/v1/apps</span>
+                                        <span class="description">List all applications</span>
+                                    </div>
+                                    <div class="endpoint">
+                                        <span class="method post">POST</span>
+                                        <span class="path">/api/v1/apps</span>
+                                        <span class="description">Create new application</span>
+                                    </div>
+                                    <div class="endpoint">
+                                        <span class="method get">GET</span>
+                                        <span class="path">/api/v1/apps/{id}</span>
+                                        <span class="description">Get application details</span>
+                                    </div>
+                                    <div class="endpoint">
+                                        <span class="method put">PUT</span>
+                                        <span class="path">/api/v1/apps/{id}</span>
+                                        <span class="description">Update application</span>
+                                    </div>
+                                    <div class="endpoint">
+                                        <span class="method delete">DELETE</span>
+                                        <span class="path">/api/v1/apps/{id}</span>
+                                        <span class="description">Delete application</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="endpoint-group">
+                                    <h4>Widgets</h4>
+                                    <div class="endpoint">
+                                        <span class="method get">GET</span>
+                                        <span class="path">/api/v1/widgets</span>
+                                        <span class="description">List available widgets</span>
+                                    </div>
+                                    <div class="endpoint">
+                                        <span class="method post">POST</span>
+                                        <span class="path">/api/v1/apps/{id}/widgets</span>
+                                        <span class="description">Add widget to application</span>
+                                    </div>
+                                    <div class="endpoint">
+                                        <span class="method put">PUT</span>
+                                        <span class="path">/api/v1/widgets/{id}</span>
+                                        <span class="description">Update widget configuration</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pattern-section">
+                            <h3>Response Standards</h3>
+                            <p>Consistent response formats with proper HTTP status codes and error handling.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-python"># Standard response format
+from typing import Generic, TypeVar, Optional
+from pydantic import BaseModel
+from fastapi import HTTPException
+
+T = TypeVar('T')
+
+class APIResponse(BaseModel, Generic[T]):
+    """Standard API response format"""
+    success: bool
+    data: Optional[T] = None
+    message: Optional[str] = None
+    errors: Optional[list] = None
+    metadata: Optional[dict] = None
+
+class ErrorResponse(BaseModel):
+    """Error response format"""
+    success: bool = False
+    error: str
+    details: Optional[dict] = None
+    request_id: Optional[str] = None
+
+# Usage in routers
+@router.get("/apps/{app_id}")
+async def get_app(
+    app_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> APIResponse[AppResponse]:
+    """Get application by ID"""
+    try:
+        app = await db.get(App, app_id)
+        if not app or app.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=404,
+                detail="Application not found"
+            )
+        
+        return APIResponse(
+            success=True,
+            data=AppResponse.from_orm(app),
+            message="Application retrieved successfully"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        return ErrorResponse(
+            error="Internal server error",
+            details={"error": str(e)}
+        )
+
+# Error handlers
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(
+            error=exc.detail,
+            request_id=request.headers.get("X-Request-ID")
+        ).dict()
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request, exc):
+    logger.error(f"Unhandled exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content=ErrorResponse(
+            error="Internal server error",
+            request_id=request.headers.get("X-Request-ID")
+        ).dict()
+    )</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="next-steps">
+                    <h2>Next Steps</h2>
+                    <p>Now that you understand the backend architecture, explore these detailed guides:</p>
+                    
+                    <div class="next-steps-grid">
+                        <div class="next-step-card">
+                            <i class="fas fa-database"></i>
+                            <h3>Database Models</h3>
+                            <p>Deep dive into database schema design, relationships, and query optimization.</p>
+                            <a href="../backend/database-models.html" class="btn primary">Learn More</a>
+                        </div>
+                        
+                        <div class="next-step-card">
+                            <i class="fas fa-route"></i>
+                            <h3>API Routers</h3>
+                            <p>Learn about API endpoint design, validation, and error handling patterns.</p>
+                            <a href="../backend/api-routers.html" class="btn primary">Learn More</a>
+                        </div>
+                        
+                        <div class="next-step-card">
+                            <i class="fas fa-cogs"></i>
+                            <h3>Services Layer</h3>
+                            <p>Understand business logic implementation and service layer patterns.</p>
+                            <a href="../backend/services.html" class="btn primary">Learn More</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <footer>
+                <p>&copy; 2024 WebCraft Developer Documentation. Built with ❤️ for the developer community.</p>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        function searchDocs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            // Implement search functionality
+            console.log('Searching for:', searchTerm);
+        }
+        
+        // Add search functionality
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchDocs();
+            }
+        });
+    </script>
+</body>
+</html>

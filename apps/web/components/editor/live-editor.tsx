@@ -6,7 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getAuthToken } from '@/lib/dev-auth'
 
-import { EditorSidebar } from './editor-sidebar-fixed'
+import { EditorSidebar } from './editor-sidebar'
 import { EditorCanvas } from './editor-canvas'
 import { EditorToolbar } from './editor-toolbar'
 import { PropertiesPanel } from './properties-panel'
@@ -51,6 +51,7 @@ function EditorContent({ appId }: { appId: string }) {
     position: { x: number; y: number }
   } | null>(null)
   const [resizingElement, setResizingElement] = useState<string | null>(null)
+  const [showGrid, setShowGrid] = useState(true) // Enable grid by default for Figma-like experience
 
   const {
     selectedElement,
@@ -75,8 +76,7 @@ function EditorContent({ appId }: { appId: string }) {
     createPage
   } = useEditor()
 
-  // Handle inline editor
-  // Enhanced inline editor with media support and direct editing
+  // Handle inline editor - Enhanced for Figma-like experience
   const handleOpenInlineEditor = useCallback((element: any, position?: { x: number; y: number }) => {
     if (!position) {
       // Calculate position from element
@@ -84,11 +84,11 @@ function EditorContent({ appId }: { appId: string }) {
       if (elementNode) {
         const rect = elementNode.getBoundingClientRect()
         position = {
-          x: rect.left + rect.width / 2 - 160, // Center the 320px wide editor
-          y: rect.top - 10 // Position above element
+          x: Math.max(10, Math.min(rect.left + rect.width / 2 - 200, window.innerWidth - 410)), // Center the 400px wide editor
+          y: Math.max(10, rect.top - 10) // Position above element with safe margin
         }
       } else {
-        position = { x: window.innerWidth / 2 - 160, y: 100 }
+        position = { x: window.innerWidth / 2 - 200, y: 100 }
       }
     }
     
@@ -112,7 +112,7 @@ function EditorContent({ appId }: { appId: string }) {
   const handleElementResize = useCallback((elementId: string, newSize: { width: number; height: number }) => {
     updateElement(elementId, { size: newSize })
   }, [updateElement])
-  // Handle adding elements from sidebar - require page selection
+  // Handle adding elements from sidebar - Enhanced for grid positioning
   const handleAddElement = useCallback((elementData: any) => {
     if (!currentPageId) {
       alert('Please select a page before adding elements')
@@ -125,27 +125,59 @@ function EditorContent({ appId }: { appId: string }) {
       // From Elements tab (complex structure)
       elementConfig = {
         type: elementData.element.type,
-        position: { x: 0, y: 0 },
+        position: { x: 0, y: 0 }, // Start at top-left for grid positioning
         size: { 
-          width: 1440, // Full width by default
-          height: elementData.element.defaultHeight || 400 
+          width: elementData.element.defaultWidth || 400, // Smaller default for grid
+          height: elementData.element.defaultHeight || 200 
         },
         props: elementData.element.props || {},
-        style: elementData.element.style || {},
-        children: []
+        style: {
+          ...elementData.element.style,
+          // Add grid positioning styles
+          position: 'relative',
+          display: 'block',
+          margin: '0',
+          padding: '16px'
+        },
+        children: [],
+        // Enhanced capabilities for Figma-like editing
+        capabilities: {
+          resizable: true,
+          movable: true,
+          editable: true,
+          deletable: true,
+          duplicatable: true,
+          styleable: true
+        }
       }
     } else {
       // From direct call or simple structure
       elementConfig = {
         type: elementData.type,
-        position: { x: 0, y: 0 },
+        position: { x: 0, y: 0 }, // Grid positioning
         size: { 
-          width: 1440, // Full width by default
+          width: elementData.defaultWidth || 400, // Grid-friendly size
           height: elementData.defaultHeight || 200 
         },
         props: elementData.props || {},
-        style: elementData.style || {},
-        children: []
+        style: {
+          ...elementData.style,
+          // Grid positioning styles
+          position: 'relative',
+          display: 'block',
+          margin: '0',
+          padding: '16px'
+        },
+        children: [],
+        // Enhanced capabilities
+        capabilities: {
+          resizable: true,
+          movable: true,
+          editable: true,
+          deletable: true,
+          duplicatable: true,
+          styleable: true
+        }
       }
     }
     
@@ -258,6 +290,24 @@ function EditorContent({ appId }: { appId: string }) {
         }
       }
 
+      // Device switching shortcuts
+      if (!modifier) {
+        switch (e.key) {
+          case '1':
+            e.preventDefault()
+            setPreviewMode('desktop')
+            break
+          case '2':
+            e.preventDefault()
+            setPreviewMode('tablet')
+            break
+          case '3':
+            e.preventDefault()
+            setPreviewMode('mobile')
+            break
+        }
+      }
+
       // Delete selected element
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement) {
         e.preventDefault()
@@ -285,16 +335,29 @@ function EditorContent({ appId }: { appId: string }) {
         }
       }
 
-      // Enter to start editing selected element
+      // Enter to start editing selected element - Enhanced for all widget types
       if (e.key === 'Enter' && selectedElement && !showPreview) {
+        // Don't interfere with contentEditable elements
+        if (
+          e.target instanceof HTMLElement && 
+          (e.target.contentEditable === 'true' || e.target.closest('[contenteditable="true"]'))
+        ) {
+          return
+        }
+        
         e.preventDefault()
-        // Trigger inline editing mode
+        
+        // Open inline editor for comprehensive editing
         const elementNode = document.querySelector(`[data-element-id="${selectedElement.id}"]`)
         if (elementNode) {
-          const editableElement = elementNode.querySelector('[contenteditable]')
-          if (editableElement) {
-            (editableElement as HTMLElement).focus()
+          const rect = elementNode.getBoundingClientRect()
+          const position = {
+            x: Math.max(10, Math.min(rect.left + rect.width / 2 - 200, window.innerWidth - 410)),
+            y: Math.max(10, rect.top - 10)
           }
+          handleOpenInlineEditor(selectedElement, position)
+        } else {
+          handleOpenInlineEditor(selectedElement)
         }
       }
     }
@@ -441,6 +504,7 @@ function EditorContent({ appId }: { appId: string }) {
             showPreview={showPreview}
             onOpenInlineEditor={handleOpenInlineEditor}
             onStartResize={handleStartResize}
+            appId={appId}
           />
 
           {/* Floating Actions */}
@@ -564,11 +628,12 @@ function EditorContent({ appId }: { appId: string }) {
                 handleStartResize(inlineEditor.element.id)
                 handleCloseInlineEditor()
               }}
+              appId={appId}
             />
           )}
         </AnimatePresence>
 
-        {/* Resize Handles */}
+        {/* Resize Handles - Enhanced for Figma-like experience */}
         {selectedElement && resizingElement === selectedElement.id && !showPreview && (
           <div className="fixed inset-0 pointer-events-none z-[9998]">
             <ResizeHandles
@@ -576,9 +641,12 @@ function EditorContent({ appId }: { appId: string }) {
               isSelected={true}
               onResize={(newSize) => handleElementResize(selectedElement.id, newSize)}
               onResizeEnd={() => setResizingElement(null)}
-              minWidth={50}
+              minWidth={20}
               minHeight={20}
-              showGrid={true}
+              showGrid={showGrid}
+              snapToGrid={true}
+              gridSize={8}
+              aspectRatio={selectedElement.type === 'image' ? null : null} // Maintain aspect ratio for images
             />
           </div>
         )}

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Menu, X, Database, RefreshCw, Loader2 } from 'lucide-react'
 import { SmartButton } from '@/components/ui/smart-button'
-import { fetchDataSourceData } from '@/lib/data-source-api'
+import { testDataSourceEndpoint } from '@/lib/data-source-api'
 
 interface NavItem {
   label: string
@@ -89,7 +89,7 @@ export function NavbarWidget({
     setError(null)
     
     try {
-      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      const response = await testDataSourceEndpoint(dataSourceId, dataEndpointId || '', {})
       
       // Transform API response to navbar format
       let transformedData = response.data

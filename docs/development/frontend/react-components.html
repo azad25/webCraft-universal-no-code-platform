@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Components - WebCraft Developer Docs</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="docs-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Developer Docs</h2>
+                <p>Build applications without code</p>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="../index.html" class="menu-link">Getting Started</a>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Architecture</a>
+                    <ul class="submenu">
+                        <li><a href="../architecture/system-overview.html" class="submenu-link">System Overview</a></li>
+                        <li><a href="../architecture/frontend-architecture.html" class="submenu-link">Frontend Architecture</a></li>
+                        <li><a href="../architecture/backend-architecture.html" class="submenu-link">Backend Architecture</a></li>
+                        <li><a href="../architecture/database-design.html" class="submenu-link">Database Design</a></li>
+                        <li><a href="../architecture/api-design.html" class="submenu-link">API Design</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu active">
+                    <a href="#" class="menu-link">Frontend Development</a>
+                    <ul class="submenu">
+                        <li><a href="nextjs-setup.html" class="submenu-link">Next.js Setup</a></li>
+                        <li><a href="react-components.html" class="submenu-link active">React Components</a></li>
+                        <li><a href="state-management.html" class="submenu-link">State Management</a></li>
+                        <li><a href="styling-guide.html" class="submenu-link">Styling Guide</a></li>
+                        <li><a href="drag-drop-system.html" class="submenu-link">Drag & Drop System</a></li>
+                        <li><a href="widget-development.html" class="submenu-link">Widget Development</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Backend Development</a>
+                    <ul class="submenu">
+                        <li><a href="../backend/fastapi-setup.html" class="submenu-link">FastAPI Setup</a></li>
+                        <li><a href="../backend/database-operations.html" class="submenu-link">Database Operations</a></li>
+                        <li><a href="../backend/api-development.html" class="submenu-link">API Development</a></li>
+                        <li><a href="../backend/authentication.html" class="submenu-link">Authentication</a></li>
+                        <li><a href="../backend/module-system.html" class="submenu-link">Module System</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Database</a>
+                    <ul class="submenu">
+                        <li><a href="../database/postgresql-setup.html" class="submenu-link">PostgreSQL Setup</a></li>
+                        <li><a href="../database/schema-design.html" class="submenu-link">Schema Design</a></li>
+                        <li><a href="../database/migrations.html" class="submenu-link">Migrations</a></li>
+                        <li><a href="../database/performance.html" class="submenu-link">Performance</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">API Reference</a>
+                    <ul class="submenu">
+                        <li><a href="../api/authentication.html" class="submenu-link">Authentication</a></li>
+                        <li><a href="../api/widgets.html" class="submenu-link">Widgets API</a></li>
+                        <li><a href="../api/projects.html" class="submenu-link">Projects API</a></li>
+                        <li><a href="../api/modules.html" class="submenu-link">Modules API</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Advanced Topics</a>
+                    <ul class="submenu">
+                        <li><a href="../advanced/deployment.html" class="submenu-link">Deployment</a></li>
+                        <li><a href="../advanced/scaling.html" class="submenu-link">Scaling</a></li>
+                        <li><a href="../advanced/security.html" class="submenu-link">Security</a></li>
+                        <li><a href="../advanced/monitoring.html" class="submenu-link">Monitoring</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">Tutorials</a>
+                    <ul class="submenu">
+                        <li><a href="../tutorials/build-first-app.html" class="submenu-link">Build Your First App</a></li>
+                        <li><a href="../tutorials/create-custom-widget.html" class="submenu-link">Create Custom Widget</a></li>
+                        <li><a href="../tutorials/integrate-api.html" class="submenu-link">Integrate External API</a></li>
+                        <li><a href="../tutorials/deploy-production.html" class="submenu-link">Deploy to Production</a></li>
+                    </ul>
+                </li>
+                
+                <li class="menu-item">
+                    <a href="../troubleshooting.html" class="menu-link">Troubleshooting</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>React Components</h1>
+                <p>Building reusable, performant React components for WebCraft</p>
+            </header>
+
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Component Architecture</h2>
+                    <p>WebCraft follows a component-based architecture with clear separation of concerns. Components are organized by functionality and reusability.</p>
+                    
+                    <div class="component-hierarchy">
+                        <h3>Component Hierarchy</h3>
+                        <ul>
+                            <li><strong>Atoms:</strong> Basic building blocks (Button, Input, Text)</li>
+                            <li><strong>Molecules:</strong> Combinations of atoms (Form Field, Search Bar)</li>
+                            <li><strong>Organisms:</strong> Complex components (Header, Sidebar, Widget)</li>
+                            <li><strong>Templates:</strong> Page-level layouts (Dashboard, Editor)</li>
+                            <li><strong>Pages:</strong> Full pages with specific content</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Component Structure</h2>
+                    
+                    <h3>Basic Component Pattern</h3>
+                    <div class="code-block">
+                        <pre><code>// components/ui/Button.tsx
+import React from 'react'
+import { cn } from '@/lib/utils'
+import { VariantProps, cva } from 'class-variance-authority'
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        outline: 'border border-input hover:bg-accent hover:text-accent-foreground',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        link: 'underline-offset-4 hover:underline text-primary',
+      },
+      size: {
+        default: 'h-10 py-2 px-4',
+        sm: 'h-9 px-3 rounded-md',
+        lg: 'h-11 px-8 rounded-md',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? 'span' : 'button'
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = 'Button'
+
+export { Button, buttonVariants }</code></pre>
+                    </div>
+
+                    <h3>Compound Component Pattern</h3>
+                    <div class="code-block">
+                        <pre><code>// components/ui/Card.tsx
+import React from 'react'
+import { cn } from '@/lib/utils'
+
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        'rounded-lg border bg-card text-card-foreground shadow-sm',
+        className
+      )}
+      {...props}
+    />
+  )
+)
+Card.displayName = 'Card'
+
+const CardHeader = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn('flex flex-col space-y-1.5 p-6', className)}
+      {...props}
+    />
+  )
+)
+CardHeader.displayName = 'CardHeader'
+
+const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h3
+      ref={ref}
+      className={cn(
+        'text-2xl font-semibold leading-none tracking-tight',
+        className
+      )}
+      {...props}
+    />
+  )
+)
+CardTitle.displayName = 'CardTitle'
+
+const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, ...props }, ref) => (
+    <p
+      ref={ref}
+      className={cn('text-sm text-muted-foreground', className)}
+      {...props}
+    />
+  )
+)
+CardDescription.displayName = 'CardDescription'
+
+const CardContent = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+  )
+)
+CardContent.displayName = 'CardContent'
+
+const CardFooter = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn('flex items-center p-6 pt-0', className)}
+      {...props}
+    />
+  )
+)
+CardFooter.displayName = 'CardFooter'
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }</code></pre>
+                    </div>
+
+                    <h3>Usage Example</h3>
+                    <div class="code-block">
+                        <pre><code>// Usage in a page
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+
+export default function DashboardPage() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Welcome to WebCraft</CardTitle>
+        <CardDescription>Build applications without writing code</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>Start creating your first application by dragging and dropping widgets.</p>
+      </CardContent>
+      <CardFooter>
+        <Button>Get Started</Button>
+      </CardFooter>
+    </Card>
+  )
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Widget Components</h2>
+                    
+                    <p>Widget components are the core building blocks of the WebCraft editor. They need to be draggable, configurable, and renderable.</p>
+                    
+                    <h3>Base Widget Interface</h3>
+                    <div class="code-block">
+                        <pre><code>// types/widgets.ts
+export interface WidgetProps {
+  id: string
+  type: string
+  position: { x: number; y: number }
+  size: { width: number; height: number }
+  properties: Record<string, any>
+  styles?: React.CSSProperties
+  isSelected?: boolean
+  isDragging?: boolean
+  onSelect?: (id: string) => void
+  onUpdate?: (id: string, updates: Partial<WidgetProps>) => void
+  onDelete?: (id: string) => void
+}
+
+export interface WidgetDefinition {
+  type: string
+  name: string
+  icon: string
+  category: 'basic' | 'layout' | 'form' | 'media' | 'advanced'
+  defaultProps: Partial<WidgetProps>
+  render: React.FC<WidgetProps>
+  propertiesPanel: React.FC<{ widget: WidgetProps; onUpdate: (updates: any) => void }>
+}</code></pre>
+                    </div>
+
+                    <h3>Text Widget Implementation</h3>
+                    <div class="code-block">
+                        <pre><code>// components/widgets/TextWidget.tsx
+import React from 'react'
+import { useDrag } from 'react-dnd'
+import { cn } from '@/lib/utils'
+import type { WidgetProps } from '@/types/widgets'
+
+interface TextWidgetProps extends WidgetProps {
+  text?: string
+  fontSize?: number
+  fontWeight?: string
+  color?: string
+  alignment?: 'left' | 'center' | 'right'
+}
+
+export const TextWidget: React.FC<TextWidgetProps> = ({
+  id,
+  text = 'Sample Text',
+  fontSize = 16,
+  fontWeight = 'normal',
+  color = '#000000',
+  alignment = 'left',
+  position,
+  size,
+  isSelected = false,
+  onSelect,
+  onUpdate,
+}) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'widget',
+    item: { id, type: 'text', position },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  })
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onSelect?.(id)
+  }
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    // Enable inline editing
+    const newText = prompt('Edit text:', text)
+    if (newText !== null) {
+      onUpdate?.(id, { properties: { ...properties, text: newText } })
+    }
+  }
+
+  return (
+    <div
+      ref={drag}
+      className={cn(
+        'absolute cursor-move select-none',
+        isDragging && 'opacity-50',
+        isSelected && 'ring-2 ring-blue-500'
+      )}
+      style={{
+        left: position.x,
+        top: position.y,
+        width: size.width,
+        height: size.height,
+      }}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
+    >
+      <div
+        style={{
+          fontSize,
+          fontWeight,
+          color,
+          textAlign: alignment,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start',
+          padding: '8px',
+        }}
+      >
+        {text}
+      </div>
+    </div>
+  )
+}
+
+// Properties Panel
+export const TextWidgetProperties: React.FC<{
+  widget: TextWidgetProps
+  onUpdate: (updates: any) => void
+}> = ({ widget, onUpdate }) => {
+  const handlePropertyChange = (property: string, value: any) => {
+    onUpdate({
+      ...widget,
+      properties: {
+        ...widget.properties,
+        [property]: value,
+      },
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Text Content</label>
+        <textarea
+          value={widget.text || ''}
+          onChange={(e) => handlePropertyChange('text', e.target.value)}
+          className="w-full px-3 py-2 border rounded-md"
+          rows={3}
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-1">Font Size</label>
+        <input
+          type="number"
+          value={widget.fontSize || 16}
+          onChange={(e) => handlePropertyChange('fontSize', parseInt(e.target.value))}
+          className="w-full px-3 py-2 border rounded-md"
+          min="8"
+          max="72"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-1">Font Weight</label>
+        <select
+          value={widget.fontWeight || 'normal'}
+          onChange={(e) => handlePropertyChange('fontWeight', e.target.value)}
+          className="w-full px-3 py-2 border rounded-md"
+        >
+          <option value="normal">Normal</option>
+          <option value="bold">Bold</option>
+          <option value="lighter">Light</option>
+          <option value="bolder">Extra Bold</option>
+        </select>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-1">Text Color</label>
+        <input
+          type="color"
+          value={widget.color || '#000000'}
+          onChange={(e) => handlePropertyChange('color', e.target.value)}
+          className="w-full h-10 border rounded-md"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-1">Alignment</label>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handlePropertyChange('alignment', 'left')}
+            className={`px-3 py-2 border rounded ${widget.alignment === 'left' ? 'bg-blue-500 text-white' : ''}`}
+          >
+            Left
+          </button>
+          <button
+            onClick={() => handlePropertyChange('alignment', 'center')}
+            className={`px-3 py-2 border rounded ${widget.alignment === 'center' ? 'bg-blue-500 text-white' : ''}`}
+          >
+            Center
+          </button>
+          <button
+            onClick={() => handlePropertyChange('alignment', 'right')}
+            className={`px-3 py-2 border rounded ${widget.alignment === 'right' ? 'bg-blue-500 text-white' : ''}`}
+          >
+            Right
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Performance Optimization</h2>
+                    
+                    <h3>Memoization</h3>
+                    <div class="code-block">
+                        <pre><code>// Optimized component with memoization
+import React, { memo, useMemo, useCallback } from 'react'
+
+interface ExpensiveComponentProps {
+  items: Array<{ id: string; name: string; price: number }>
+  filter: string
+  onItemSelect: (id: string) => void
+}
+
+const ExpensiveComponent = memo<ExpensiveComponentProps>(
+  ({ items, filter, onItemSelect }) => {
+    // Memoize expensive calculations
+    const filteredItems = useMemo(() => {
+      return items.filter(item => 
+        item.name.toLowerCase().includes(filter.toLowerCase())
+      )
+    }, [items, filter])
+    
+    // Memoize callbacks to prevent unnecessary re-renders
+    const handleItemClick = useCallback((id: string) => {
+      onItemSelect(id)
+    }, [onItemSelect])
+    
+    return (
+      <div>
+        {filteredItems.map(item => (
+          <div key={item.id} onClick={() => handleItemClick(item.id)}>
+            {item.name} - ${item.price}
+          </div>
+        ))}
+      </div>
+    )
+  },
+  // Custom comparison function
+  (prevProps, nextProps) => {
+    return (
+      prevProps.filter === nextProps.filter &&
+      prevProps.items.length === nextProps.items.length &&
+      prevProps.onItemSelect === nextProps.onItemSelect
+    )
+  }
+)
+
+ExpensiveComponent.displayName = 'ExpensiveComponent'</code></pre>
+                    </div>
+
+                    <h3>Dynamic Imports</h3>
+                    <div class="code-block">
+                        <pre><code>// Lazy load heavy components
+import dynamic from 'next/dynamic'
+
+const HeavyChart = dynamic(
+  () => import('@/components/charts/HeavyChart'),
+  {
+    loading: () => <div>Loading chart...</div>,
+    ssr: false, // Disable server-side rendering if needed
+  }
+)
+
+const CodeEditor = dynamic(
+  () => import('@/components/editor/CodeEditor'),
+  {
+    loading: () => <div>Loading editor...</div>,
+  }
+)
+
+// Usage
+export default function Dashboard() {
+  const [showChart, setShowChart] = useState(false)
+  
+  return (
+    <div>
+      <button onClick={() => setShowChart(true)}>Show Chart</button>
+      {showChart && <HeavyChart />}
+    </div>
+  )
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Custom Hooks</h2>
+                    
+                    <h3>useAuth Hook</h3>
+                    <div class="code-block">
+                        <pre><code>// hooks/useAuth.ts
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
+interface UseAuthOptions {
+  redirectTo?: string
+  required?: boolean
+}
+
+export function useAuth(options: UseAuthOptions = {}) {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const { redirectTo = '/login', required = false } = options
+  
+  useEffect(() => {
+    if (required && status === 'unauthenticated') {
+      router.push(redirectTo)
+    }
+  }, [status, required, redirectTo, router])
+  
+  return {
+    user: session?.user,
+    isAuthenticated: !!session,
+    isLoading: status === 'loading',
+    status,
+  }
+}
+
+// Usage
+export default function ProtectedPage() {
+  const { user, isLoading } = useAuth({ required: true })
+  
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+  
+  return <div>Welcome {user?.name}!</div>
+}</code></pre>
+                    </div>
+
+                    <h3>useEditor Hook</h3>
+                    <div class="code-block">
+                        <pre><code>// hooks/useEditor.ts
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState } from '@/store'
+import { 
+  addWidget, 
+  updateWidget, 
+  deleteWidget, 
+  selectWidget,
+  undo,
+  redo 
+} from '@/store/slices/editorSlice'
+import type { WidgetProps } from '@/types/widgets'
+
+export function useEditor() {
+  const dispatch = useDispatch()
+  const { 
+    widgets, 
+    selectedWidgetIds, 
+    history, 
+    historyIndex 
+  } = useSelector((state: RootState) => state.editor)
+  
+  const selectedWidgets = widgets.filter(w => selectedWidgetIds.includes(w.id))
+  
+  const addNewWidget = (type: string, position: { x: number; y: number }) => {
+    const newWidget: WidgetProps = {
+      id: `widget-${Date.now()}`,
+      type,
+      position,
+      size: { width: 200, height: 100 },
+      properties: {},
+    }
+    dispatch(addWidget(newWidget))
+  }
+  
+  const updateWidgetProperty = (widgetId: string, property: string, value: any) => {
+    dispatch(updateWidget({ 
+      id: widgetId, 
+      updates: { properties: { [property]: value } }
+    }))
+  }
+  
+  const removeWidget = (widgetId: string) => {
+    dispatch(deleteWidget(widgetId))
+  }
+  
+  const selectWidgets = (widgetIds: string[]) => {
+    dispatch(selectWidget(widgetIds))
+  }
+  
+  const canUndo = historyIndex > 0
+  const canRedo = historyIndex < history.length - 1
+  
+  return {
+    widgets,
+    selectedWidgets,
+    selectedWidgetIds,
+    addNewWidget,
+    updateWidgetProperty,
+    removeWidget,
+    selectWidgets,
+    undo: canUndo ? () => dispatch(undo()) : undefined,
+    redo: canRedo ? () => dispatch(redo()) : undefined,
+    canUndo,
+    canRedo,
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Testing Components</h2>
+                    
+                    <h3>Component Testing with Jest and React Testing Library</h3>
+                    <div class="code-block">
+                        <pre><code>// components/ui/__tests__/Button.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { Button } from '../Button'
+
+describe('Button Component', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument()
+  })
+  
+  it('handles click events', async () => {
+    const handleClick = jest.fn()
+    render(<Button onClick={handleClick}>Click me</Button>)
+    
+    await userEvent.click(screen.getByRole('button'))
+    expect(handleClick).toHaveBeenCalledTimes(1)
+  })
+  
+  it('applies variant classes correctly', () => {
+    const { rerender } = render(<Button variant="destructive">Delete</Button>)
+    expect(screen.getByRole('button')).toHaveClass('bg-destructive')
+    
+    rerender(<Button variant="outline">Outline</Button>)
+    expect(screen.getByRole('button')).toHaveClass('border')
+  })
+  
+  it('forwards refs correctly', () => {
+    const ref = React.createRef<HTMLButtonElement>()
+    render(<Button ref={ref}>Ref button</Button>)
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement)
+  })
+  
+  it('disables button when disabled prop is true', () => {
+    render(<Button disabled>Disabled button</Button>)
+    expect(screen.getByRole('button')).toBeDisabled()
+  })
+})</code></pre>
+                    </div>
+
+                    <h3>Testing Custom Hooks</h3>
+                    <div class="code-block">
+                        <pre><code>// hooks/__tests__/useAuth.test.ts
+import { renderHook } from '@testing-library/react-hooks'
+import { useSession } from 'next-auth/react'
+import { useAuth } from '../useAuth'
+
+jest.mock('next-auth/react')
+
+describe('useAuth Hook', () => {
+  const mockUseSession = useSession as jest.MockedFunction<typeof useSession>
+  
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+  
+  it('returns user data when authenticated', () => {
+    const mockSession = {
+      user: { id: '1', name: 'John Doe', email: 'john@example.com' },
+      expires: '2024-12-31',
+    }
+    mockUseSession.mockReturnValue({ data: mockSession, status: 'authenticated' } as any)
+    
+    const { result } = renderHook(() => useAuth())
+    
+    expect(result.current.user).toEqual(mockSession.user)
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(result.current.isLoading).toBe(false)
+  })
+  
+  it('returns loading state when session is loading', () => {
+    mockUseSession.mockReturnValue({ data: null, status: 'loading' } as any)
+    
+    const { result } = renderHook(() => useAuth())
+    
+    expect(result.current.user).toBeNull()
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(result.current.isLoading).toBe(true)
+  })
+})</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Common Patterns</h2>
+                    
+                    <h3>Controlled vs Uncontrolled Components</h3>
+                    <div class="code-block">
+                        <pre><code>// Controlled component
+interface ControlledInputProps {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+}
+
+export const ControlledInput: React.FC<ControlledInputProps> = ({
+  value,
+  onChange,
+  placeholder,
+}) => {
+  return (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="px-3 py-2 border rounded-md"
+    />
+  )
+}
+
+// Uncontrolled component with ref
+interface UncontrolledInputProps {
+  defaultValue?: string
+  placeholder?: string
+  onSubmit?: (value: string) => void
+}
+
+export const UncontrolledInput = React.forwardRef<
+  HTMLInputElement,
+  UncontrolledInputProps
+>(({ defaultValue, placeholder, onSubmit }, ref) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && onSubmit) {
+      onSubmit(e.currentTarget.value)
+    }
+  }
+  
+  return (
+    <input
+      ref={ref}
+      defaultValue={defaultValue}
+      placeholder={placeholder}
+      onKeyDown={handleKeyDown}
+      className="px-3 py-2 border rounded-md"
+    />
+  )
+})
+UncontrolledInput.displayName = 'UncontrolledInput'</code></pre>
+                    </div>
+
+                    <h3>Error Boundary</h3>
+                    <div class="code-block">
+                        <pre><code>// components/shared/ErrorBoundary.tsx
+import React, { Component, ErrorInfo, ReactNode } from 'react'
+
+interface Props {
+  children: ReactNode
+  fallback?: ReactNode
+  onError?: (error: Error, errorInfo: ErrorInfo) => void
+}
+
+interface State {
+  hasError: boolean
+  error: Error | null
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
+  }
+  
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo)
+    this.props.onError?.(error, errorInfo)
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return (
+        this.props.fallback || (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Something went wrong</h2>
+            <p className="text-red-600 mb-4">We're sorry, but something unexpected happened.</p>
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Try again
+            </button>
+          </div>
+        )
+      )
+    }
+    
+    return this.props.children
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <p>Continue learning about React development in WebCraft:</p>
+                    
+                    <div class="next-steps">
+                        <a href="state-management.html" class="btn primary">State Management</a>
+                        <a href="styling-guide.html" class="btn primary">Styling Guide</a>
+                        <a href="widget-development.html" class="btn secondary">Widget Development</a>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuItems = document.querySelectorAll('.has-submenu > .menu-link');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const parent = this.parentElement;
+                    const submenu = parent.querySelector('.submenu');
+                    
+                    if (submenu) {
+                        parent.classList.toggle('active');
+                        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                    }
+                });
+            });
+            
+            // Auto-expand active menu items
+            const activeLink = document.querySelector('.submenu-link.active');
+            if (activeLink) {
+                const parentMenu = activeLink.closest('.has-submenu');
+                if (parentMenu) {
+                    parentMenu.classList.add('active');
+                    const submenu = parentMenu.querySelector('.submenu');
+                    if (submenu) {
+                        submenu.style.display = 'block';
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

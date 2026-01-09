@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrate External APIs - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="docs-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Documentation</h2>
+                <p>Developer Guide</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="../index.html">Getting Started</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="../architecture/frontend-architecture.html">Frontend Architecture</a></li>
+                <li><a href="../architecture/backend-architecture.html">Backend Architecture</a></li>
+                <li><a href="../architecture/system-design.html">System Design</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html">Next.js Setup</a></li>
+                <li><a href="../frontend/react-components.html">React Components</a></li>
+                <li><a href="../frontend/state-management.html">State Management</a></li>
+                <li><a href="../frontend/styling.html">Styling & Theming</a></li>
+                
+                <li class="nav-section">Backend Development</li>
+                <li><a href="../backend/fastapi-setup.html">FastAPI Setup</a></li>
+                <li><a href="../backend/api-development.html">API Development</a></li>
+                <li><a href="../backend/authentication.html">Authentication</a></li>
+                <li><a href="../backend/authorization.html">Authorization</a></li>
+                
+                <li class="nav-section">Database</li>
+                <li><a href="../database/database-design.html">Database Design</a></li>
+                <li><a href="../database/postgresql-setup.html">PostgreSQL Setup</a></li>
+                <li><a href="../database/redis-setup.html">Redis Setup</a></li>
+                <li><a href="../database/migrations.html">Migrations</a></li>
+                <li><a href="../database/performance.html">Performance Optimization</a></li>
+                
+                <li class="nav-section">API Reference</li>
+                <li><a href="../api/rest-endpoints.html">REST Endpoints</a></li>
+                <li><a href="../api/authentication.html">API Authentication</a></li>
+                <li><a href="../api/rate-limiting.html">Rate Limiting</a></li>
+                <li><a href="../api/webhooks.html">Webhooks</a></li>
+                
+                <li class="nav-section">Advanced Topics</li>
+                <li><a href="../advanced/testing.html">Testing Strategies</a></li>
+                <li><a href="../advanced/deployment.html">Deployment</a></li>
+                <li><a href="../advanced/performance.html">Performance</a></li>
+                <li><a href="../advanced/monitoring.html">Monitoring</a></li>
+                <li><a href="../advanced/security.html">Security</a></li>
+                
+                <li class="nav-section">Tutorials</li>
+                <li><a href="build-first-app.html">Build Your First App</a></li>
+                <li><a href="create-custom-widget.html">Create Custom Widget</a></li>
+                <li class="active"><a href="integrate-api.html">Integrate External APIs</a></li>
+                <li><a href="deploy-production.html">Deploy to Production</a></li>
+                
+                <li class="nav-section">Troubleshooting</li>
+                <li><a href="../troubleshooting/common-issues.html">Common Issues</a></li>
+                <li><a href="../troubleshooting/debugging.html">Debugging Guide</a></li>
+                <li><a href="../troubleshooting/faq.html">FAQ</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header class="content-header">
+                <h1>Integrate External APIs</h1>
+                <p>Learn how to integrate external APIs into your WebCraft widgets and applications</p>
+            </header>
+
+            <div class="content-body">
+                <section id="overview">
+                    <h2>Overview</h2>
+                    <p>This tutorial will guide you through integrating external APIs into WebCraft widgets. We'll build a weather widget that fetches data from a weather API and displays it beautifully in your WebCraft pages.</p>
+                    
+                    <h3>What You'll Learn</h3>
+                    <ul>
+                        <li>Setting up API integrations in WebCraft</li>
+                        <li>Creating secure API connections</li>
+                        <li>Handling API responses and errors</li>
+                        <li>Building responsive widgets with external data</li>
+                        <li>Implementing caching for better performance</li>
+                        <li>Adding loading states and error handling</li>
+                    </ul>
+
+                    <h3>Prerequisites</h3>
+                    <ul>
+                        <li>Basic knowledge of TypeScript/JavaScript</li>
+                        <li>Understanding of React components</li>
+                        <li>API key from <a href="https://openweathermap.org/api" target="_blank">OpenWeatherMap</a> (free tier available)</li>
+                        <li>Completed the <a href="create-custom-widget.html">Create Custom Widget</a> tutorial</li>
+                    </ul>
+                </section>
+
+                <section id="api-setup">
+                    <h2>Setting Up the API Integration</h2>
+                    
+                    <h3>1. Get API Credentials</h3>
+                    <p>First, sign up for a free API key from OpenWeatherMap:</p>
+                    <ol>
+                        <li>Go to <a href="https://openweathermap.org/api" target="_blank">OpenWeatherMap API</a></li>
+                        <li>Sign up for a free account</li>
+                        <li>Get your API key from the dashboard</li>
+                        <li>Note down your API key (we'll use it in the configuration)</li>
+                    </ol>
+
+                    <h3>2. Create API Configuration</h3>
+                    <p>Create a configuration file for your weather API integration:</p>
+                    <pre><code class="language-typescript">// widgets/weather/api/weather.config.ts
+export interface WeatherAPIConfig {
+  apiKey: string;
+  baseURL: string;
+  timeout: number;
+  cacheTTL: number;
+  rateLimit: {
+    maxRequests: number;
+    windowMs: number;
+  };
+}
+
+export const defaultWeatherConfig: WeatherAPIConfig = {
+  apiKey: process.env.NEXT_PUBLIC_WEATHER_API_KEY || '',
+  baseURL: 'https://api.openweathermap.org/data/2.5',
+  timeout: 5000, // 5 seconds
+  cacheTTL: 600000, // 10 minutes
+  rateLimit: {
+    maxRequests: 60,
+    windowMs: 60000 // 1 minute
+  }
+};
+
+// API endpoints
+export const weatherEndpoints = {
+  currentWeather: '/weather',
+  forecast: '/forecast',
+  oneCall: '/onecall'
+} as const;
+
+// Weather data types
+export interface WeatherData {
+  location: {
+    name: string;
+    country: string;
+    lat: number;
+    lon: number;
+  };
+  current: {
+    temp: number;
+    feels_like: number;
+    humidity: number;
+    pressure: number;
+    wind_speed: number;
+    wind_direction: number;
+    weather: Array<{
+      id: number;
+      main: string;
+      description: string;
+      icon: string;
+    }>;
+  };
+  timestamp: number;
+}
+
+export interface WeatherError {
+  code: string;
+  message: string;
+  details?: any;
+}</code></pre>
+
+                    <h3>3. Create API Service</h3>
+                    <p>Build a service to handle API requests with proper error handling and caching:</p>
+                    <pre><code class="language-typescript">// widgets/weather/api/weather.service.ts
+import { WeatherAPIConfig, WeatherData, WeatherError, weatherEndpoints } from './weather.config';
+
+class WeatherAPIService {
+  private config: WeatherAPIConfig;
+  private cache: Map<string, { data: WeatherData; timestamp: number }> = new Map();
+  private requestQueue: Array<() => Promise<any>> = [];
+  private isProcessing = false;
+
+  constructor(config: WeatherAPIConfig) {
+    this.config = config;
+  }
+
+  async getCurrentWeather(city: string): Promise<WeatherData> {
+    const cacheKey = `weather_${city.toLowerCase()}`;
+    
+    // Check cache first
+    const cached = this.getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const response = await this.makeRequest(
+        `${this.config.baseURL}${weatherEndpoints.currentWeather}`,
+        {
+          q: city,
+          appid: this.config.apiKey,
+          units: 'metric'
+        }
+      );
+
+      const weatherData = this.transformWeatherResponse(response);
+      this.setCache(cacheKey, weatherData);
+      
+      return weatherData;
+    } catch (error) {
+      throw this.handleAPIError(error);
+    }
+  }
+
+  async getWeatherByCoords(lat: number, lon: number): Promise<WeatherData> {
+    const cacheKey = `weather_${lat}_${lon}`;
+    
+    // Check cache first
+    const cached = this.getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const response = await this.makeRequest(
+        `${this.config.baseURL}${weatherEndpoints.currentWeather}`,
+        {
+          lat,
+          lon,
+          appid: this.config.apiKey,
+          units: 'metric'
+        }
+      );
+
+      const weatherData = this.transformWeatherResponse(response);
+      this.setCache(cacheKey, weatherData);
+      
+      return weatherData;
+    } catch (error) {
+      throw this.handleAPIError(error);
+    }
+  }
+
+  private async makeRequest(url: string, params: Record<string, any>): Promise<any> {
+    const queryString = new URLSearchParams(params).toString();
+    const fullUrl = `${url}?${queryString}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
+    try {
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  }
+
+  private transformWeatherResponse(response: any): WeatherData {
+    return {
+      location: {
+        name: response.name,
+        country: response.sys.country,
+        lat: response.coord.lat,
+        lon: response.coord.lon
+      },
+      current: {
+        temp: Math.round(response.main.temp),
+        feels_like: Math.round(response.main.feels_like),
+        humidity: response.main.humidity,
+        pressure: response.main.pressure,
+        wind_speed: response.wind.speed,
+        wind_direction: response.wind.deg || 0,
+        weather: response.weather.map((w: any) => ({
+          id: w.id,
+          main: w.main,
+          description: w.description,
+          icon: w.icon
+        }))
+      },
+      timestamp: Date.now()
+    };
+  }
+
+  private getFromCache(cacheKey: string): WeatherData | null {
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && (Date.now() - cached.timestamp) < this.config.cacheTTL) {
+      return cached.data;
+    }
+    
+    // Remove expired cache entry
+    if (cached) {
+      this.cache.delete(cacheKey);
+    }
+    
+    return null;
+  }
+
+  private setCache(cacheKey: string, data: WeatherData): void {
+    this.cache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+
+  private handleAPIError(error: any): WeatherError {
+    if (error.name === 'AbortError') {
+      return {
+        code: 'TIMEOUT',
+        message: 'Weather API request timed out'
+      };
+    }
+    
+    if (error.message?.includes('401')) {
+      return {
+        code: 'INVALID_API_KEY',
+        message: 'Invalid weather API key'
+      };
+    }
+    
+    if (error.message?.includes('404')) {
+      return {
+        code: 'CITY_NOT_FOUND',
+        message: 'City not found'
+      };
+    }
+    
+    return {
+      code: 'API_ERROR',
+      message: 'Failed to fetch weather data',
+      details: error.message
+    };
+  }
+
+  clearCache(): void {
+    this.cache.clear();
+  }
+}
+
+export const weatherAPIService = new WeatherAPIService(defaultWeatherConfig);</code></pre>
+                </section>
+
+                <section id="widget-component">
+                    <h2>Building the Weather Widget Component</h2>
+                    
+                    <h3>1. Create the Widget Interface</h3>
+                    <pre><code class="language-typescript">// widgets/weather/WeatherWidget.types.ts
+import { WeatherData, WeatherError } from './api/weather.config';
+
+export interface WeatherWidgetProps {
+  city?: string;
+  lat?: number;
+  lon?: number;
+  units?: 'celsius' | 'fahrenheit';
+  theme?: 'light' | 'dark' | 'auto';
+  showDetails?: boolean;
+  refreshInterval?: number;
+  onWeatherUpdate?: (data: WeatherData) => void;
+  onError?: (error: WeatherError) => void;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export interface WeatherWidgetConfig {
+  name: string;
+  displayName: string;
+  description: string;
+  category: 'content' | 'layout' | 'form' | 'media';
+  icon: string;
+  properties: WidgetProperty[];
+  defaultProps: Partial<WeatherWidgetProps>;
+  preview: { width: number; height: number };
+}
+
+export interface WeatherState {
+  data: WeatherData | null;
+  loading: boolean;
+  error: WeatherError | null;
+  lastUpdated: number | null;
+}</code></pre>
+
+                    <h3>2. Create the Main Widget Component</h3>
+                    <pre><code class="language-typescript">// widgets/weather/WeatherWidget.tsx
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Weather, Cloud, Sun, CloudRain, Wind, Droplets, Gauge } from 'lucide-react';
+import { weatherAPIService } from './api/weather.service';
+import { WeatherWidgetProps, WeatherState } from './WeatherWidget.types';
+import './WeatherWidget.css';
+
+const WeatherWidget: React.FC<WeatherWidgetProps> = ({
+  city = 'London',
+  lat,
+  lon,
+  units = 'celsius',
+  theme = 'light',
+  showDetails = true,
+  refreshInterval = 300000, // 5 minutes
+  onWeatherUpdate,
+  onError,
+  className,
+  style
+}) => {
+  const [state, setState] = useState<WeatherState>({
+    data: null,
+    loading: true,
+    error: null,
+    lastUpdated: null
+  });
+
+  const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const fetchWeather = useCallback(async () => {
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      
+      let weatherData;
+      if (lat !== undefined && lon !== undefined) {
+        weatherData = await weatherAPIService.getWeatherByCoords(lat, lon);
+      } else {
+        weatherData = await weatherAPIService.getCurrentWeather(city);
+      }
+      
+      setState({
+        data: weatherData,
+        loading: false,
+        error: null,
+        lastUpdated: Date.now()
+      });
+      
+      onWeatherUpdate?.(weatherData);
+    } catch (error) {
+      const weatherError = error as any;
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: weatherError
+      }));
+      
+      onError?.(weatherError);
+    }
+  }, [city, lat, lon, onWeatherUpdate, onError]);
+
+  useEffect(() => {
+    fetchWeather();
+    
+    if (refreshInterval > 0) {
+      const interval = setInterval(fetchWeather, refreshInterval);
+      return () => clearInterval(interval);
+    }
+  }, [fetchWeather, refreshInterval]);
+
+  const getWeatherIcon = (weatherMain: string) => {
+    switch (weatherMain.toLowerCase()) {
+      case 'clear':
+        return <Sun className="weather-icon" />;
+      case 'rain':
+      case 'drizzle':
+        return <CloudRain className="weather-icon" />;
+      case 'clouds':
+        return <Cloud className="weather-icon" />;
+      default:
+        return <Weather className="weather-icon" />;
+    }
+  };
+
+  const convertTemperature = (temp: number) => {
+    if (units === 'fahrenheit') {
+      return Math.round((temp * 9/5) + 32);
+    }
+    return temp;
+  };
+
+  const getTemperatureUnit = () => units === 'fahrenheit' ? '°F' : '°C';
+
+  const formatLastUpdated = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString();
+  };
+
+  if (state.loading && !state.data) {
+    return (
+      <div className={`weather-widget weather-widget--loading ${isDark ? 'weather-widget--dark' : 'weather-widget--light'} ${className || ''}`} style={style}>
+        <div className="weather-loading">
+          <div className="weather-spinner"></div>
+          <p>Loading weather data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.error && !state.data) {
+    return (
+      <div className={`weather-widget weather-widget--error ${isDark ? 'weather-widget--dark' : 'weather-widget--light'} ${className || ''}`} style={style}>
+        <div className="weather-error">
+          <div className="error-icon">⚠️</div>
+          <h3>Weather Error</h3>
+          <p>{state.error.message}</p>
+          <button onClick={fetchWeather} className="retry-button">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!state.data) {
+    return null;
+  }
+
+  const { data } = state;
+  const currentWeather = data.current.weather[0];
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5 }}
+        className={`weather-widget ${isDark ? 'weather-widget--dark' : 'weather-widget--light'} ${className || ''}`}
+        style={style}
+      >
+        <div className="weather-header">
+          <div className="weather-location">
+            <h3>{data.location.name}</h3>
+            <p>{data.location.country}</p>
+          </div>
+          <button onClick={fetchWeather} className="refresh-button" disabled={state.loading}>
+            {state.loading ? '🔄' : '🔄'}
+          </button>
+        </div>
+
+        <div className="weather-main">
+          <div className="weather-icon-container">
+            {getWeatherIcon(currentWeather.main)}
+          </div>
+          <div className="weather-temp">
+            <span className="temperature">
+              {convertTemperature(data.current.temp)}
+            </span>
+            <span className="temperature-unit">{getTemperatureUnit()}</span>
+          </div>
+          <div className="weather-description">
+            <p>{currentWeather.description}</p>
+            <p className="feels-like">
+              Feels like {convertTemperature(data.current.feels_like)}{getTemperatureUnit()}
+            </p>
+          </div>
+        </div>
+
+        {showDetails && (
+          <div className="weather-details">
+            <div className="weather-detail">
+              <Wind className="detail-icon" />
+              <span className="detail-label">Wind</span>
+              <span className="detail-value">{data.current.wind_speed} m/s</span>
+            </div>
+            <div className="weather-detail">
+              <Droplets className="detail-icon" />
+              <span className="detail-label">Humidity</span>
+              <span className="detail-value">{data.current.humidity}%</span>
+            </div>
+            <div className="weather-detail">
+              <Gauge className="detail-icon" />
+              <span className="detail-label">Pressure</span>
+              <span className="detail-value">{data.current.pressure} hPa</span>
+            </div>
+          </div>
+        )}
+
+        <div className="weather-footer">
+          <p className="last-updated">
+            Last updated: {formatLastUpdated(data.timestamp)}
+          </p>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+export default WeatherWidget;</code></pre>
+
+                    <h3>3. Create the Widget Styles</h3>
+                    <pre><code class="language-css">/* widgets/weather/WeatherWidget.css */
+.weather-widget {
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 280px;
+  max-width: 400px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.weather-widget--light {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.weather-widget--dark {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+}
+
+.weather-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.weather-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.weather-location h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.weather-location p {
+  margin: 4px 0 0 0;
+  opacity: 0.8;
+  font-size: 0.875rem;
+}
+
+.refresh-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.weather-main {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.weather-icon-container {
+  margin-bottom: 16px;
+}
+
+.weather-icon {
+  width: 64px;
+  height: 64px;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.weather-temp {
+  margin-bottom: 8px;
+}
+
+.temperature {
+  font-size: 3rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.temperature-unit {
+  font-size: 1.5rem;
+  opacity: 0.8;
+  margin-left: 4px;
+}
+
+.weather-description p {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.feels-like {
+  font-size: 0.875rem !important;
+  opacity: 0.8;
+  margin-top: 4px !important;
+}
+
+.weather-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.weather-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.detail-icon {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.weather-footer {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.last-updated {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Loading State */
+.weather-widget--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.weather-loading {
+  text-align: center;
+}
+
+.weather-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.weather-widget--error {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.weather-error {
+  text-align: center;
+  padding: 20px;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.retry-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.retry-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .weather-widget {
+    padding: 20px;
+    min-width: 240px;
+  }
+  
+  .weather-details {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .temperature {
+    font-size: 2.5rem;
+  }
+  
+  .weather-icon {
+    width: 48px;
+    height: 48px;
+  }
+}</code></pre>
+                </section>
+
+                <section id="webcraft-integration">
+                    <h2>Integrating with WebCraft</h2>
+                    
+                    <h3>1. Create WebCraft Configuration</h3>
+                    <pre><code class="language-typescript">// widgets/weather/weather-widget.config.ts
+import { WeatherWidgetConfig } from './WeatherWidget.types';
+
+export const weatherWidgetConfig: WeatherWidgetConfig = {
+  name: 'weather-widget',
+  displayName: 'Weather Widget',
+  description: 'Display current weather information for any city',
+  category: 'content',
+  icon: '☀️',
+  properties: [
+    {
+      name: 'city',
+      type: 'text',
+      label: 'City Name',
+      description: 'Enter the city name (e.g., "New York", "London")',
+      defaultValue: 'London',
+      required: true
+    },
+    {
+      name: 'units',
+      type: 'select',
+      label: 'Temperature Units',
+      description: 'Choose temperature units',
+      options: [
+        { value: 'celsius', label: 'Celsius (°C)' },
+        { value: 'fahrenheit', label: 'Fahrenheit (°F)' }
+      ],
+      defaultValue: 'celsius'
+    },
+    {
+      name: 'theme',
+      type: 'select',
+      label: 'Theme',
+      description: 'Choose widget theme',
+      options: [
+        { value: 'light', label: 'Light' },
+        { value: 'dark', label: 'Dark' },
+        { value: 'auto', label: 'Auto (System)' }
+      ],
+      defaultValue: 'auto'
+    },
+    {
+      name: 'showDetails',
+      type: 'toggle',
+      label: 'Show Weather Details',
+      description: 'Display additional weather information',
+      defaultValue: true
+    },
+    {
+      name: 'refreshInterval',
+      type: 'number',
+      label: 'Refresh Interval (minutes)',
+      description: 'How often to refresh weather data (0 to disable auto-refresh)',
+      defaultValue: 5,
+      min: 0,
+      max: 60
+    },
+    {
+      name: 'lat',
+      type: 'number',
+      label: 'Latitude',
+      description: 'Use coordinates instead of city name (optional)',
+      required: false,
+      condition: { field: 'city', operator: 'equals', value: '' }
+    },
+    {
+      name: 'lon',
+      type: 'number',
+      label: 'Longitude',
+      description: 'Use coordinates instead of city name (optional)',
+      required: false,
+      condition: { field: 'city', operator: 'equals', value: '' }
+    }
+  ],
+  defaultProps: {
+    city: 'London',
+    units: 'celsius',
+    theme: 'auto',
+    showDetails: true,
+    refreshInterval: 5
+  },
+  preview: {
+    width: 320,
+    height: 400
+  }
+};</code></pre>
+
+                    <h3>2. Create WebCraft Wrapper Component</h3>
+                    <pre><code class="language-typescript">// widgets/weather/index.tsx
+import React from 'react';
+import { WidgetWrapper } from '@webcraft/core';
+import WeatherWidget from './WeatherWidget';
+import { weatherWidgetConfig } from './weather-widget.config';
+import { WeatherWidgetProps } from './WeatherWidget.types';
+
+const WebCraftWeatherWidget: React.FC<WeatherWidgetProps> = (props) => {
+  return (
+    <WidgetWrapper
+      config={weatherWidgetConfig}
+      {...props}
+    >
+      <WeatherWidget {...props} />
+    </WidgetWrapper>
+  );
+};
+
+export default WebCraftWeatherWidget;
+
+// Export for use in other projects
+export { WeatherWidget, weatherWidgetConfig };
+export type { WeatherWidgetProps, WeatherData, WeatherError } from './WeatherWidget.types';</code></pre>
+
+                    <h3>3. Register the Widget</h3>
+                    <pre><code class="language-typescript">// Register the weather widget in your WebCraft application
+import { WebCraftWeatherWidget, weatherWidgetConfig } from './widgets/weather';
+
+// Register the widget with WebCraft
+widgetRegistry.register({
+  ...weatherWidgetConfig,
+  component: WebCraftWeatherWidget
+});
+
+// Or use it directly in your pages
+import WeatherWidget from './widgets/weather';
+
+function MyPage() {
+  return (
+    <div className="page-content">
+      <h1>Welcome to My Weather Page</h1>
+      <WeatherWidget 
+        city="New York"
+        units="fahrenheit"
+        theme="dark"
+        showDetails={true}
+      />
+    </div>
+  );
+}</code></pre>
+                </section>
+
+                <section id="advanced-features">
+                    <h2>Advanced Features</h2>
+                    
+                    <h3>1. Add Location Detection</h3>
+                    <pre><code class="language-typescript">// widgets/weather/hooks/useGeolocation.ts
+import { useState, useEffect } from 'react';
+
+interface GeolocationState {
+  latitude: number | null;
+  longitude: number | null;
+  error: string | null;
+  loading: boolean;
+}
+
+export const useGeolocation = (): GeolocationState => {
+  const [state, setState] = useState<GeolocationState>({
+    latitude: null,
+    longitude: null,
+    error: null,
+    loading: true
+  });
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: 'Geolocation is not supported by this browser'
+      }));
+      return;
+    }
+
+    const successHandler = (position: GeolocationPosition) => {
+      setState({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        error: null,
+        loading: false
+      });
+    };
+
+    const errorHandler = (error: GeolocationPositionError) => {
+      setState({
+        latitude: null,
+        longitude: null,
+        error: error.message,
+        loading: false
+      });
+    };
+
+    const options: PositionOptions = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 300000 // 5 minutes
+    };
+
+    navigator.geolocation.getCurrentPosition(successHandler, errorHandler, options);
+  }, []);
+
+  return state;
+};
+
+// Usage in WeatherWidget
+import { useGeolocation } from './hooks/useGeolocation';
+
+const WeatherWidget: React.FC<WeatherWidgetProps> = (props) => {
+  const { city, lat, lon } = props;
+  const geoLocation = useGeolocation();
+  
+  // Use provided coordinates, geolocation, or city name
+  const coordinates = useMemo(() => {
+    if (lat !== undefined && lon !== undefined) {
+      return { lat, lon };
+    }
+    if (geoLocation.latitude && geoLocation.longitude) {
+      return { lat: geoLocation.latitude, lon: geoLocation.longitude };
+    }
+    return null;
+  }, [lat, lon, geoLocation]);
+
+  // Update fetchWeather to use coordinates
+  const fetchWeather = useCallback(async () => {
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      
+      let weatherData;
+      if (coordinates) {
+        weatherData = await weatherAPIService.getWeatherByCoords(coordinates.lat, coordinates.lon);
+      } else {
+        weatherData = await weatherAPIService.getCurrentWeather(city);
+      }
+      
+      setState({
+        data: weatherData,
+        loading: false,
+        error: null,
+        lastUpdated: Date.now()
+      });
+      
+      onWeatherUpdate?.(weatherData);
+    } catch (error) {
+      // ... error handling
+    }
+  }, [city, coordinates, onWeatherUpdate, onError]);
+
+  // Rest of component...
+};</code></pre>
+
+                    <h3>2. Add Weather Forecast</h3>
+                    <pre><code class="language-typescript">// widgets/weather/api/forecast.service.ts
+export interface ForecastData {
+  daily: Array<{
+    date: string;
+    temp: {
+      min: number;
+      max: number;
+    };
+    weather: {
+      main: string;
+      description: string;
+      icon: string;
+    };
+  }>;
+  hourly: Array<{
+    time: string;
+    temp: number;
+    weather: {
+      main: string;
+      icon: string;
+    };
+  }>;
+}
+
+class WeatherForecastService {
+  async getForecast(lat: number, lon: number): Promise<ForecastData> {
+    try {
+      const response = await fetch(
+        `${defaultWeatherConfig.baseURL}/onecall?lat=${lat}&lon=${lon}&appid=${defaultWeatherConfig.apiKey}&units=metric`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        daily: data.daily.slice(0, 7).map((day: any) => ({
+          date: new Date(day.dt * 1000).toLocaleDateString(),
+          temp: {
+            min: Math.round(day.temp.min),
+            max: Math.round(day.temp.max)
+          },
+          weather: {
+            main: day.weather[0].main,
+            description: day.weather[0].description,
+            icon: day.weather[0].icon
+          }
+        })),
+        hourly: data.hourly.slice(0, 24).map((hour: any) => ({
+          time: new Date(hour.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          temp: Math.round(hour.temp),
+          weather: {
+            main: hour.weather[0].main,
+            icon: hour.weather[0].icon
+          }
+        }))
+      };
+    } catch (error) {
+      throw new Error('Failed to fetch forecast data');
+    }
+  }
+}
+
+export const weatherForecastService = new WeatherForecastService();</code></pre>
+
+                    <h3>3. Create Forecast Component</h3>
+                    <pre><code class="language-typescript">// widgets/weather/WeatherForecast.tsx
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { weatherForecastService, ForecastData } from './api/forecast.service';
+import './WeatherForecast.css';
+
+interface WeatherForecastProps {
+  lat: number;
+  lon: number;
+  theme?: 'light' | 'dark';
+}
+
+const WeatherForecast: React.FC<WeatherForecastProps> = ({ lat, lon, theme = 'light' }) => {
+  const [forecast, setForecast] = useState<ForecastData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<'daily' | 'hourly'>('daily');
+
+  useEffect(() => {
+    const fetchForecast = async () => {
+      try {
+        const data = await weatherForecastService.getForecast(lat, lon);
+        setForecast(data);
+      } catch (error) {
+        console.error('Failed to fetch forecast:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchForecast();
+  }, [lat, lon]);
+
+  if (loading) {
+    return <div className="forecast-loading">Loading forecast...</div>;
+  }
+
+  if (!forecast) {
+    return <div className="forecast-error">Failed to load forecast data</div>;
+  }
+
+  return (
+    <div className={`weather-forecast weather-forecast--${theme}`}>
+      <div className="forecast-tabs">
+        <button
+          className={`forecast-tab ${selectedTab === 'daily' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('daily')}
+        >
+          7-Day Forecast
+        </button>
+        <button
+          className={`forecast-tab ${selectedTab === 'hourly' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('hourly')}
+        >
+          24-Hour Forecast
+        </button>
+      </div>
+
+      <div className="forecast-content">
+        {selectedTab === 'daily' && (
+          <div className="daily-forecast">
+            {forecast.daily.map((day, index) => (
+              <motion.div
+                key={day.date}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="forecast-day"
+              >
+                <div className="forecast-date">{day.date}</div>
+                <div className="forecast-icon">{getWeatherIcon(day.weather.icon)}</div>
+                <div className="forecast-temps">
+                  <span className="temp-high">{day.temp.max}°</span>
+                  <span className="temp-low">{day.temp.min}°</span>
+                </div>
+                <div className="forecast-desc">{day.weather.description}</div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {selectedTab === 'hourly' && (
+          <div className="hourly-forecast">
+            <div className="hourly-scroll">
+              {forecast.hourly.map((hour, index) => (
+                <motion.div
+                  key={hour.time}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="forecast-hour"
+                >
+                  <div className="forecast-time">{hour.time}</div>
+                  <div className="forecast-icon">{getWeatherIcon(hour.weather.icon)}</div>
+                  <div className="forecast-temp">{hour.temp}°</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+function getWeatherIcon(iconCode: string): string {
+  // Map OpenWeatherMap icon codes to emoji
+  const iconMap: Record<string, string> = {
+    '01d': '☀️', '01n': '🌙',
+    '02d': '⛅', '02n': '☁️',
+    '03d': '☁️', '03n': '☁️',
+    '04d': '☁️', '04n': '☁️',
+    '09d': '🌧️', '09n': '🌧️',
+    '10d': '🌦️', '10n': '🌧️',
+    '11d': '⛈️', '11n': '⛈️',
+    '13d': '❄️', '13n': '❄️',
+    '50d': '🌫️', '50n': '🌫️'
+  };
+  
+  return iconMap[iconCode] || '🌡️';
+}
+
+export default WeatherForecast;</code></pre>
+                </section>
+
+                <section id="testing-deployment">
+                    <h2>Testing and Deployment</h2>
+                    
+                    <h3>1. Write Unit Tests</h3>
+                    <pre><code class="language-typescript">// widgets/weather/__tests__/WeatherWidget.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import WeatherWidget from '../WeatherWidget';
+import { weatherAPIService } from '../api/weather.service';
+
+// Mock the weather API service
+jest.mock('../api/weather.service', () => ({
+  weatherAPIService: {
+    getCurrentWeather: jest.fn(),
+    getWeatherByCoords: jest.fn()
+  }
+}));
+
+describe('WeatherWidget', () => {
+  const mockWeatherData = {
+    location: {
+      name: 'London',
+      country: 'GB',
+      lat: 51.5074,
+      lon: -0.1278
+    },
+    current: {
+      temp: 15,
+      feels_like: 13,
+      humidity: 65,
+      pressure: 1013,
+      wind_speed: 3.5,
+      wind_direction: 180,
+      weather: [{
+        id: 800,
+        main: 'Clear',
+        description: 'clear sky',
+        icon: '01d'
+      }]
+    },
+    timestamp: Date.now()
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('displays weather data successfully', async () => {
+    (weatherAPIService.getCurrentWeather as jest.Mock).mockResolvedValue(mockWeatherData);
+
+    render(<WeatherWidget city="London" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('London')).toBeInTheDocument();
+      expect(screen.getByText('GB')).toBeInTheDocument();
+      expect(screen.getByText('15')).toBeInTheDocument();
+      expect(screen.getByText('°C')).toBeInTheDocument();
+      expect(screen.getByText('clear sky')).toBeInTheDocument();
+    });
+  });
+
+  it('handles API errors gracefully', async () => {
+    const mockError = new Error('City not found');
+    (weatherAPIService.getCurrentWeather as jest.Mock).mockRejectedValue(mockError);
+
+    render(<WeatherWidget city="InvalidCity" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Weather Error')).toBeInTheDocument();
+      expect(screen.getByText('Failed to fetch weather data')).toBeInTheDocument();
+    });
+  });
+
+  it('allows manual refresh', async () => {
+    const user = userEvent.setup();
+    (weatherAPIService.getCurrentWeather as jest.Mock).mockResolvedValue(mockWeatherData);
+
+    render(<WeatherWidget city="London" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('London')).toBeInTheDocument();
+    });
+
+    const refreshButton = screen.getByRole('button', { name: /refresh/i });
+    await user.click(refreshButton);
+
+    await waitFor(() => {
+      expect(weatherAPIService.getCurrentWeather).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('displays weather details when enabled', async () => {
+    (weatherAPIService.getCurrentWeather as jest.Mock).mockResolvedValue(mockWeatherData);
+
+    render(<WeatherWidget city="London" showDetails={true} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Wind')).toBeInTheDocument();
+      expect(screen.getByText('3.5 m/s')).toBeInTheDocument();
+      expect(screen.getByText('Humidity')).toBeInTheDocument();
+      expect(screen.getByText('65%')).toBeInTheDocument();
+      expect(screen.getByText('Pressure')).toBeInTheDocument();
+      expect(screen.getByText('1013 hPa')).toBeInTheDocument();
+    });
+  });
+
+  it('converts temperature to fahrenheit when specified', async () => {
+    (weatherAPIService.getCurrentWeather as jest.Mock).mockResolvedValue(mockWeatherData);
+
+    render(<WeatherWidget city="London" units="fahrenheit" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('59')).toBeInTheDocument(); // 15°C = 59°F
+      expect(screen.getByText('°F')).toBeInTheDocument();
+    });
+  });
+});
+
+// widgets/weather/__tests__/weather.service.test.ts
+import { weatherAPIService } from '../api/weather.service';
+
+global.fetch = jest.fn();
+
+describe('WeatherAPIService', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (fetch as jest.Mock).mockClear();
+    weatherAPIService.clearCache();
+  });
+
+  it('fetches current weather successfully', async () => {
+    const mockResponse = {
+      name: 'London',
+      sys: { country: 'GB' },
+      coord: { lat: 51.5074, lon: -0.1278 },
+      main: {
+        temp: 15,
+        feels_like: 13,
+        humidity: 65,
+        pressure: 1013
+      },
+      wind: { speed: 3.5, deg: 180 },
+      weather: [{
+        id: 800,
+        main: 'Clear',
+        description: 'clear sky',
+        icon: '01d'
+      }]
+    };
+
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse
+    });
+
+    const result = await weatherAPIService.getCurrentWeather('London');
+
+    expect(result.location.name).toBe('London');
+    expect(result.current.temp).toBe(15);
+    expect(result.current.weather[0].main).toBe('Clear');
+  });
+
+  it('uses cache for subsequent requests', async () => {
+    const mockResponse = {
+      name: 'London',
+      sys: { country: 'GB' },
+      coord: { lat: 51.5074, lon: -0.1278 },
+      main: { temp: 15, feels_like: 13, humidity: 65, pressure: 1013 },
+      wind: { speed: 3.5, deg: 180 },
+      weather: [{ id: 800, main: 'Clear', description: 'clear sky', icon: '01d' }]
+    };
+
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse
+    });
+
+    // First request
+    const result1 = await weatherAPIService.getCurrentWeather('London');
+    
+    // Second request should use cache
+    const result2 = await weatherAPIService.getCurrentWeather('London');
+
+    expect(fetch).toHaveBeenCalledTimes(1); // Only one API call
+    expect(result1).toEqual(result2);
+  });
+
+  it('handles API errors appropriately', async () => {
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found'
+    });
+
+    await expect(weatherAPIService.getCurrentWeather('InvalidCity'))
+      .rejects.toThrow('Failed to fetch weather data');
+  });
+
+  it('handles timeout errors', async () => {
+    // Mock fetch to never resolve
+    (fetch as jest.Mock).mockImplementationOnce(() => 
+      new Promise((resolve) => {
+        // Never resolve to simulate timeout
+      })
+    );
+
+    // The request should timeout after 5 seconds (configured timeout)
+    await expect(weatherAPIService.getCurrentWeather('London'))
+      .rejects.toThrow('Weather API request timed out');
+  });
+});</code></pre>
+
+                    <h3>2. Environment Configuration</h3>
+                    <pre><code class="language-bash"># .env.local
+NEXT_PUBLIC_WEATHER_API_KEY=your_openweathermap_api_key_here
+
+# For development with rate limiting
+WEATHER_API_RATE_LIMIT=60
+WEATHER_API_CACHE_TTL=600000</code></pre>
+
+                    <h3>3. Deployment Considerations</h3>
+                    <ul>
+                        <li><strong>API Rate Limits:</strong> Implement proper rate limiting to avoid exceeding API quotas</li>
+                        <li><strong>Security:</strong> Never expose sensitive API keys in client-side code</li>
+                        <li><strong>Caching:</strong> Use Redis or similar for distributed caching in production</li>
+                        <li><strong>Error Monitoring:</strong> Implement error tracking (e.g., Sentry) for production issues</li>
+                        <li><strong>Performance:</strong> Consider using a proxy server for API requests to improve performance</li>
+                        <li><strong>Fallbacks:</strong> Implement fallback data sources or cached data for reliability</li>
+                    </ul>
+                </section>
+
+                <div class="next-steps">
+                    <h3>Next Steps</h3>
+                    <p>Congratulations! You've built a fully functional weather widget with external API integration. Here's what you can explore next:</p>
+                    <div class="next-step-buttons">
+                        <a href="deploy-production.html" class="btn primary">Deploy to Production</a>
+                        <a href="../advanced/performance.html" class="btn secondary">Performance Optimization</a>
+                        <a href="../advanced/monitoring.html" class="btn secondary">Monitoring & Analytics</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

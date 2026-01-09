@@ -54,7 +54,7 @@ import {
   HelpCircle
 } from 'lucide-react'
 import { ButtonAction, ButtonActionExecutor, SmartButtonProps } from '@/lib/button-actions'
-import { fetchDataSourceData } from '@/lib/data-source-api'
+import { testDataSourceEndpoint } from '@/lib/data-source-api'
 
 const ICONS: Record<string, any> = {
   // Basic icons
@@ -207,7 +207,7 @@ export function SmartButton({
     setIsLoadingData(true)
     
     try {
-      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      const response = await testDataSourceEndpoint(dataSourceId, dataEndpointId || '', {})
       
       // Transform API response to button format
       let transformedData = response.data

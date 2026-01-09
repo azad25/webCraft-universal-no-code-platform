@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight, Play, Database, RefreshCw, Loader2, Upload, Edit3 } from 'lucide-react'
-import { fetchDataSourceData } from '@/lib/data-source-api'
+import { testDataSourceEndpoint } from '@/lib/data-source-api'
+import { LinkableWidgetWrapper } from './linkable-widget-wrapper'
+import { MediaManager } from '@/components/media/media-manager'
 
 interface HeroWidgetProps {
   // Data source integration
@@ -31,10 +33,24 @@ interface HeroWidgetProps {
   layout?: 'simple' | 'split' | 'video'
   showBadge?: boolean
   badgeText?: string
+  
+  // Universal link support
+  linkConfig?: {
+    type: 'page' | 'section' | 'data' | 'custom' | 'external' | 'action'
+    target: string
+    label?: string
+    openInNewTab?: boolean
+    parameters?: Record<string, any>
+  }
+  href?: string
+  target?: string
+  
   isEditing?: boolean
   isPreview?: boolean
   isSelected?: boolean
+  isHovered?: boolean
   elementId?: string
+  appId?: string
   onChange?: (props: any) => void
   onStyleChange?: (style: any) => void
 }
@@ -62,10 +78,18 @@ export function HeroWidget({
   layout = 'simple',
   showBadge = true,
   badgeText = '✨ New Feature Available',
+  
+  // Universal link props
+  linkConfig,
+  href,
+  target,
+  
   isEditing,
   isPreview,
   isSelected,
+  isHovered,
   elementId,
+  appId,
   onChange,
   onStyleChange
 }: HeroWidgetProps) {
@@ -74,6 +98,9 @@ export function HeroWidget({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+  // Media manager state
+  const [showMediaManager, setShowMediaManager] = useState(false)
 
   // Inline editing state
   const [editingField, setEditingField] = useState<string | null>(null)
@@ -129,11 +156,16 @@ export function HeroWidget({
   // Handle background image upload
   const handleBackgroundUpload = useCallback(() => {
     if (isPreview) return
-    const url = prompt('Enter background image URL:', backgroundImage || '')
-    if (url !== null && onChange) {
-      onChange({ backgroundImage: url })
+    setShowMediaManager(true)
+  }, [isPreview])
+
+  // Handle media selection from media manager
+  const handleMediaSelect = useCallback((media: any) => {
+    if (onChange) {
+      onChange({ backgroundImage: media.url })
     }
-  }, [backgroundImage, onChange, isPreview])
+    setShowMediaManager(false)
+  }, [onChange])
 
   // Fetch data from data source
   const fetchHeroData = async () => {
@@ -143,7 +175,7 @@ export function HeroWidget({
     setError(null)
     
     try {
-      const response = await fetchDataSourceData(dataSourceId, dataEndpointId || '', {}, true)
+      const response = await testDataSourceEndpoint(dataSourceId, dataEndpointId || '', {})
       
       // Transform API response to hero format
       let transformedData = response.data
@@ -194,20 +226,30 @@ export function HeroWidget({
   }
 
   return (
-    <section
-      className={cn(
-        "relative w-full min-h-[600px] flex items-center overflow-hidden group",
-        alignment === 'center' && "text-center",
-        alignment === 'left' && "text-left",
-        alignment === 'right' && "text-right"
-      )}
-      style={{
-        backgroundColor,
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
+    <LinkableWidgetWrapper
+      linkConfig={linkConfig}
+      href={href}
+      target={target}
+      isPreview={isPreview}
+      isSelected={isSelected}
+      isHovered={isHovered}
+      elementId={elementId}
+      elementType="hero"
     >
+      <section
+        className={cn(
+          "relative w-full min-h-[600px] flex items-center overflow-hidden group",
+          alignment === 'center' && "text-center",
+          alignment === 'left' && "text-left",
+          alignment === 'right' && "text-right"
+        )}
+        style={{
+          backgroundColor,
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
       {/* Background Overlay */}
       {backgroundImage && backgroundOverlay > 0 && (
         <div 
@@ -408,5 +450,17 @@ export function HeroWidget({
         </div>
       </div>
     </section>
+
+    {/* Media Manager */}
+    {appId && (
+      <MediaManager
+        appId={appId}
+        isOpen={showMediaManager}
+        onClose={() => setShowMediaManager(false)}
+        onSelect={handleMediaSelect}
+        acceptTypes={['image']}
+      />
+    )}
+    </LinkableWidgetWrapper>
   )
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,33 +51,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { mediaApi, MediaItem, MediaFolder, MediaType } from '@/lib/media-api';
 
-type MediaType = 'image' | 'video' | 'document' | 'url' | 'code' | 'embed';
 type ViewMode = 'grid' | 'list';
-
-interface MediaItem {
-  id: string;
-  type: MediaType;
-  name: string;
-  url: string;
-  thumbnailUrl?: string;
-  mimeType?: string;
-  size?: number;
-  width?: number;
-  height?: number;
-  altText?: string;
-  caption?: string;
-  folderId?: string;
-  tags: string[];
-  metadata?: Record<string, any>;
-  createdAt: Date;
-}
-
-interface MediaFolder {
-  id: string;
-  name: string;
-  parentId?: string;
-}
 
 interface MediaManagerProps {
   appId: string;
@@ -87,21 +63,6 @@ interface MediaManagerProps {
   allowMultiple?: boolean;
   acceptTypes?: MediaType[];
 }
-
-// Sample data
-const sampleMedia: MediaItem[] = [
-  { id: '1', type: 'image', name: 'hero-banner.jpg', url: '/images/hero.jpg', thumbnailUrl: '/images/hero.jpg', size: 245000, width: 1920, height: 1080, tags: ['hero', 'banner'], createdAt: new Date() },
-  { id: '2', type: 'image', name: 'logo.png', url: '/images/logo.png', thumbnailUrl: '/images/logo.png', size: 12000, width: 200, height: 200, tags: ['logo', 'brand'], createdAt: new Date() },
-  { id: '3', type: 'video', name: 'product-demo.mp4', url: '/videos/demo.mp4', thumbnailUrl: '/images/video-thumb.jpg', size: 15000000, tags: ['demo'], createdAt: new Date() },
-  { id: '4', type: 'document', name: 'terms.pdf', url: '/docs/terms.pdf', mimeType: 'application/pdf', size: 125000, tags: ['legal'], createdAt: new Date() },
-  { id: '5', type: 'embed', name: 'YouTube Video', url: 'https://youtube.com/watch?v=abc123', thumbnailUrl: 'https://img.youtube.com/vi/abc123/maxresdefault.jpg', metadata: { provider: 'youtube' }, tags: [], createdAt: new Date() },
-];
-
-const sampleFolders: MediaFolder[] = [
-  { id: 'f1', name: 'Images' },
-  { id: 'f2', name: 'Videos' },
-  { id: 'f3', name: 'Documents' },
-];
 
 const getFileIcon = (type: MediaType, mimeType?: string) => {
   switch (type) {
@@ -140,9 +101,10 @@ export function MediaManager({
   const [filterType, setFilterType] = useState<MediaType | 'all'>('all');
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [media, setMedia] = useState<MediaItem[]>(sampleMedia);
-  const [folders] = useState<MediaFolder[]>(sampleFolders);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [folders, setFolders] = useState<MediaFolder[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
   
   // Upload states
@@ -153,37 +115,86 @@ export function MediaManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
+  // Load media and folders on mount and when appId changes
+  useEffect(() => {
+    if (isOpen && appId) {
+      loadMedia();
+      loadFolders();
+    }
+  }, [isOpen, appId, currentFolder, searchQuery, filterType]);
+
+  const loadMedia = async () => {
+    try {
+      setLoading(true);
+      const params: any = {};
+      
+      if (filterType !== 'all') params.type = filterType;
+      if (currentFolder) params.folder_id = currentFolder;
+      if (searchQuery) params.search = searchQuery;
+      
+      const mediaItems = await mediaApi.listMedia(appId, params);
+      setMedia(mediaItems);
+    } catch (error) {
+      console.error('Failed to load media:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadFolders = async () => {
+    try {
+      const folderItems = await mediaApi.listFolders(appId);
+      setFolders(folderItems);
+    } catch (error) {
+      console.error('Failed to load folders:', error);
+    }
+  };
+
   const filteredMedia = media.filter(item => {
-    if (filterType !== 'all' && item.type !== filterType) return false;
-    if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (acceptTypes && !acceptTypes.includes(item.type)) return false;
-    return true;
+    return true; // API already handles filtering
   });
 
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files) return;
     setUploading(true);
     
-    // Simulate upload
-    await new Promise(r => setTimeout(r, 1500));
-    
-    const newItems: MediaItem[] = Array.from(files).map((file, i) => ({
-      id: `new-${Date.now()}-${i}`,
-      type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'document',
-      name: file.name,
-      url: URL.createObjectURL(file),
-      thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
-      mimeType: file.type,
-      size: file.size,
-      tags: [],
-      folderId: currentFolder || undefined,
-      createdAt: new Date()
-    }));
-    
-    setMedia(prev => [...newItems, ...prev]);
-    setUploading(false);
-    setActiveTab('library');
-  }, [currentFolder]);
+    try {
+      const fileArray = Array.from(files);
+      
+      if (fileArray.length === 1) {
+        // Single file upload
+        const result = await mediaApi.uploadFile(
+          fileArray[0], 
+          appId, 
+          currentFolder || undefined
+        );
+        
+        if (result.success && result.media) {
+          setMedia(prev => [result.media!, ...prev]);
+        }
+      } else {
+        // Batch upload
+        const results = await mediaApi.uploadBatch(
+          fileArray, 
+          appId, 
+          currentFolder || undefined
+        );
+        
+        const successfulUploads = results
+          .filter(r => r.success && r.media)
+          .map(r => r.media!);
+        
+        setMedia(prev => [...successfulUploads, ...prev]);
+      }
+      
+      setActiveTab('library');
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setUploading(false);
+    }
+  }, [appId, currentFolder]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -193,78 +204,72 @@ export function MediaManager({
   const handleAddUrl = async () => {
     if (!urlInput) return;
     setUploading(true);
-    await new Promise(r => setTimeout(r, 500));
     
-    const newItem: MediaItem = {
-      id: `url-${Date.now()}`,
-      type: 'url',
-      name: urlInput.split('/').pop() || 'External URL',
-      url: urlInput,
-      thumbnailUrl: urlInput.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? urlInput : undefined,
-      tags: [],
-      createdAt: new Date()
-    };
-    
-    setMedia(prev => [newItem, ...prev]);
-    setUrlInput('');
-    setUploading(false);
-    setActiveTab('library');
+    try {
+      const result = await mediaApi.addUrlMedia({
+        app_id: appId,
+        url: urlInput,
+        folder_id: currentFolder || undefined
+      });
+      
+      if (result.success && result.media) {
+        setMedia(prev => [result.media!, ...prev]);
+        setUrlInput('');
+        setActiveTab('library');
+      }
+    } catch (error) {
+      console.error('Failed to add URL:', error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleAddEmbed = async () => {
     if (!embedUrl) return;
     setUploading(true);
-    await new Promise(r => setTimeout(r, 500));
     
-    let provider = 'unknown';
-    let thumbnailUrl: string | undefined;
-    
-    if (embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be')) {
-      provider = 'youtube';
-      const videoId = embedUrl.includes('youtu.be') 
-        ? embedUrl.split('youtu.be/')[1]?.split('?')[0]
-        : embedUrl.split('v=')[1]?.split('&')[0];
-      if (videoId) thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    } else if (embedUrl.includes('vimeo.com')) {
-      provider = 'vimeo';
+    try {
+      const result = await mediaApi.addEmbed({
+        url: embedUrl,
+        app_id: appId,
+        folder_id: currentFolder || undefined
+      });
+      
+      if (result.success && result.media) {
+        setMedia(prev => [result.media!, ...prev]);
+        setEmbedUrl('');
+        setActiveTab('library');
+      }
+    } catch (error) {
+      console.error('Failed to add embed:', error);
+    } finally {
+      setUploading(false);
     }
-    
-    const newItem: MediaItem = {
-      id: `embed-${Date.now()}`,
-      type: 'embed',
-      name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Video`,
-      url: embedUrl,
-      thumbnailUrl,
-      metadata: { provider },
-      tags: [],
-      createdAt: new Date()
-    };
-    
-    setMedia(prev => [newItem, ...prev]);
-    setEmbedUrl('');
-    setUploading(false);
-    setActiveTab('library');
   };
 
   const handleAddCode = async () => {
     if (!codeSnippet.name || !codeSnippet.code) return;
     setUploading(true);
-    await new Promise(r => setTimeout(r, 500));
     
-    const newItem: MediaItem = {
-      id: `code-${Date.now()}`,
-      type: 'code',
-      name: codeSnippet.name,
-      url: '#',
-      metadata: { code: codeSnippet.code, language: codeSnippet.language },
-      tags: [],
-      createdAt: new Date()
-    };
-    
-    setMedia(prev => [newItem, ...prev]);
-    setCodeSnippet({ name: '', code: '', language: 'javascript' });
-    setUploading(false);
-    setActiveTab('library');
+    try {
+      const result = await mediaApi.addCodeSnippet({
+        app_id: appId,
+        name: codeSnippet.name,
+        code: codeSnippet.code,
+        language: codeSnippet.language,
+        folder_id: currentFolder || undefined
+      });
+      
+      if (result.success && result.media) {
+        setMedia(prev => [result.media!, ...prev]);
+        setCodeSnippet({ name: '', code: '', language: 'javascript' });
+        setActiveTab('library');
+      }
+    } catch (error) {
+      console.error('Failed to add code snippet:', error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -285,9 +290,14 @@ export function MediaManager({
     }
   };
 
-  const handleDelete = (id: string) => {
-    setMedia(prev => prev.filter(m => m.id !== id));
-    setSelectedItems(prev => prev.filter(i => i !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await mediaApi.deleteMedia(id);
+      setMedia(prev => prev.filter(m => m.id !== id));
+      setSelectedItems(prev => prev.filter(i => i !== id));
+    } catch (error) {
+      console.error('Failed to delete media:', error);
+    }
   };
 
   return (
@@ -417,10 +427,14 @@ export function MediaManager({
 
                 {/* Media Grid/List */}
                 <ScrollArea className="flex-1 p-3">
-                  {viewMode === 'grid' ? (
+                  {loading ? (
+                    <div className="flex items-center justify-center h-32">
+                      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : viewMode === 'grid' ? (
                     <div className="grid grid-cols-4 gap-3">
                       {filteredMedia.map(item => {
-                        const Icon = getFileIcon(item.type, item.mimeType);
+                        const Icon = getFileIcon(item.type, item.mime_type);
                         const isSelected = selectedItems.includes(item.id);
                         return (
                           <div
@@ -431,8 +445,8 @@ export function MediaManager({
                             )}
                             onClick={() => toggleSelect(item.id)}
                           >
-                            {item.thumbnailUrl ? (
-                              <img src={item.thumbnailUrl} alt={item.name} className="w-full h-full object-cover" />
+                            {item.thumbnail_url ? (
+                              <img src={item.thumbnail_url} alt={item.name} className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full bg-muted flex items-center justify-center">
                                 <Icon className="w-12 h-12 text-muted-foreground" />
@@ -459,7 +473,7 @@ export function MediaManager({
                   ) : (
                     <div className="space-y-1">
                       {filteredMedia.map(item => {
-                        const Icon = getFileIcon(item.type, item.mimeType);
+                        const Icon = getFileIcon(item.type, item.mime_type);
                         const isSelected = selectedItems.includes(item.id);
                         return (
                           <div
@@ -471,8 +485,8 @@ export function MediaManager({
                             onClick={() => toggleSelect(item.id)}
                           >
                             <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden">
-                              {item.thumbnailUrl ? (
-                                <img src={item.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                              {item.thumbnail_url ? (
+                                <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 <Icon className="w-5 h-5 text-muted-foreground" />
                               )}
@@ -634,12 +648,12 @@ export function MediaManager({
               {(() => {
                 const item = media.find(m => m.id === selectedItems[0]);
                 if (!item) return null;
-                const Icon = getFileIcon(item.type, item.mimeType);
+                const Icon = getFileIcon(item.type, item.mime_type);
                 return (
                   <>
                     <div className="aspect-video rounded-lg bg-muted overflow-hidden">
-                      {item.thumbnailUrl ? (
-                        <img src={item.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                      {item.thumbnail_url ? (
+                        <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Icon className="w-12 h-12 text-muted-foreground" />
@@ -670,7 +684,7 @@ export function MediaManager({
                       <Label className="text-xs">Alt Text</Label>
                       <Input
                         placeholder="Describe this image..."
-                        value={item.altText || ''}
+                        value={item.alt_text || ''}
                         className="h-8 text-xs"
                       />
                     </div>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Reference - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="docs-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>WebCraft Documentation</h2>
+                <p>Developer Guide</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="../index.html">Getting Started</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="../architecture/frontend-architecture.html">Frontend Architecture</a></li>
+                <li><a href="../architecture/backend-architecture.html">Backend Architecture</a></li>
+                <li><a href="../architecture/system-design.html">System Design</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html">Next.js Setup</a></li>
+                <li><a href="../frontend/react-components.html">React Components</a></li>
+                <li><a href="../frontend/state-management.html">State Management</a></li>
+                <li><a href="../frontend/styling.html">Styling & Theming</a></li>
+                
+                <li class="nav-section">Backend Development</li>
+                <li><a href="../backend/fastapi-setup.html">FastAPI Setup</a></li>
+                <li><a href="../backend/api-development.html">API Development</a></li>
+                <li><a href="../backend/authentication.html">Authentication</a></li>
+                <li><a href="../backend/authorization.html">Authorization</a></li>
+                
+                <li class="nav-section">Database</li>
+                <li><a href="../database/database-design.html">Database Design</a></li>
+                <li><a href="../database/postgresql-setup.html">PostgreSQL Setup</a></li>
+                <li><a href="../database/redis-setup.html">Redis Setup</a></li>
+                <li><a href="../database/migrations.html">Migrations</a></li>
+                <li><a href="../database/performance.html">Performance Optimization</a></li>
+                
+                <li class="nav-section">API Reference</li>
+                <li class="active"><a href="rest-endpoints.html">REST Endpoints</a></li>
+                <li><a href="authentication.html">API Authentication</a></li>
+                <li><a href="rate-limiting.html">Rate Limiting</a></li>
+                <li><a href="webhooks.html">Webhooks</a></li>
+                
+                <li class="nav-section">Advanced Topics</li>
+                <li><a href="../advanced/testing.html">Testing Strategies</a></li>
+                <li><a href="../advanced/deployment.html">Deployment</a></li>
+                <li><a href="../advanced/performance.html">Performance</a></li>
+                <li><a href="../advanced/monitoring.html">Monitoring</a></li>
+                <li><a href="../advanced/security.html">Security</a></li>
+                
+                <li class="nav-section">Tutorials</li>
+                <li><a href="../tutorials/build-first-app.html">Build Your First App</a></li>
+                <li><a href="../tutorials/create-custom-widget.html">Create Custom Widget</a></li>
+                <li><a href="../tutorials/integrate-api.html">Integrate External APIs</a></li>
+                <li><a href="../tutorials/deploy-production.html">Deploy to Production</a></li>
+                
+                <li class="nav-section">Troubleshooting</li>
+                <li><a href="../troubleshooting/common-issues.html">Common Issues</a></li>
+                <li><a href="../troubleshooting/debugging.html">Debugging Guide</a></li>
+                <li><a href="../troubleshooting/faq.html">FAQ</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header class="content-header">
+                <h1>REST API Reference</h1>
+                <p>Complete reference for WebCraft's REST API endpoints</p>
+            </header>
+
+            <div class="content-body">
+                <section id="overview">
+                    <h2>API Overview</h2>
+                    <p>WebCraft's REST API follows RESTful principles and provides comprehensive access to all platform features. The API is versioned and includes robust authentication, rate limiting, and error handling.</p>
+                    
+                    <h3>Base URL</h3>
+                    <pre><code class="language-bash"># Production
+https://api.webcraft.app/v1
+
+# Development
+http://localhost:8000/v1</code></pre>
+
+                    <h3>API Versioning</h3>
+                    <p>The API uses URL versioning. Current version is <code>v1</code>. Breaking changes will result in a new version.</p>
+                </section>
+
+                <section id="authentication">
+                    <h2>Authentication</h2>
+                    <p>WebCraft uses JWT (JSON Web Tokens) for API authentication. Include the token in the Authorization header:</p>
+                    <pre><code class="language-bash">Authorization: Bearer &lt;your-jwt-token&gt;</code></pre>
+                    
+                    <h3>Obtaining a Token</h3>
+                    <pre><code class="language-bash"># Login endpoint
+curl -X POST https://api.webcraft.app/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "your-password"
+  }'</code></pre>
+
+                    <h3>Token Response</h3>
+                    <pre><code class="language-json">{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer",
+  "expires_in": 3600,
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "email": "user@example.com",
+    "name": "John Doe"
+  }
+}</code></pre>
+                </section>
+
+                <section id="workspaces">
+                    <h2>Workspaces</h2>
+                    
+                    <h3>List Workspaces</h3>
+                    <pre><code class="language-http">GET /workspaces
+Authorization: Bearer &lt;token&gt;
+
+Response:
+{
+  "data": [
+    {
+      "id": "ws_123e4567-e89b-12d3-a456-426614174000",
+      "name": "My Workspace",
+      "slug": "my-workspace",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "per_page": 20
+}</code></pre>
+
+                    <h3>Create Workspace</h3>
+                    <pre><code class="language-http">POST /workspaces
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "name": "New Workspace",
+  "slug": "new-workspace"
+}
+
+Response:
+{
+  "data": {
+    "id": "ws_123e4567-e89b-12d3-a456-426614174000",
+    "name": "New Workspace",
+    "slug": "new-workspace",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}</code></pre>
+
+                    <h3>Get Workspace</h3>
+                    <pre><code class="language-http">GET /workspaces/{workspace_id}
+Authorization: Bearer &lt;token&gt;
+
+Response:
+{
+  "data": {
+    "id": "ws_123e4567-e89b-12d3-a456-426614174000",
+    "name": "My Workspace",
+    "slug": "my-workspace",
+    "settings": {
+      "theme": "light",
+      "custom_domain": "example.com"
+    },
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}</code></pre>
+
+                    <h3>Update Workspace</h3>
+                    <pre><code class="language-http">PUT /workspaces/{workspace_id}
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "name": "Updated Workspace Name",
+  "settings": {
+    "theme": "dark",
+    "custom_domain": "newdomain.com"
+  }
+}
+
+Response:
+{
+  "data": {
+    "id": "ws_123e4567-e89b-12d3-a456-426614174000",
+    "name": "Updated Workspace Name",
+    "slug": "my-workspace",
+    "settings": {
+      "theme": "dark",
+      "custom_domain": "newdomain.com"
+    },
+    "updated_at": "2024-01-01T12:00:00Z"
+  }
+}</code></pre>
+
+                    <h3>Delete Workspace</h3>
+                    <pre><code class="language-http">DELETE /workspaces/{workspace_id}
+Authorization: Bearer &lt;token&gt;
+
+Response:
+{
+  "message": "Workspace deleted successfully"
+}</code></pre>
+                </section>
+
+                <section id="projects">
+                    <h2>Projects</h2>
+                    
+                    <h3>List Projects</h3>
+                    <pre><code class="language-http">GET /workspaces/{workspace_id}/projects
+Authorization: Bearer &lt;token&gt;
+
+Query Parameters:
+- page: Page number (default: 1)
+- per_page: Items per page (default: 20, max: 100)
+- search: Search by name or description
+- sort: Sort field (name, created_at, updated_at)
+- order: Sort order (asc, desc)
+
+Response:
+{
+  "data": [
+    {
+      "id": "proj_123e4567-e89b-12d3-a456-426614174000",
+      "name": "Landing Page",
+      "description": "Main landing page project",
+      "settings": {
+        "theme": "modern",
+        "responsive": true
+      },
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "per_page": 20
+}</code></pre>
+
+                    <h3>Create Project</h3>
+                    <pre><code class="language-http">POST /workspaces/{workspace_id}/projects
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "name": "New Project",
+  "description": "Project description",
+  "settings": {
+    "theme": "modern",
+    "responsive": true
+  }
+}</code></pre>
+
+                    <h3>Get Project</h3>
+                    <pre><code class="language-http">GET /projects/{project_id}
+Authorization: Bearer &lt;token&gt;</code></pre>
+
+                    <h3>Update Project</h3>
+                    <pre><code class="language-http">PUT /projects/{project_id}
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json</code></pre>
+
+                    <h3>Delete Project</h3>
+                    <pre><code class="language-http">DELETE /projects/{project_id}
+Authorization: Bearer &lt;token&gt;</code></pre>
+                </section>
+
+                <section id="pages">
+                    <h2>Pages</h2>
+                    
+                    <h3>List Pages</h3>
+                    <pre><code class="language-http">GET /projects/{project_id}/pages
+Authorization: Bearer &lt;token&gt;
+
+Query Parameters:
+- page: Page number
+- per_page: Items per page
+- published: Filter by published status (true, false, all)
+- search: Search by name or path</code></pre>
+
+                    <h3>Create Page</h3>
+                    <pre><code class="language-http">POST /projects/{project_id}/pages
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "name": "Home Page",
+  "path": "/",
+  "content": {
+    "sections": [
+      {
+        "type": "hero",
+        "props": {
+          "title": "Welcome to WebCraft",
+          "subtitle": "Build amazing websites without code"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "layout": "full-width",
+    "seo": {
+      "title": "Home - WebCraft",
+      "description": "Build websites without code"
+    }
+  }
+}</code></pre>
+
+                    <h3>Get Page</h3>
+                    <pre><code class="language-http">GET /pages/{page_id}
+Authorization: Bearer &lt;token&gt;</code></pre>
+
+                    <h3>Update Page</h3>
+                    <pre><code class="language-http">PUT /pages/{page_id}
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json</code></pre>
+
+                    <h3>Publish Page</h3>
+                    <pre><code class="language-http">POST /pages/{page_id}/publish
+Authorization: Bearer &lt;token&gt;
+
+{
+  "publish": true,
+  "scheduled_at": "2024-01-01T12:00:00Z"  // Optional: schedule publication
+}</code></pre>
+
+                    <h3>Delete Page</h3>
+                    <pre><code class="language-http">DELETE /pages/{page_id}
+Authorization: Bearer &lt;token&gt;</code></pre>
+                </section>
+
+                <section id="components">
+                    <h2>Components</h2>
+                    
+                    <h3>List Components</h3>
+                    <pre><code class="language-http">GET /projects/{project_id}/components
+Authorization: Bearer &lt;token&gt;
+
+Query Parameters:
+- type: Filter by component type (button, text, image, etc.)
+- category: Filter by category (layout, content, form, media)
+- custom: Filter custom components (true, false)</code></pre>
+
+                    <h3>Create Component</h3>
+                    <pre><code class="language-http">POST /projects/{project_id}/components
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "name": "Custom Button",
+  "type": "button",
+  "category": "content",
+  "properties": {
+    "text": "Click Me",
+    "variant": "primary",
+    "size": "medium"
+  },
+  "styles": {
+    "backgroundColor": "#007bff",
+    "color": "#ffffff",
+    "padding": "10px 20px",
+    "borderRadius": "4px"
+  },
+  "events": {
+    "onClick": {
+      "action": "navigate",
+      "target": "/about"
+    }
+  }
+}</code></pre>
+
+                    <h3>Get Component</h3>
+                    <pre><code class="language-http">GET /components/{component_id}
+Authorization: Bearer &lt;token&gt;</code></pre>
+
+                    <h3>Update Component</h3>
+                    <pre><code class="language-http">PUT /components/{component_id}
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json</code></pre>
+
+                    <h3>Delete Component</h3>
+                    <pre><code class="language-http">DELETE /components/{component_id}
+Authorization: Bearer &lt;token&gt;</code></pre>
+                </section>
+
+                <section id="analytics">
+                    <h2>Analytics</h2>
+                    
+                    <h3>Get Page Analytics</h3>
+                    <pre><code class="language-http">GET /analytics/pages/{page_id}
+Authorization: Bearer &lt;token&gt;
+
+Query Parameters:
+- start_date: Start date (YYYY-MM-DD)
+- end_date: End date (YYYY-MM-DD)
+- group_by: Group by period (day, week, month)
+- metrics: Comma-separated metrics (views, unique_visitors, avg_time, bounce_rate)
+
+Response:
+{
+  "data": {
+    "page_id": "page_123e4567-e89b-12d3-a456-426614174000",
+    "metrics": {
+      "views": 1250,
+      "unique_visitors": 890,
+      "avg_time_on_page": 145,
+      "bounce_rate": 0.35
+    },
+    "timeline": [
+      {
+        "date": "2024-01-01",
+        "views": 150,
+        "unique_visitors": 120,
+        "avg_time_on_page": 140,
+        "bounce_rate": 0.30
+      }
+    ],
+    "device_breakdown": {
+      "desktop": {"views": 800, "percentage": 0.64},
+      "mobile": {"views": 350, "percentage": 0.28},
+      "tablet": {"views": 100, "percentage": 0.08}
+    },
+    "geography": [
+      {"country": "US", "views": 500, "percentage": 0.40},
+      {"country": "UK", "views": 200, "percentage": 0.16}
+    ]
+  },
+  "period": {
+    "start_date": "2024-01-01",
+    "end_date": "2024-01-31"
+  }
+}</code></pre>
+
+                    <h3>Get Workspace Analytics</h3>
+                    <pre><code class="language-http">GET /analytics/workspaces/{workspace_id}
+Authorization: Bearer &lt;token&gt;</code></pre>
+
+                    <h3>Export Analytics</h3>
+                    <pre><code class="language-http">POST /analytics/export
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "workspace_id": "ws_123e4567-e89b-12d3-a456-426614174000",
+  "start_date": "2024-01-01",
+  "end_date": "2024-01-31",
+  "format": "csv",  // csv, json, xlsx
+  "metrics": ["views", "unique_visitors", "bounce_rate"]
+}</code></pre>
+                </section>
+
+                <section id="error-handling">
+                    <h2>Error Handling</h2>
+                    
+                    <h3>Error Response Format</h3>
+                    <pre><code class="language-json">{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": [
+      {
+        "field": "email",
+        "message": "Email is required",
+        "code": "REQUIRED"
+      }
+    ]
+  },
+  "request_id": "req_123e4567-e89b-12d3-a456-426614174000",
+  "timestamp": "2024-01-01T00:00:00Z"
+}</code></pre>
+
+                    <h3>Common Error Codes</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>HTTP Status</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>UNAUTHORIZED</td>
+                                <td>401</td>
+                                <td>Invalid or expired authentication token</td>
+                            </tr>
+                            <tr>
+                                <td>FORBIDDEN</td>
+                                <td>403</td>
+                                <td>Insufficient permissions</td>
+                            </tr>
+                            <tr>
+                                <td>NOT_FOUND</td>
+                                <td>404</td>
+                                <td>Resource not found</td>
+                            </tr>
+                            <tr>
+                                <td>VALIDATION_ERROR</td>
+                                <td>422</td>
+                                <td>Request validation failed</td>
+                            </tr>
+                            <tr>
+                                <td>RATE_LIMIT_EXCEEDED</td>
+                                <td>429</td>
+                                <td>Rate limit exceeded</td>
+                            </tr>
+                            <tr>
+                                <td>INTERNAL_ERROR</td>
+                                <td>500</td>
+                                <td>Internal server error</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="pagination">
+                    <h2>Pagination</h2>
+                    <p>All list endpoints support pagination using the following parameters:</p>
+                    <ul>
+                        <li><code>page</code>: Page number (default: 1)</li>
+                        <li><code>per_page</code>: Items per page (default: 20, max: 100)</li>
+                    </ul>
+                    
+                    <h3>Pagination Response</h3>
+                    <pre><code class="language-json">{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 100,
+    "pages": 5,
+    "has_next": true,
+    "has_prev": false
+  }
+}</code></pre>
+                </section>
+
+                <div class="next-steps">
+                    <h3>Next Steps</h3>
+                    <p>Continue learning about WebCraft's API:</p>
+                    <div class="next-step-buttons">
+                        <a href="authentication.html" class="btn primary">API Authentication</a>
+                        <a href="rate-limiting.html" class="btn secondary">Rate Limiting</a>
+                        <a href="webhooks.html" class="btn secondary">Webhooks</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
