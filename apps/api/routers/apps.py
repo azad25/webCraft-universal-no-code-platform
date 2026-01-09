@@ -413,12 +413,15 @@ async def preview_app(
     Preview URLs are valid for 24 hours and support different device types.
     """
     
+    print(f"🔍 Creating preview for app {app_id} for user {current_user.email}")
+    
     app = db.query(App).filter(
         App.id == app_id,
         App.owner_id == current_user.id
     ).first()
     
     if not app:
+        print(f"❌ App {app_id} not found for user {current_user.id}")
         raise HTTPException(status_code=404, detail="App not found")
     
     try:
@@ -426,11 +429,152 @@ async def preview_app(
         preview_service = PreviewService(db)
         
         preview_data = await preview_service.create_preview_url(app, device)
+        print(f"✅ Preview created: {preview_data['preview_url']}")
         
         return preview_data
     
     except Exception as e:
+        print(f"❌ Failed to create preview: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create preview: {str(e)}")
+
+
+@router.get("/preview/{token}")
+async def get_preview_data(
+    token: str = Path(...),
+    device: Optional[str] = Query("desktop", regex="^(mobile|tablet|desktop)$"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get preview data by token
+    
+    Returns the app data and pages for preview rendering.
+    No authentication required as the token provides access.
+    """
+    
+    print(f"🔍 Getting preview data for token: {token}")
+    
+    try:
+        from services.preview_service import PreviewService
+        preview_service = PreviewService(db)
+        
+        # Get preview session
+        session = await preview_service.get_preview_session(token)
+        if not session:
+            print(f"❌ Preview session not found or expired for token: {token}")
+            raise HTTPException(status_code=404, detail="Preview not found or expired")
+        
+        # Get the app
+        app = db.query(App).filter(App.id == session.app_id).first()
+        if not app:
+            print(f"❌ App not found for preview session: {session.app_id}")
+            raise HTTPException(status_code=404, detail="App not found")
+        
+        # Get app pages
+        pages = []
+        for page in app.pages:
+            if page.is_published:
+                pages.append({
+                    "id": str(page.id),
+                    "title": page.title,
+                    "slug": page.slug,
+                    "content": page.content,
+                    "is_homepage": page.is_homepage,
+                    "meta_title": page.meta_title,
+                    "meta_description": page.meta_description
+                })
+        
+        preview_data = {
+            "app": {
+                "id": str(app.id),
+                "name": app.name,
+                "slug": app.slug,
+                "description": app.description,
+                "app_type": app.app_type,
+                "config": app.config,
+                "theme_config": app.theme_config,
+                "seo_config": app.seo_config
+            },
+            "preview": {
+                "token": token,
+                "device": device,
+                "expires_at": session.expires_at.isoformat()
+            },
+            "pages": pages
+        }
+        
+        print(f"✅ Preview data retrieved: {len(pages)} pages")
+        return preview_data
+    
+    except Exception as e:
+        print(f"❌ Failed to get preview data: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get preview data: {str(e)}")
+
+
+@router.get("/preview/{token}/qr")
+async def get_preview_qr_code(
+    token: str = Path(...),
+    size: int = Query(200, ge=100, le=500),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate QR code for preview link
+    
+    Returns a QR code image that links to the mobile preview.
+    No authentication required as the token provides access.
+    """
+    
+    try:
+        from services.preview_service import PreviewService
+        import qrcode
+        from io import BytesIO
+        from fastapi.responses import StreamingResponse
+        import os
+        
+        preview_service = PreviewService(db)
+        
+        # Verify token exists and is valid
+        session = await preview_service.get_preview_session(token)
+        if not session:
+            raise HTTPException(status_code=404, detail="Preview not found or expired")
+        
+        # Generate QR code URL
+        base_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        qr_url = f"{base_url}/preview/{token}?device=mobile"
+        
+        # Create QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_url)
+        qr.make(fit=True)
+        
+        # Create QR code image
+        img = qr.make_image(fill_color="black", back_color="white")
+        img = img.resize((size, size))
+        
+        # Convert to bytes
+        img_buffer = BytesIO()
+        img.save(img_buffer, format='PNG')
+        img_buffer.seek(0)
+        
+        return StreamingResponse(
+            BytesIO(img_buffer.read()),
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+    
+    except ImportError:
+        # If qrcode library is not installed, return a simple response
+        raise HTTPException(
+            status_code=501, 
+            detail="QR code generation not available. Install 'qrcode' package."
+        )
+    except Exception as e:
+        print(f"❌ Failed to generate QR code: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate QR code: {str(e)}")
 
 
 @router.get("/{app_id}/analytics")

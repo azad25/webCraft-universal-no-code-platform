@@ -133,9 +133,10 @@ interface AutomationBuilderProps {
   automation?: Automation
   onSave: (automation: Automation) => Promise<void>
   onClose: () => void
+  isLoading?: boolean
 }
 
-export function AutomationBuilder({ appId, automation, onSave, onClose }: AutomationBuilderProps) {
+export function AutomationBuilder({ appId, automation, onSave, onClose, isLoading = false }: AutomationBuilderProps) {
   const [name, setName] = useState(automation?.name || 'New Automation')
   const [description, setDescription] = useState(automation?.description || '')
   const [triggerType, setTriggerType] = useState(automation?.triggerType || '')
@@ -145,7 +146,6 @@ export function AutomationBuilder({ appId, automation, onSave, onClose }: Automa
   const [selectedStep, setSelectedStep] = useState<string | null>(null)
   const [showAddAction, setShowAddAction] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Filter actions by category
@@ -183,7 +183,6 @@ export function AutomationBuilder({ appId, automation, onSave, onClose }: Automa
   const handleSave = async () => {
     if (!triggerType) return
     
-    setIsSaving(true)
     try {
       await onSave({
         id: automation?.id,
@@ -194,8 +193,8 @@ export function AutomationBuilder({ appId, automation, onSave, onClose }: Automa
         workflowSteps: steps,
         isEnabled
       })
-    } finally {
-      setIsSaving(false)
+    } catch (error) {
+      console.error('Failed to save automation:', error)
     }
   }
 
@@ -235,9 +234,9 @@ export function AutomationBuilder({ appId, automation, onSave, onClose }: Automa
             {isEnabled ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
             {isEnabled ? 'Active' : 'Paused'}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving || !triggerType}>
+          <Button onClick={handleSave} disabled={isLoading || !triggerType}>
             <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save'}
+            {isLoading ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>

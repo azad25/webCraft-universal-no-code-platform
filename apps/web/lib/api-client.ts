@@ -4,6 +4,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
+import { getAuthToken } from './dev-auth'
 
 // Types
 interface RetryConfig {
@@ -20,7 +21,7 @@ interface ApiClientConfig {
 
 // Default configuration
 const defaultConfig: ApiClientConfig = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '', // Use environment variable or fallback to relative URLs
+  baseURL: '', // Use relative URLs to go through Next.js API proxy
   timeout: 30000,
   retry: {
     retries: 3,
@@ -64,13 +65,7 @@ const createApiClient = (config: Partial<ApiClientConfig> = {}): AxiosInstance =
                             config.url?.includes('/api/auth/refresh')
       
       if (!isAuthEndpoint) {
-        let token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
-        
-        // Development bypass - use a dummy token if no real token exists
-        if (!token && process.env.NODE_ENV === 'development') {
-          token = 'dev-bypass-token'
-          console.log('🔧 Using development bypass token')
-        }
+        let token = typeof window !== 'undefined' ? getAuthToken() : null
         
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`
@@ -175,7 +170,10 @@ const createApiClient = (config: Partial<ApiClientConfig> = {}): AxiosInstance =
           fullURL: error.config?.baseURL && error.config?.url ? error.config.baseURL + error.config.url : 'N/A',
           message: error.message,
           code: error.code,
-          headers: error.config?.headers
+          headers: error.config?.headers,
+          errorType: error.constructor.name,
+          isAxiosError: error.isAxiosError,
+          stack: error.stack
         })
       }
       
@@ -212,7 +210,7 @@ const transformError = (error: AxiosError): ApiError => {
 
 // Generate correlation ID
 const generateCorrelationId = (): string => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
 }
 
 // Create default client

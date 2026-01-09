@@ -674,40 +674,99 @@ class TemplateService:
     ) -> Dict[str, Any]:
         """List all templates with filtering"""
         
-        # Start with premade templates
-        templates = list(PREMADE_TEMPLATES.values())
+        from core.database import Template, TemplatePage
+        
+        # Build query
+        query = self.db.query(Template)
         
         # Filter by category
         if category:
-            templates = [t for t in templates if t["category"] == category]
+            query = query.filter(Template.category == category)
+        
+        # Filter by premium status
+        if is_premium is not None:
+            query = query.filter(Template.is_premium == is_premium)
         
         # Filter by search
         if search:
-            search_lower = search.lower()
-            templates = [t for t in templates if 
-                search_lower in t["name"].lower() or 
-                search_lower in t["description"].lower() or
-                any(search_lower in tag for tag in t.get("tags", []))]
+            search_term = f"%{search}%"
+            query = query.filter(
+                Template.name.ilike(search_term) |
+                Template.description.ilike(search_term)
+            )
         
-        # Filter by tags
-        if tags:
-            templates = [t for t in templates if 
-                any(tag in t.get("tags", []) for tag in tags)]
+        # Sort
+        if sort_by == "popular":
+            query = query.order_by(Template.downloads.desc())
+        elif sort_by == "rating":
+            query = query.order_by(Template.rating.desc())
+        elif sort_by == "newest":
+            query = query.order_by(Template.created_at.desc())
+        else:
+            query = query.order_by(Template.name)
+        
+        # Get total count
+        total = query.count()
+        
+        # Apply pagination
+        templates = query.offset((page - 1) * per_page).limit(per_page).all()
+        
+        # Convert to dict format
+        template_list = []
+        for template in templates:
+            # Get template pages
+            pages = self.db.query(TemplatePage).filter(
+                TemplatePage.template_id == template.id
+            ).order_by(TemplatePage.sort_order).all()
+            
+            template_dict = {
+                "id": template.slug,
+                "name": template.name,
+                "description": template.description,
+                "category": template.category,
+                "thumbnail": template.preview_image,
+                "demo_url": template.demo_url,
+                "tags": [],  # Could be added to database model
+                "downloads": template.downloads,
+                "rating": template.rating / 20.0,  # Convert back to 0-5 scale
+                "isPremium": template.is_premium,
+                "price": template.price,
+                "config": template.config,
+                "pages_config": template.pages_config,
+                "pages": [
+                    {
+                        "name": page.title,
+                        "slug": page.slug,
+                        "elements": page.content.get("elements", []),
+                        "content": page.content,
+                        "is_homepage": page.is_homepage
+                    }
+                    for page in pages
+                ],
+                "created_at": template.created_at,
+                "updated_at": template.updated_at
+            }
+            template_list.append(template_dict)
         
         # Get categories
-        categories = list(set(t["category"] for t in PREMADE_TEMPLATES.values()))
+        categories = self.db.query(Template.category).distinct().all()
+        categories = [cat[0] for cat in categories]
         
-        # Pagination
-        total = len(templates)
-        start = (page - 1) * per_page
-        end = start + per_page
-        paginated = templates[start:end]
-        
-        # Featured templates
-        featured = templates[:6]
+        # Featured templates (top 6 by downloads)
+        featured_query = self.db.query(Template).order_by(Template.downloads.desc()).limit(6)
+        featured = []
+        for template in featured_query.all():
+            featured.append({
+                "id": template.slug,
+                "name": template.name,
+                "description": template.description,
+                "category": template.category,
+                "thumbnail": template.preview_image,
+                "rating": template.rating / 20.0
+            })
         
         return {
-            "templates": paginated,
+            "templates": template_list,
             "total": total,
             "page": page,
             "per_page": per_page,
@@ -717,7 +776,46 @@ class TemplateService:
     
     async def get_template(self, template_id: str) -> Optional[Dict[str, Any]]:
         """Get a single template by ID"""
-        return PREMADE_TEMPLATES.get(template_id)
+        from core.database import Template, TemplatePage
+        
+        template = self.db.query(Template).filter(Template.slug == template_id).first()
+        if not template:
+            # Only fallback to hardcoded templates if not found in database
+            return PREMADE_TEMPLATES.get(template_id)
+        
+        # Get template pages
+        pages = self.db.query(TemplatePage).filter(
+            TemplatePage.template_id == template.id
+        ).order_by(TemplatePage.sort_order).all()
+        
+        return {
+            "id": template.slug,
+            "name": template.name,
+            "description": template.description,
+            "category": template.category,
+            "thumbnail": template.preview_image,
+            "demo_url": template.demo_url,
+            "tags": [],  # Could be added to database model
+            "downloads": template.downloads,
+            "rating": template.rating / 20.0,
+            "isPremium": template.is_premium,
+            "price": template.price,
+            "config": template.config,
+            "pages_config": template.pages_config,
+            "pages": [
+                {
+                    "name": page.title,
+                    "slug": page.slug,
+                    "elements": page.content.get("elements", []),
+                    "content": page.content,
+                    "is_homepage": page.is_homepage
+                }
+                for page in pages
+            ],
+            "created_at": template.created_at,
+            "updated_at": template.updated_at,
+            "database_template": True  # Flag to indicate this is from database
+        }
     
     async def get_categories(self) -> List[Dict[str, Any]]:
         """Get all template categories with counts"""

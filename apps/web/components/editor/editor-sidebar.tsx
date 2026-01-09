@@ -9,7 +9,7 @@ import {
   Calendar, Users, FileText, Settings, Sparkles, Layers, Package, 
   Zap, Clock, Mail, MessageSquare, ArrowRight, CheckSquare, 
   GitBranch, Eye, Heart, Volume2, ExternalLink, Star, Database, 
-  TrendingUp, ChevronRight, Table
+  TrendingUp, ChevronRight, Table, CheckCircle
 } from 'lucide-react'
 
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,9 @@ import { Separator } from '@/components/ui/separator'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { apiClient } from '@/lib/api-client'
+import { useEditor } from '@/contexts/editor-context'
+import { DataSourceSelector } from '@/components/data-sources/data-source-selector'
+import { getCollections, getDataSources } from '@/lib/data-source-api'
 
 // Widget categories and definitions
 const WIDGET_CATEGORIES = {
@@ -115,6 +118,21 @@ const WIDGET_CATEGORIES = {
       { id: 'card', name: 'Card', icon: CreditCard, description: 'Content card', defaultHeight: 300 }
     ]
   },
+  data: {
+    name: 'Data',
+    icon: Database,
+    color: 'bg-cyan-500',
+    widgets: [
+      { id: 'collection-list', name: 'Collection List', icon: Layers, description: 'Display collection records', defaultHeight: 400 },
+      { id: 'collection-grid', name: 'Collection Grid', icon: Grid, description: 'Grid of collection items', defaultHeight: 500 },
+      { id: 'collection-cards', name: 'Collection Cards', icon: CreditCard, description: 'Card layout for records', defaultHeight: 600 },
+      { id: 'data-filter', name: 'Data Filter', icon: Search, description: 'Filter and search data', defaultHeight: 200 },
+      { id: 'data-pagination', name: 'Pagination', icon: ArrowRight, description: 'Paginate through data', defaultHeight: 80 },
+      { id: 'record-detail', name: 'Record Detail', icon: FileText, description: 'Single record view', defaultHeight: 400 },
+      { id: 'api-data', name: 'API Data', icon: Zap, description: 'External API data', defaultHeight: 300 },
+      { id: 'dynamic-content', name: 'Dynamic Content', icon: Sparkles, description: 'Content from data', defaultHeight: 200 }
+    ]
+  },
   ecommerce: {
     name: 'E-commerce',
     icon: ShoppingCart,
@@ -202,6 +220,9 @@ export function EditorSidebar({ onAddElement }: { onAddElement?: (element: any) 
   const [activeTab, setActiveTab] = useState('elements')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  
+  // Get current page info from editor context
+  const { currentPageId, currentPage, pages } = useEditor()
 
   // Filter widgets based on search and category
   const filteredWidgets = useMemo(() => {
@@ -228,6 +249,30 @@ export function EditorSidebar({ onAddElement }: { onAddElement?: (element: any) 
           <h2 className="font-semibold">Add Elements</h2>
         </div>
         
+        {/* Page Selection Warning */}
+        {!currentPageId && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2 text-yellow-800 text-sm">
+              <FileText className="w-4 h-4" />
+              <span className="font-medium">Select a page first</span>
+            </div>
+            <p className="text-xs text-yellow-700 mt-1">
+              Choose a page from the Pages tab to start adding elements.
+            </p>
+          </div>
+        )}
+        
+        {/* Current Page Indicator */}
+        {currentPageId && currentPage && (
+          <div className="mb-4 p-2 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 text-green-800 text-sm">
+              <FileText className="w-4 h-4" />
+              <span className="font-medium">Editing: {currentPage.title}</span>
+              {currentPage.is_homepage && <span className="text-xs">🏠</span>}
+            </div>
+          </div>
+        )}
+        
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -236,6 +281,7 @@ export function EditorSidebar({ onAddElement }: { onAddElement?: (element: any) 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
+            disabled={!currentPageId}
           />
         </div>
       </div>
@@ -243,9 +289,10 @@ export function EditorSidebar({ onAddElement }: { onAddElement?: (element: any) 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-shrink-0 px-4 pt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="elements" className="text-xs">Elements</TabsTrigger>
             <TabsTrigger value="widgets" className="text-xs">Widgets</TabsTrigger>
+            <TabsTrigger value="data" className="text-xs">Data</TabsTrigger>
             <TabsTrigger value="templates" className="text-xs">Templates</TabsTrigger>
             <TabsTrigger value="ai" className="text-xs">AI</TabsTrigger>
           </TabsList>
@@ -295,6 +342,11 @@ export function EditorSidebar({ onAddElement }: { onAddElement?: (element: any) 
               })}
             </div>
           </ScrollArea>
+        </TabsContent>
+
+        {/* Data Tab */}
+        <TabsContent value="data" className="flex-1 mt-4 overflow-hidden">
+          <DataTabContent appId={currentPage?.app_id || ''} onAddElement={onAddElement || (() => {})} />
         </TabsContent>
 
         {/* Templates Tab */}
@@ -437,9 +489,13 @@ function ElementLibraryContent({ onAddElement }: { onAddElement: (element: any) 
       } catch (apiError: any) {
         console.warn('API call failed, using mock data:', {
           url: `/api/v1/templates/elements/${category}`,
-          error: apiError?.message,
-          status: apiError?.response?.status,
-          data: apiError?.response?.data
+          error: apiError?.message || 'Unknown error',
+          status: apiError?.response?.status || 'No status',
+          statusText: apiError?.response?.statusText || 'No status text',
+          data: apiError?.response?.data || 'No response data',
+          errorType: apiError?.constructor?.name || 'Unknown type',
+          isAxiosError: apiError?.isAxiosError || false,
+          code: apiError?.code || 'No code'
         })
         // Fallback to mock data
         setElements(prev => ({
@@ -475,198 +531,6 @@ function ElementLibraryContent({ onAddElement }: { onAddElement: (element: any) 
               secondaryCta: 'Learn More',
               alignment: 'center',
               backgroundType: 'gradient'
-            }
-          }
-        },
-        {
-          id: 'hero-split',
-          name: 'Split Hero',
-          description: 'Hero with content on left and image on right',
-          element: {
-            type: 'hero',
-            props: {
-              title: 'Transform Your Business',
-              subtitle: 'Powerful tools to help you grow faster',
-              primaryCta: 'Start Free Trial',
-              alignment: 'left',
-              showImage: true,
-              layout: 'split'
-            }
-          }
-        },
-        {
-          id: 'hero-video',
-          name: 'Video Hero',
-          description: 'Hero section with background video',
-          element: {
-            type: 'hero',
-            props: {
-              title: 'See It In Action',
-              subtitle: 'Watch how we can help you succeed',
-              primaryCta: 'Watch Demo',
-              backgroundType: 'video'
-            }
-          }
-        }
-      ],
-      features: [
-        {
-          id: 'features-grid-3',
-          name: '3-Column Features',
-          description: 'Feature grid with icons and descriptions',
-          element: {
-            type: 'features',
-            props: {
-              title: 'Everything You Need',
-              subtitle: 'Powerful features to help you succeed',
-              columns: 3,
-              features: [
-                { icon: 'Zap', title: 'Lightning Fast', description: 'Built for speed' },
-                { icon: 'Shield', title: 'Secure', description: 'Enterprise security' },
-                { icon: 'Puzzle', title: 'Integrations', description: 'Connect everything' }
-              ]
-            }
-          }
-        },
-        {
-          id: 'features-alternating',
-          name: 'Alternating Features',
-          description: 'Features with alternating image layout',
-          element: {
-            type: 'features',
-            props: {
-              title: 'How It Works',
-              variant: 'alternating',
-              showImages: true,
-              features: [
-                {
-                  title: 'Easy Setup',
-                  description: 'Get started in minutes with our simple setup process'
-                },
-                {
-                  title: 'Powerful Analytics',
-                  description: 'Track your progress with detailed analytics and insights'
-                }
-              ]
-            }
-          }
-        }
-      ],
-      pricing: [
-        {
-          id: 'pricing-3-tier',
-          name: '3-Tier Pricing',
-          description: 'Standard 3-tier pricing table',
-          element: {
-            type: 'pricing',
-            props: {
-              title: 'Simple Pricing',
-              subtitle: 'Choose the plan that works for you',
-              plans: [
-                { name: 'Starter', price: '$9', period: '/month', features: ['5 Projects', 'Basic Support'] },
-                { name: 'Pro', price: '$29', period: '/month', features: ['Unlimited Projects', 'Priority Support'], highlighted: true },
-                { name: 'Enterprise', price: 'Custom', features: ['Custom Solutions', 'Dedicated Support'] }
-              ]
-            }
-          }
-        }
-      ],
-      testimonials: [
-        {
-          id: 'testimonials-grid',
-          name: 'Testimonials Grid',
-          description: 'Grid layout of customer testimonials',
-          element: {
-            type: 'testimonial',
-            props: {
-              title: 'What Our Customers Say',
-              variant: 'grid',
-              columns: 3,
-              testimonials: [
-                {
-                  content: 'This product has completely transformed how we work.',
-                  author: 'Sarah Johnson',
-                  role: 'CEO, TechCorp',
-                  rating: 5
-                },
-                {
-                  content: 'Amazing support team and great features.',
-                  author: 'Mike Chen',
-                  role: 'Product Manager',
-                  rating: 5
-                },
-                {
-                  content: 'Easy to use and incredibly powerful.',
-                  author: 'Emily Davis',
-                  role: 'Designer',
-                  rating: 5
-                }
-              ]
-            }
-          }
-        }
-      ],
-      cta: [
-        {
-          id: 'cta-centered',
-          name: 'Centered CTA',
-          description: 'Simple centered call-to-action',
-          element: {
-            type: 'cta',
-            props: {
-              title: 'Ready to Get Started?',
-              subtitle: 'Join thousands of satisfied customers',
-              primaryCta: 'Start Free Trial',
-              secondaryCta: 'Contact Sales'
-            }
-          }
-        },
-        {
-          id: 'cta-newsletter',
-          name: 'Newsletter Signup',
-          description: 'Email newsletter subscription form',
-          element: {
-            type: 'newsletter',
-            props: {
-              title: 'Subscribe to Our Newsletter',
-              subtitle: 'Get the latest updates delivered to your inbox',
-              placeholder: 'Enter your email address',
-              buttonText: 'Subscribe'
-            }
-          }
-        }
-      ],
-      contact: [
-        {
-          id: 'contact-split',
-          name: 'Split Contact',
-          description: 'Contact form with company info',
-          element: {
-            type: 'contact',
-            props: {
-              title: 'Get in Touch',
-              subtitle: 'We\'d love to hear from you',
-              showForm: true,
-              showInfo: true,
-              layout: 'split'
-            }
-          }
-        }
-      ],
-      stats: [
-        {
-          id: 'stats-simple',
-          name: 'Simple Stats',
-          description: 'Clean statistics counters',
-          element: {
-            type: 'stats',
-            props: {
-              stats: [
-                { value: '10K+', label: 'Happy Customers' },
-                { value: '99.9%', label: 'Uptime' },
-                { value: '24/7', label: 'Support' },
-                { value: '50+', label: 'Countries' }
-              ]
             }
           }
         }
@@ -819,4 +683,201 @@ function ElementLibraryContent({ onAddElement }: { onAddElement: (element: any) 
       </div>
     </ScrollArea>
   )
+}
+
+// Data Tab Content Component
+function DataTabContent({ appId, onAddElement }: { appId: string; onAddElement: (element: any) => void }) {
+  const [collections, setCollections] = useState<any[]>([]);
+  const [dataSources, setDataSources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedDataSource, setSelectedDataSource] = useState<{
+    sourceId: string;
+    endpointId?: string;
+    sourceType?: 'api' | 'scraper' | 'collection';
+  } | null>(null);
+
+  useEffect(() => {
+    if (appId) {
+      loadData();
+    }
+  }, [appId]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [collectionsData, dataSourcesData] = await Promise.all([
+        getCollections(appId).catch(() => []),
+        getDataSources(appId).catch(() => [])
+      ]);
+      
+      setCollections(collectionsData);
+      setDataSources(dataSourcesData);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDataSourceSelect = (sourceId: string, endpointId?: string, sourceType?: 'api' | 'scraper' | 'collection') => {
+    setSelectedDataSource({ sourceId, endpointId, sourceType });
+  };
+
+  const handleAddDataWidget = (widgetType: string, dataConfig?: any) => {
+    const widgetId = `${widgetType}-${Date.now()}`;
+    
+    onAddElement({
+      id: widgetId,
+      type: widgetType,
+      props: {
+        title: `${widgetType.charAt(0).toUpperCase() + widgetType.slice(1)} Widget`,
+        dataSource: selectedDataSource,
+        ...dataConfig
+      },
+      style: {
+        width: '100%',
+        minHeight: '300px'
+      }
+    });
+  };
+
+  const dataWidgets = [
+    { id: 'collection-list', name: 'Collection List', icon: Layers, description: 'Display collection records' },
+    { id: 'collection-grid', name: 'Collection Grid', icon: Grid, description: 'Grid of collection items' },
+    { id: 'collection-cards', name: 'Collection Cards', icon: CreditCard, description: 'Card layout for records' },
+    { id: 'data-table', name: 'Data Table', icon: Table, description: 'Advanced data table' },
+    { id: 'api-data', name: 'API Data', icon: Zap, description: 'External API data' },
+    { id: 'dynamic-content', name: 'Dynamic Content', icon: Sparkles, description: 'Content from data' }
+  ];
+
+  return (
+    <ScrollArea className="h-full">
+      <div className="px-4 space-y-6 pb-4">
+        {/* Data Source Selection */}
+        <div>
+          <h3 className="font-medium text-sm mb-3">Data Source</h3>
+          <DataSourceSelector
+            appId={appId}
+            selectedSourceId={selectedDataSource?.sourceId}
+            selectedEndpointId={selectedDataSource?.endpointId}
+            onSelect={handleDataSourceSelect}
+          />
+          
+          {selectedDataSource && (
+            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2 text-green-800 text-sm">
+                <CheckCircle className="w-4 h-4" />
+                <span className="font-medium">Data source connected</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Data Widgets */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-5 h-5 rounded flex items-center justify-center text-white text-xs bg-cyan-500">
+              <Database className="w-3 h-3" />
+            </div>
+            <h3 className="font-medium text-sm">Data Widgets</h3>
+            <Badge variant="secondary" className="text-xs">
+              {dataWidgets.length}
+            </Badge>
+          </div>
+          
+          <div className="space-y-2">
+            {dataWidgets.map((widget) => {
+              const IconComponent = widget.icon;
+              return (
+                <motion.div
+                  key={widget.id}
+                  className={cn(
+                    "group p-3 rounded-lg border-2 border-dashed border-transparent hover:border-primary/50 cursor-pointer transition-all duration-200",
+                    "bg-card hover:bg-accent/50",
+                    !selectedDataSource && "opacity-50 cursor-not-allowed"
+                  )}
+                  whileHover={selectedDataSource ? { scale: 1.02 } : {}}
+                  whileTap={selectedDataSource ? { scale: 0.98 } : {}}
+                  onClick={() => selectedDataSource && handleAddDataWidget(widget.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-sm bg-cyan-500">
+                      <IconComponent className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{widget.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{widget.description}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+          
+          {!selectedDataSource && (
+            <div className="text-center py-4 text-muted-foreground">
+              <p className="text-sm">Select a data source first</p>
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Quick Stats */}
+        <div>
+          <h3 className="font-medium text-sm mb-3">Quick Stats</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <Card className="p-3">
+              <div className="text-center">
+                <div className="text-lg font-bold">{collections.length}</div>
+                <div className="text-xs text-muted-foreground">Collections</div>
+              </div>
+            </Card>
+            <Card className="p-3">
+              <div className="text-center">
+                <div className="text-lg font-bold">{dataSources.length}</div>
+                <div className="text-xs text-muted-foreground">Data Sources</div>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div>
+          <h3 className="font-medium text-sm mb-3">Quick Actions</h3>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+              onClick={() => window.open(`/dashboard/apps/${appId}/data`, '_blank')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Collection
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+              onClick={() => window.open(`/dashboard/apps/${appId}/data`, '_blank')}
+            >
+              <Database className="w-4 h-4 mr-2" />
+              Add Data Source
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+              onClick={() => window.open(`/dashboard/apps/${appId}/data`, '_blank')}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Manage Data
+            </Button>
+          </div>
+        </div>
+      </div>
+    </ScrollArea>
+  );
 }

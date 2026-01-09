@@ -80,7 +80,7 @@ export function HeroWidget({
   const titleRef = useRef<HTMLHeadingElement>(null)
   const subtitleRef = useRef<HTMLHeadingElement>(null)
   const descriptionRef = useRef<HTMLParagraphElement>(null)
-  const badgeRef = useRef<HTMLSpanElement>(null)
+  const badgeRef = useRef<HTMLDivElement>(null)
   const primaryButtonRef = useRef<HTMLSpanElement>(null)
   const secondaryButtonRef = useRef<HTMLSpanElement>(null)
 
@@ -151,7 +151,7 @@ export function HeroWidget({
         transformedData = transformedData[0] // Use first item for hero
       }
       
-      if (transformedData && typeof transformedData === 'object') {
+      if (transformedData && typeof transformedData === 'object' && !Array.isArray(transformedData)) {
         setHeroData({
           title: transformedData.title || transformedData.heading || transformedData.name,
           subtitle: transformedData.subtitle || transformedData.tagline,
@@ -263,11 +263,10 @@ export function HeroWidget({
               animate={{ opacity: 1, y: 0 }}
               className="mb-6"
             >
-              <Badge 
+              <div
                 ref={badgeRef}
-                variant="secondary" 
                 className={cn(
-                  "text-sm px-4 py-2 cursor-text",
+                  "inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-text",
                   editingField === 'badgeText' && "outline-none ring-2 ring-primary/50 bg-primary/5",
                   !isPreview && editingField !== 'badgeText' && "hover:bg-muted/30"
                 )}
@@ -278,7 +277,7 @@ export function HeroWidget({
                 onDoubleClick={() => handleFieldEdit('badgeText')}
               >
                 {activeBadgeText}
-              </Badge>
+              </div>
             </motion.div>
           )}
 
@@ -407,205 +406,6 @@ export function HeroWidget({
             )}
           </motion.div>
         </div>
-      </div>
-    </section>
-  )
-}
-      {backgroundImage && (
-        <div 
-          className="absolute inset-0 bg-black z-0"
-          style={{ opacity: backgroundOverlay }}
-        />
-      )}
-
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"
-          animate={{
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"
-          animate={{
-            x: [0, -40, 0],
-            y: [0, 40, 0],
-            scale: [1, 0.9, 1],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 py-20">
-        {/* Data Source Indicator */}
-        {dataSourceId && !isEditing && (
-          <div className="absolute top-4 right-4 z-20">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs bg-background/80 backdrop-blur">
-                <Database className="w-3 h-3 mr-1" />
-                {dataSourceType === 'collection' ? 'Collection' : 
-                 dataSourceType === 'scraper' ? 'Scraper' : 'API'}
-              </Badge>
-              {isLoading && (
-                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-              )}
-              {lastRefresh && (
-                <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
-                  <RefreshCw className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className={cn(
-            "max-w-3xl",
-            alignment === 'center' && "mx-auto",
-            alignment === 'right' && "ml-auto"
-          )}
-        >
-          {/* Badge */}
-          {showBadge && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-6"
-            >
-              <span 
-                ref={badgeRef}
-                className={cn(
-                  "inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium cursor-text",
-                  inlineEditingBadge && "outline-none ring-2 ring-primary/50",
-                  !isPreview && !inlineEditingBadge && "hover:bg-primary/20"
-                )}
-                contentEditable={inlineEditingBadge}
-                suppressContentEditableWarning
-                onBlur={handleBadgeBlur}
-                onKeyDown={(e) => handleKeyDown(e, handleBadgeBlur)}
-                onDoubleClick={(e) => {
-                  if (isPreview) return
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setInlineEditingBadge(true)
-                }}
-              >
-                {activeBadgeText}
-              </span>
-            </motion.div>
-          )}
-
-          {/* Subtitle */}
-          {subtitle && (
-            <motion.p
-              ref={subtitleRef}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className={cn(
-                "text-primary font-semibold text-lg mb-4 cursor-text",
-                inlineEditingSubtitle && "outline-none ring-2 ring-primary/50 rounded px-2",
-                !isPreview && !inlineEditingSubtitle && "hover:bg-primary/5 rounded px-2"
-              )}
-              contentEditable={inlineEditingSubtitle}
-              suppressContentEditableWarning
-              onBlur={handleSubtitleBlur}
-              onKeyDown={(e) => handleKeyDown(e, handleSubtitleBlur)}
-              onDoubleClick={(e) => {
-                if (isPreview) return
-                e.preventDefault()
-                e.stopPropagation()
-                setInlineEditingSubtitle(true)
-              }}
-            >
-              {activeSubtitle}
-            </motion.p>
-          )}
-
-          {/* Title */}
-          <motion.h1
-            ref={titleRef}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className={cn(
-              "text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight cursor-text",
-              backgroundImage ? "text-white" : "text-foreground",
-              inlineEditingTitle && "outline-none ring-2 ring-primary/50 rounded px-2",
-              !isPreview && !inlineEditingTitle && "hover:bg-primary/5 rounded px-2"
-            )}
-            contentEditable={inlineEditingTitle}
-            suppressContentEditableWarning
-            onBlur={handleTitleBlur}
-            onKeyDown={(e) => handleKeyDown(e, handleTitleBlur)}
-            onDoubleClick={(e) => {
-              if (isPreview) return
-              e.preventDefault()
-              e.stopPropagation()
-              setInlineEditingTitle(true)
-            }}
-          >
-            {activeTitle}
-          </motion.h1>
-
-          {/* Description */}
-          <motion.p
-            ref={descRef}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className={cn(
-              "text-lg md:text-xl mb-8 leading-relaxed cursor-text",
-              backgroundImage ? "text-white/80" : "text-muted-foreground",
-              inlineEditingDesc && "outline-none ring-2 ring-primary/50 rounded px-2",
-              !isPreview && !inlineEditingDesc && "hover:bg-primary/5 rounded px-2"
-            )}
-            contentEditable={inlineEditingDesc}
-            suppressContentEditableWarning
-            onBlur={handleDescBlur}
-            onKeyDown={(e) => handleKeyDown(e, handleDescBlur)}
-            onDoubleClick={(e) => {
-              if (isPreview) return
-              e.preventDefault()
-              e.stopPropagation()
-              setInlineEditingDesc(true)
-            }}
-          >
-            {activeDescription}
-          </motion.p>
-
-          {/* Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className={cn(
-              "flex flex-wrap gap-4",
-              alignment === 'center' && "justify-center",
-              alignment === 'right' && "justify-end"
-            )}
-          >
-            <Button size="lg" className="gap-2 text-base px-8 h-12">
-              {activePrimaryButtonText}
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-            {activeSecondaryButtonText && (
-              <Button size="lg" variant="outline" className="gap-2 text-base px-8 h-12">
-                <Play className="w-4 h-4" />
-                {activeSecondaryButtonText}
-              </Button>
-            )}
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   )

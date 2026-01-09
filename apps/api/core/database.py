@@ -156,6 +156,34 @@ class Template(BaseModel):
     
     # Relationships
     apps = relationship("App", back_populates="template")
+    template_pages = relationship("TemplatePage", back_populates="template", cascade="all, delete-orphan")
+
+
+class TemplatePage(BaseModel):
+    __tablename__ = "template_pages"
+    
+    title = Column(String(255), nullable=False)
+    slug = Column(String(100), nullable=False)
+    content = Column(JSONB, default={})  # Page structure and elements
+    
+    # SEO fields
+    meta_title = Column(String(255))
+    meta_description = Column(Text)
+    meta_keywords = Column(String(500))
+    og_image = Column(String(500))
+    
+    # Page settings
+    is_homepage = Column(Boolean, default=False)
+    sort_order = Column(Integer, default=0)
+    
+    # Template relationship
+    template_id = Column(UUID(as_uuid=True), ForeignKey("templates.id"), nullable=False)
+    template = relationship("Template", back_populates="template_pages")
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_template_page_template_slug', 'template_id', 'slug'),
+    )
 
 
 class Page(BaseModel):

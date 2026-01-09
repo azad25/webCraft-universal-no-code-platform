@@ -26,7 +26,7 @@ interface App {
 export default function DeployPage() {
   const params = useParams()
   const router = useRouter()
-  const appId = params.id as string
+  const appId = params.appId as string
 
   const [app, setApp] = useState<App | null>(null)
   const [loading, setLoading] = useState(true)

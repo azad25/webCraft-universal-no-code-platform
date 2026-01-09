@@ -1,16 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { AutomationList } from '@/components/automation/automation-list'
 import { AutomationBuilder } from '@/components/automation/automation-builder'
 import { AutomationLogs } from '@/components/automation/automation-logs'
+import { useGetAutomationsQuery, useCreateAutomationMutation, useUpdateAutomationMutation, useDeleteAutomationMutation, useEnableAutomationMutation, useDisableAutomationMutation, useGetAutomationLogsQuery } from '@/store/api/apiSlice'
 
 interface Automation {
   id: string
   name: string
   description?: string
   triggerType: string
+  triggerConfig: Record<string, any>
+  workflowSteps: any[]
   isEnabled: boolean
   lastExecutedAt?: string
   executionCount: number
@@ -24,72 +27,64 @@ export default function AutomationsPage() {
   const appId = params.appId as string
   
   const [view, setView] = useState<View>('list')
-  const [automations, setAutomations] = useState<Automation[]>([])
   const [selectedAutomation, setSelectedAutomation] = useState<Automation | null>(null)
-  const [logs, setLogs] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch automations
-  useEffect(() => {
-    fetchAutomations()
-  }, [appId])
+  // RTK Query hooks
+  const { data: automationsData, isLoading } = useGetAutomationsQuery({ appId })
+  const { data: logsData } = useGetAutomationLogsQuery(
+    { appId, automationId: selectedAutomation?.id || '' },
+    { skip: !selectedAutomation?.id || view !== 'logs' }
+  )
+  const [createAutomation] = useCreateAutomationMutation()
+  const [updateAutomation] = useUpdateAutomationMutation()
+  const [deleteAutomation] = useDeleteAutomationMutation()
+  const [enableAutomation] = useEnableAutomationMutation()
+  const [disableAutomation] = useDisableAutomationMutation()
 
-  const fetchAutomations = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch(`/api/v1/apps/${appId}/automations`)
-      const data = await response.json()
-      setAutomations(data.automations || [])
-    } catch (error) {
-      console.error('Failed to fetch automations:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchLogs = async (automationId: string) => {
-    try {
-      const response = await fetch(`/api/v1/apps/${appId}/automations/${automationId}/logs`)
-      const data = await response.json()
-      setLogs(data.logs || [])
-    } catch (error) {
-      console.error('Failed to fetch logs:', error)
-    }
-  }
+  const automations = automationsData?.automations || []
+  const logs = logsData?.logs || []
 
   const handleCreateNew = () => {
     setSelectedAutomation(null)
     setView('builder')
   }
 
-  const handleEdit = (automation: Automation) => {
-    setSelectedAutomation(automation)
+  const handleEdit = (automation: any) => {
+    // Convert API format to component format
+    const convertedAutomation: Automation = {
+      id: automation.id,
+      name: automation.name,
+      description: automation.description,
+      triggerType: automation.trigger_type,
+      triggerConfig: automation.trigger_config || {},
+      workflowSteps: automation.workflow_steps || [],
+      isEnabled: automation.is_enabled,
+      lastExecutedAt: automation.last_executed_at,
+      executionCount: automation.execution_count,
+      createdAt: automation.created_at
+    }
+    setSelectedAutomation(convertedAutomation)
     setView('builder')
   }
 
-  const handleSave = async (automation: any) => {
+  const handleSave = async (automation: Automation) => {
     try {
-      const url = automation.id 
-        ? `/api/v1/apps/${appId}/automations/${automation.id}`
-        : `/api/v1/apps/${appId}/automations`
-      
-      const response = await fetch(url, {
-        method: automation.id ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: automation.name,
-          description: automation.description,
-          trigger_type: automation.triggerType,
-          trigger_config: automation.triggerConfig,
-          workflow_steps: automation.workflowSteps,
-          is_enabled: automation.isEnabled
-        })
-      })
-
-      if (response.ok) {
-        await fetchAutomations()
-        setView('list')
+      const body = {
+        name: automation.name,
+        description: automation.description,
+        trigger_type: automation.triggerType,
+        trigger_config: automation.triggerConfig,
+        workflow_steps: automation.workflowSteps,
+        is_enabled: automation.isEnabled
       }
+
+      if (automation.id) {
+        await updateAutomation({ appId, automationId: automation.id, body }).unwrap()
+      } else {
+        await createAutomation({ appId, body }).unwrap()
+      }
+      
+      setView('list')
     } catch (error) {
       console.error('Failed to save automation:', error)
     }
@@ -97,11 +92,11 @@ export default function AutomationsPage() {
 
   const handleToggle = async (id: string, enabled: boolean) => {
     try {
-      const endpoint = enabled ? 'enable' : 'disable'
-      await fetch(`/api/v1/apps/${appId}/automations/${id}/${endpoint}`, {
-        method: 'POST'
-      })
-      await fetchAutomations()
+      if (enabled) {
+        await enableAutomation({ appId, automationId: id }).unwrap()
+      } else {
+        await disableAutomation({ appId, automationId: id }).unwrap()
+      }
     } catch (error) {
       console.error('Failed to toggle automation:', error)
     }
@@ -111,42 +106,49 @@ export default function AutomationsPage() {
     if (!confirm('Are you sure you want to delete this automation?')) return
     
     try {
-      await fetch(`/api/v1/apps/${appId}/automations/${id}`, {
-        method: 'DELETE'
-      })
-      await fetchAutomations()
+      await deleteAutomation({ appId, automationId: id }).unwrap()
     } catch (error) {
       console.error('Failed to delete automation:', error)
     }
   }
 
   const handleDuplicate = async (id: string) => {
-    const automation = automations.find(a => a.id === id)
+    const automation = automations.find((a: any) => a.id === id)
     if (!automation) return
 
     try {
-      await fetch(`/api/v1/apps/${appId}/automations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: `${automation.name} (copy)`,
-          description: automation.description,
-          trigger_type: automation.triggerType,
-          is_enabled: false
-        })
-      })
-      await fetchAutomations()
+      const body = {
+        name: `${automation.name} (copy)`,
+        description: automation.description,
+        trigger_type: automation.trigger_type,
+        trigger_config: automation.trigger_config || {},
+        workflow_steps: automation.workflow_steps || [],
+        is_enabled: false
+      }
+      await createAutomation({ appId, body }).unwrap()
     } catch (error) {
       console.error('Failed to duplicate automation:', error)
     }
   }
 
-  const handleViewLogs = async (id: string) => {
-    const automation = automations.find(a => a.id === id)
+  const handleViewLogs = (id: string) => {
+    const automation = automations.find((a: any) => a.id === id)
     if (!automation) return
     
-    setSelectedAutomation(automation)
-    await fetchLogs(id)
+    const convertedAutomation: Automation = {
+      id: automation.id,
+      name: automation.name,
+      description: automation.description,
+      triggerType: automation.trigger_type,
+      triggerConfig: automation.trigger_config || {},
+      workflowSteps: automation.workflow_steps || [],
+      isEnabled: automation.is_enabled,
+      lastExecutedAt: automation.last_executed_at,
+      executionCount: automation.execution_count,
+      createdAt: automation.created_at
+    }
+    
+    setSelectedAutomation(convertedAutomation)
     setView('logs')
   }
 
@@ -181,15 +183,7 @@ export default function AutomationsPage() {
       {view === 'builder' && (
         <AutomationBuilder
           appId={appId}
-          automation={selectedAutomation ? {
-            id: selectedAutomation.id,
-            name: selectedAutomation.name,
-            description: selectedAutomation.description,
-            triggerType: selectedAutomation.triggerType,
-            triggerConfig: {},
-            workflowSteps: [],
-            isEnabled: selectedAutomation.isEnabled
-          } : undefined}
+          automation={selectedAutomation}
           onSave={handleSave}
           onClose={() => setView('list')}
         />
@@ -200,7 +194,9 @@ export default function AutomationsPage() {
           automationId={selectedAutomation.id}
           automationName={selectedAutomation.name}
           logs={logs}
-          onRefresh={() => fetchLogs(selectedAutomation.id)}
+          onRefresh={() => {
+            // Logs will automatically refresh due to RTK Query
+          }}
           onClose={() => setView('list')}
         />
       )}

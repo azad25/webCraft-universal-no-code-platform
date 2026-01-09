@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getAuthToken } from '@/lib/dev-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -73,7 +74,7 @@ interface DataSourceConfigProps {
   appId: string;
 }
 
-export function DataSourceConfig({
+export function DataSourceSelector({
   selectedSourceId,
   selectedEndpointId,
   onSelect,
@@ -138,7 +139,7 @@ export function DataSourceConfig({
     try {
       const response = await fetch(`/api/apps/${appId}/collections`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
       

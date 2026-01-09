@@ -77,7 +77,7 @@ export function GalleryWidget({
     setError(null)
     
     try {
-      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId || '', {}, true)
       
       // Transform API response to gallery format
       let transformedData = response.data
@@ -249,7 +249,6 @@ export function GalleryWidget({
             <p className="text-sm">Connect a data source to display dynamic images</p>
           </div>
         )}
-        </div>
 
         {/* Lightbox */}
         <AnimatePresence>
@@ -284,8 +283,8 @@ export function GalleryWidget({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                src={images[selectedIndex].src}
-                alt={images[selectedIndex].alt}
+                src={activeImages[selectedIndex].src}
+                alt={activeImages[selectedIndex].alt}
                 className="max-w-[90vw] max-h-[90vh] object-contain"
                 onClick={(e) => e.stopPropagation()}
               />

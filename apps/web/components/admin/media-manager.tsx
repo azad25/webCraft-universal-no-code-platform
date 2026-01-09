@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { getAuthToken } from '@/lib/dev-auth'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -121,7 +122,7 @@ export function MediaManager({
       
       const response = await fetch(`/api/media?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       })
       
@@ -178,7 +179,7 @@ export function MediaManager({
         const response = await fetch('/api/media/upload', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+            'Authorization': `Bearer ${getAuthToken()}`
           },
           body: formData
         })
@@ -259,7 +260,7 @@ export function MediaManager({
       const response = await fetch(`/api/media/${fileId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       })
       
@@ -286,7 +287,7 @@ export function MediaManager({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+          'Authorization': `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify({
           name: newFolderName,
@@ -314,7 +315,7 @@ export function MediaManager({
         await fetch(`/api/media/${fileId}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+            'Authorization': `Bearer ${getAuthToken()}`
           }
         })
       } catch (error) {
@@ -335,7 +336,7 @@ export function MediaManager({
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+            'Authorization': `Bearer ${getAuthToken()}`
           },
           body: JSON.stringify({ folder: targetFolder })
         })
@@ -356,7 +357,7 @@ export function MediaManager({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+          'Authorization': `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(updates)
       })

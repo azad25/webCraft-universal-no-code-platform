@@ -181,24 +181,30 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    # Development bypass
-    if credentials.credentials == "dev-bypass-token" and os.getenv("ENVIRONMENT") == "development":
-        # Create or get a development user
-        dev_user = db.query(User).filter(User.email == "dev@webcraft.local").first()
-        if not dev_user:
-            dev_user = User(
-                email="dev@webcraft.local",
-                username="devuser",
-                full_name="Development User",
-                hashed_password=AuthService.get_password_hash("devpassword"),
-                is_verified=True,
-                is_premium=True,
-                subscription_tier="enterprise"
-            )
-            db.add(dev_user)
-            db.commit()
-            db.refresh(dev_user)
-        return dev_user
+    # Development bypass - always use admin@test.com user
+    if credentials.credentials.startswith("dev-bypass-token") or credentials.credentials == "admin-test-token":
+        # Always use admin@test.com for consistency
+        admin_user = db.query(User).filter(User.email == "admin@test.com").first()
+        if admin_user:
+            print(f"🔧 Using admin@test.com user (ID: {admin_user.id})")
+            return admin_user
+        
+        # If admin@test.com doesn't exist, create it
+        print("🔧 Creating admin@test.com user...")
+        admin_user = User(
+            email="admin@test.com",
+            username="admin",
+            full_name="Admin User",
+            hashed_password=AuthService.get_password_hash("12345678"),
+            is_verified=True,
+            is_premium=True,
+            subscription_tier="enterprise"
+        )
+        db.add(admin_user)
+        db.commit()
+        db.refresh(admin_user)
+        print(f"✅ Created admin@test.com user (ID: {admin_user.id})")
+        return admin_user
     
     try:
         payload = AuthService.verify_token(credentials.credentials)

@@ -2,11 +2,13 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useDrag } from 'react-dnd'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useEditor } from '@/contexts/editor-context'
 
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   GripVertical,
   Copy,
@@ -18,7 +20,25 @@ import {
   MoreHorizontal,
   Move,
   ArrowUpDown,
-  Maximize2
+  Maximize2,
+  Edit3,
+  Type,
+  Image as ImageIcon,
+  Palette,
+  Layout,
+  Wand2,
+  Upload,
+  Link,
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Check,
+  X,
+  Paintbrush,
+  MousePointer2
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -91,6 +111,9 @@ import { EnhancedButtonWidget } from './widgets/enhanced-button-widget'
 import { ChartWidget } from './widgets/chart-widget'
 import { TableWidget } from './widgets/table-widget'
 
+// Import the widget toolbar
+import { WidgetToolbar } from './widget-toolbar'
+
 interface WidgetRendererProps {
   element: any
   isSelected: boolean
@@ -99,6 +122,15 @@ interface WidgetRendererProps {
   onSelect: () => void
   onOpenInlineEditor?: (element: any, position?: { x: number; y: number }) => void
   onStartResize?: (elementId: string) => void
+}
+
+// Direct editing state interface
+interface DirectEditState {
+  isEditing: boolean
+  editType: 'text' | 'image' | 'style' | 'layout' | null
+  editTarget: string | null // Which property is being edited
+  originalValue: any
+  tempValue: any
 }
 
 // Widget component registry
@@ -178,8 +210,19 @@ export function WidgetRenderer({
   onStartResize
 }: WidgetRendererProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [directEdit, setDirectEdit] = useState<DirectEditState>({
+    isEditing: false,
+    editType: null,
+    editTarget: null,
+    originalValue: null,
+    tempValue: null
+  })
+  const [showQuickActions, setShowQuickActions] = useState(false)
   const elementRef = useRef<HTMLDivElement>(null)
+  const editInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 
+  // Only use editor context when not in preview mode
+  const editorContext = isPreview ? null : useEditor()
   const {
     updateElement,
     deleteElement,
@@ -187,23 +230,32 @@ export function WidgetRenderer({
     moveElementUp,
     moveElementDown,
     addElementAfter
-  } = useEditor()
+  } = editorContext || {
+    updateElement: () => {},
+    deleteElement: () => {},
+    duplicateElement: () => {},
+    moveElementUp: () => {},
+    moveElementDown: () => {},
+    addElementAfter: () => {}
+  }
 
   const [isDraggingPosition, setIsDraggingPosition] = useState(false)
   const [dragMode, setDragMode] = useState<'reorder' | 'position'>('reorder')
 
-  // Drag handle for reordering (only when selected)
-  const [{ isDragging }, drag, preview] = useDrag({
+  // Drag handle for reordering (only when selected and not in preview)
+  const dragResult = !isPreview ? useDrag({
     type: 'element',
     item: { type: 'element', id: element.id, dragMode },
     canDrag: () => isSelected && !isPreview, // Only allow dragging when selected
     collect: (monitor) => ({
       isDragging: monitor.isDragging()
     })
-  })
+  }) : [{ isDragging: false }, () => {}, () => {}]
 
-  // Position drag functionality
-  const [{ isDraggingPos }, dragPosition] = useDrag({
+  const [{ isDragging }, drag, preview] = dragResult
+
+  // Position drag functionality (only when not in preview)
+  const dragPositionResult = !isPreview ? useDrag({
     type: 'element-position',
     item: () => ({
       type: 'element-position',
@@ -226,7 +278,9 @@ export function WidgetRenderer({
         updateElement(element.id, { position: newPosition })
       }
     }
-  })
+  }) : [{ isDraggingPos: false }, () => {}]
+
+  const [{ isDraggingPos }, dragPosition] = dragPositionResult
 
   // Get the widget component
   const WidgetComponent = WIDGET_COMPONENTS[element.type]
@@ -240,22 +294,208 @@ export function WidgetRenderer({
     }
   }, [isPreview, onSelect, element.id, element.type])
 
-  // Handle inline editing
+  // Handle single click for quick actions
+  const handleSingleClick = useCallback((e: React.MouseEvent) => {
+    if (isPreview) return
+    e.stopPropagation()
+    
+    // Show quick action hints
+    setShowQuickActions(true)
+    setTimeout(() => setShowQuickActions(false), 3000)
+  }, [isPreview])
+
+  // Handle direct text editing
+  const startDirectEdit = useCallback((editType: 'text' | 'image' | 'style' | 'layout', target: string, currentValue: any) => {
+    if (isPreview) return
+    
+    setDirectEdit({
+      isEditing: true,
+      editType,
+      editTarget: target,
+      originalValue: currentValue,
+      tempValue: currentValue
+    })
+    
+    // Focus input after state update
+    setTimeout(() => {
+      if (editInputRef.current) {
+        editInputRef.current.focus()
+        if (editInputRef.current instanceof HTMLInputElement || editInputRef.current instanceof HTMLTextAreaElement) {
+          editInputRef.current.select()
+        }
+      }
+    }, 50)
+  }, [isPreview])
+
+  // Save direct edit
+  const saveDirectEdit = useCallback(() => {
+    if (!directEdit.isEditing || !directEdit.editTarget) return
+    
+    const updates: any = {}
+    
+    if (directEdit.editType === 'text') {
+      updates.props = {
+        ...element.props,
+        [directEdit.editTarget]: directEdit.tempValue
+      }
+    } else if (directEdit.editType === 'image') {
+      updates.props = {
+        ...element.props,
+        [directEdit.editTarget]: directEdit.tempValue
+      }
+    } else if (directEdit.editType === 'style') {
+      updates.style = {
+        ...element.style,
+        [directEdit.editTarget]: directEdit.tempValue
+      }
+    }
+    
+    updateElement(element.id, updates)
+    
+    setDirectEdit({
+      isEditing: false,
+      editType: null,
+      editTarget: null,
+      originalValue: null,
+      tempValue: null
+    })
+  }, [directEdit, element, updateElement])
+
+  // Cancel direct edit
+  const cancelDirectEdit = useCallback(() => {
+    setDirectEdit({
+      isEditing: false,
+      editType: null,
+      editTarget: null,
+      originalValue: null,
+      tempValue: null
+    })
+  }, [])
+
+  // Handle text content click for direct editing
+  const handleTextClick = useCallback((e: React.MouseEvent, textProperty: string) => {
+    if (isPreview || !isSelected) return
+    e.stopPropagation()
+    
+    const currentValue = element.props?.[textProperty] || ''
+    startDirectEdit('text', textProperty, currentValue)
+  }, [isPreview, isSelected, element.props, startDirectEdit])
+
+  // Handle image click for direct editing
+  const handleImageClick = useCallback((e: React.MouseEvent, imageProperty: string = 'src') => {
+    if (isPreview || !isSelected) return
+    e.stopPropagation()
+    
+    const currentValue = element.props?.[imageProperty] || ''
+    startDirectEdit('image', imageProperty, currentValue)
+  }, [isPreview, isSelected, element.props, startDirectEdit])
+
+  // Show widget toolbar on selection
+  const [showWidgetToolbar, setShowWidgetToolbar] = useState(false)
+  const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0, width: 0, height: 0 })
+
+  // Update toolbar position when selected
+  useEffect(() => {
+    if (isSelected && !isPreview && elementRef.current) {
+      const rect = elementRef.current.getBoundingClientRect()
+      setToolbarPosition({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height
+      })
+      setShowWidgetToolbar(true)
+    } else {
+      setShowWidgetToolbar(false)
+    }
+  }, [isSelected, isPreview])
+
+  // Render direct edit input
+  const renderDirectEditInput = () => {
+    if (!directEdit.isEditing) return null
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        saveDirectEdit()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        cancelDirectEdit()
+      }
+    }
+
+    const inputProps = {
+      ref: editInputRef as any,
+      value: directEdit.tempValue || '',
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setDirectEdit(prev => ({ ...prev, tempValue: e.target.value }))
+      },
+      onKeyDown: handleKeyDown,
+      onBlur: saveDirectEdit,
+      className: "absolute inset-0 z-50 bg-white border-2 border-primary rounded px-2 py-1 text-sm font-medium shadow-lg",
+      placeholder: directEdit.editType === 'image' ? 'Enter image URL...' : 'Enter text...',
+      autoFocus: true
+    }
+
+    if (directEdit.editType === 'text' && directEdit.tempValue && directEdit.tempValue.length > 50) {
+      return (
+        <div className="absolute inset-0 z-50 bg-white border-2 border-primary rounded shadow-lg">
+          <Textarea
+            {...inputProps}
+            className="w-full h-full resize-none border-none focus:ring-0 text-sm"
+            rows={3}
+          />
+          <div className="absolute bottom-1 right-1 flex gap-1">
+            <Button size="sm" variant="ghost" onClick={saveDirectEdit} className="h-6 w-6 p-0">
+              <Check className="w-3 h-3" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={cancelDirectEdit} className="h-6 w-6 p-0">
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="absolute inset-0 z-50">
+        <Input {...inputProps} />
+        <div className="absolute top-full left-0 mt-1 flex gap-1 bg-white border rounded shadow-lg p-1">
+          <Button size="sm" variant="ghost" onClick={saveDirectEdit} className="h-6 px-2 text-xs">
+            <Check className="w-3 h-3 mr-1" />
+            Save
+          </Button>
+          <Button size="sm" variant="ghost" onClick={cancelDirectEdit} className="h-6 px-2 text-xs">
+            <X className="w-3 h-3 mr-1" />
+            Cancel
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Handle double click for quick editing
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     if (isPreview) return
     e.stopPropagation()
     
-    if (onOpenInlineEditor) {
+    // Determine what to edit based on element type
+    const textProperties = ['text', 'content', 'title', 'subtitle', 'description']
+    const textProp = textProperties.find(prop => element.props?.[prop])
+    
+    if (textProp) {
+      startDirectEdit('text', textProp, element.props[textProp])
+    } else if (element.type === 'image' && element.props?.src) {
+      startDirectEdit('image', 'src', element.props.src)
+    } else if (onOpenInlineEditor) {
       const rect = e.currentTarget.getBoundingClientRect()
       const position = {
-        x: rect.left + rect.width / 2 - 160, // Center the editor
-        y: Math.max(10, rect.top - 10) // Position above element, but not off-screen
+        x: rect.left + rect.width / 2 - 160,
+        y: Math.max(10, rect.top - 10)
       }
       onOpenInlineEditor(element, position)
-    } else {
-      setIsEditing(true)
     }
-  }, [isPreview, onOpenInlineEditor, element])
+  }, [isPreview, element, startDirectEdit, onOpenInlineEditor])
 
   // Handle right-click context menu
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -612,6 +852,19 @@ export function WidgetRenderer({
         </motion.div>
       )}
 
+      {/* Widget Toolbar - Figma-like editing */}
+      {showWidgetToolbar && !isPreview && (
+        <WidgetToolbar
+          element={element}
+          position={toolbarPosition}
+          isVisible={showWidgetToolbar}
+          onClose={() => setShowWidgetToolbar(false)}
+        />
+      )}
+
+      {/* Direct Edit Input Overlay */}
+      {directEdit.isEditing && renderDirectEditInput()}
+
       {/* Click overlay for better interaction */}
       {!isPreview && !isSelected && (
         <div 
@@ -623,6 +876,18 @@ export function WidgetRenderer({
             backgroundSize: '10px 10px'
           }}
         />
+      )}
+
+      {/* Quick Actions Hint */}
+      {showQuickActions && !isPreview && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-black text-white px-3 py-1 rounded text-xs whitespace-nowrap z-50"
+        >
+          Double-click to edit • Right-click for options
+        </motion.div>
       )}
     </div>
   )

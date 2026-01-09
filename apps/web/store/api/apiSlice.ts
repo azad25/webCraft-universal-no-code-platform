@@ -16,10 +16,10 @@ const baseQuery = fetchBaseQuery({
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     } else {
-      // Development bypass - use a dummy token if no real token exists
+      // Development bypass - always use admin@test.com
       if (process.env.NODE_ENV === 'development') {
-        headers.set('Authorization', 'Bearer dev-bypass-token')
-        console.log('🔧 RTK Query using development bypass token')
+        headers.set('Authorization', `Bearer admin-test-token`)
+        console.log(`🔧 RTK Query using admin@test.com token`)
       }
     }
     
@@ -96,6 +96,8 @@ export const apiSlice = createApi({
   tagTypes: [
     'App',
     'Apps',
+    'Page',
+    'Pages',
     'Template',
     'Templates',
     'Widget',
@@ -103,7 +105,9 @@ export const apiSlice = createApi({
     'User',
     'Subscription',
     'Analytics',
-    'Comments'
+    'Comments',
+    'Automation',
+    'Automations'
   ],
   endpoints: (builder) => ({
     // ==================== Apps ====================
@@ -168,6 +172,18 @@ export const apiSlice = createApi({
       providesTags: ['Analytics']
     }),
     
+    // ==================== Preview ====================
+    createPreview: builder.mutation<any, { id: string; device?: string }>({
+      query: ({ id, device = 'desktop' }) => ({
+        url: `/api/apps/${id}/preview?device=${device}`,
+        method: 'GET'
+      })
+    }),
+    
+    getPreviewData: builder.query<any, { token: string; device?: string }>({
+      query: ({ token, device = 'desktop' }) => `/api/apps/preview/${token}?device=${device}`
+    }),
+    
     // ==================== Templates ====================
     getTemplates: builder.query<any, { category?: string; search?: string; page?: number }>({
       query: (params) => ({
@@ -210,7 +226,65 @@ export const apiSlice = createApi({
       providesTags: (result, error, id) => [{ type: 'Widget', id }]
     }),
     
-    // ==================== AI ====================
+    // ==================== Pages ====================
+    getPages: builder.query<any, string>({
+      query: (appId) => `/api/apps/${appId}/pages`,
+      providesTags: (result, error, appId) => [
+        { type: 'App', id: appId },
+        ...(result?.pages || []).map((page: any) => ({ type: 'Page' as const, id: page.id }))
+      ]
+    }),
+    
+    getPage: builder.query<any, { appId: string; pageId: string }>({
+      query: ({ appId, pageId }) => `/api/apps/${appId}/pages/${pageId}`,
+      providesTags: (result, error, { pageId }) => [{ type: 'Page', id: pageId }]
+    }),
+    
+    createPage: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/api/apps/${appId}/pages`,
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: (result, error, { appId }) => [{ type: 'App', id: appId }]
+    }),
+    
+    updatePage: builder.mutation<any, { appId: string; pageId: string; body: any }>({
+      query: ({ appId, pageId, body }) => ({
+        url: `/api/apps/${appId}/pages/${pageId}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: (result, error, { appId, pageId }) => [
+        { type: 'App', id: appId },
+        { type: 'Page', id: pageId }
+      ]
+    }),
+    
+    updatePageContent: builder.mutation<any, { appId: string; pageId: string; content: any }>({
+      query: ({ appId, pageId, content }) => ({
+        url: `/api/apps/${appId}/pages/${pageId}/content`,
+        method: 'PUT',
+        body: content
+      }),
+      invalidatesTags: (result, error, { pageId }) => [{ type: 'Page', id: pageId }]
+    }),
+    
+    deletePage: builder.mutation<void, { appId: string; pageId: string }>({
+      query: ({ appId, pageId }) => ({
+        url: `/api/apps/${appId}/pages/${pageId}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (result, error, { appId }) => [{ type: 'App', id: appId }]
+    }),
+    
+    duplicatePage: builder.mutation<any, { appId: string; pageId: string; newTitle: string; newSlug: string }>({
+      query: ({ appId, pageId, newTitle, newSlug }) => ({
+        url: `/api/apps/${appId}/pages/${pageId}/duplicate?new_title=${encodeURIComponent(newTitle)}&new_slug=${encodeURIComponent(newSlug)}`,
+        method: 'POST'
+      }),
+      invalidatesTags: (result, error, { appId }) => [{ type: 'App', id: appId }]
+    }),
     generateContent: builder.mutation<any, any>({
       query: (body) => ({
         url: '/api/ai/generate-content',
@@ -311,6 +385,104 @@ export const apiSlice = createApi({
         method: 'DELETE'
       }),
       invalidatesTags: ['Comments']
+    }),
+    
+    // ==================== Automations ====================
+    getAutomations: builder.query<any, { appId: string; isEnabled?: boolean; triggerType?: string }>({
+      query: ({ appId, isEnabled, triggerType }) => ({
+        url: `/api/apps/${appId}/automations`,
+        params: { is_enabled: isEnabled, trigger_type: triggerType }
+      }),
+      providesTags: (result, error, { appId }) => [
+        { type: 'Automations', id: appId },
+        ...(result?.automations || []).map((automation: any) => ({ type: 'Automation' as const, id: automation.id }))
+      ]
+    }),
+    
+    getAutomation: builder.query<any, { appId: string; automationId: string }>({
+      query: ({ appId, automationId }) => `/api/apps/${appId}/automations/${automationId}`,
+      providesTags: (result, error, { automationId }) => [{ type: 'Automation', id: automationId }]
+    }),
+    
+    createAutomation: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/api/apps/${appId}/automations`,
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: (result, error, { appId }) => [{ type: 'Automations', id: appId }]
+    }),
+    
+    updateAutomation: builder.mutation<any, { appId: string; automationId: string; body: any }>({
+      query: ({ appId, automationId, body }) => ({
+        url: `/api/apps/${appId}/automations/${automationId}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: (result, error, { appId, automationId }) => [
+        { type: 'Automations', id: appId },
+        { type: 'Automation', id: automationId }
+      ]
+    }),
+    
+    deleteAutomation: builder.mutation<any, { appId: string; automationId: string }>({
+      query: ({ appId, automationId }) => ({
+        url: `/api/apps/${appId}/automations/${automationId}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (result, error, { appId }) => [{ type: 'Automations', id: appId }]
+    }),
+    
+    executeAutomation: builder.mutation<any, { appId: string; automationId: string; triggerData?: any }>({
+      query: ({ appId, automationId, triggerData = {} }) => ({
+        url: `/api/apps/${appId}/automations/${automationId}/execute`,
+        method: 'POST',
+        body: triggerData
+      })
+    }),
+    
+    testAutomation: builder.mutation<any, { appId: string; automationId: string; testData?: any }>({
+      query: ({ appId, automationId, testData = {} }) => ({
+        url: `/api/apps/${appId}/automations/${automationId}/test`,
+        method: 'POST',
+        body: testData
+      })
+    }),
+    
+    getAutomationLogs: builder.query<any, { appId: string; automationId: string; status?: string; limit?: number }>({
+      query: ({ appId, automationId, status, limit = 50 }) => ({
+        url: `/api/apps/${appId}/automations/${automationId}/logs`,
+        params: { status, limit }
+      })
+    }),
+    
+    enableAutomation: builder.mutation<any, { appId: string; automationId: string }>({
+      query: ({ appId, automationId }) => ({
+        url: `/api/apps/${appId}/automations/${automationId}/enable`,
+        method: 'POST'
+      }),
+      invalidatesTags: (result, error, { appId, automationId }) => [
+        { type: 'Automations', id: appId },
+        { type: 'Automation', id: automationId }
+      ]
+    }),
+    
+    disableAutomation: builder.mutation<any, { appId: string; automationId: string }>({
+      query: ({ appId, automationId }) => ({
+        url: `/api/apps/${appId}/automations/${automationId}/disable`,
+        method: 'POST'
+      }),
+      invalidatesTags: (result, error, { appId, automationId }) => [
+        { type: 'Automations', id: appId },
+        { type: 'Automation', id: automationId }
+      ]
+    }),
+    
+    getAutomationTemplates: builder.query<any, { category?: string }>({
+      query: ({ category }) => ({
+        url: '/api/automation-templates',
+        params: { category }
+      })
     })
   })
 })
@@ -327,6 +499,10 @@ export const {
   useUnpublishAppMutation,
   useGetAppAnalyticsQuery,
   
+  // Preview
+  useCreatePreviewMutation,
+  useGetPreviewDataQuery,
+  
   // Templates
   useGetTemplatesQuery,
   useGetTemplateQuery,
@@ -336,6 +512,15 @@ export const {
   // Widgets
   useGetWidgetsQuery,
   useGetWidgetQuery,
+  
+  // Pages
+  useGetPagesQuery,
+  useGetPageQuery,
+  useCreatePageMutation,
+  useUpdatePageMutation,
+  useUpdatePageContentMutation,
+  useDeletePageMutation,
+  useDuplicatePageMutation,
   
   // AI
   useGenerateContentMutation,
@@ -357,5 +542,18 @@ export const {
   useGetCommentsQuery,
   useAddCommentMutation,
   useResolveCommentMutation,
-  useDeleteCommentMutation
+  useDeleteCommentMutation,
+  
+  // Automations
+  useGetAutomationsQuery,
+  useGetAutomationQuery,
+  useCreateAutomationMutation,
+  useUpdateAutomationMutation,
+  useDeleteAutomationMutation,
+  useExecuteAutomationMutation,
+  useTestAutomationMutation,
+  useGetAutomationLogsQuery,
+  useEnableAutomationMutation,
+  useDisableAutomationMutation,
+  useGetAutomationTemplatesQuery
 } = apiSlice

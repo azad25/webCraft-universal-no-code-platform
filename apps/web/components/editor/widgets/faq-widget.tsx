@@ -221,7 +221,7 @@ export function FAQWidget({
               >
                 <div className="flex-1 flex items-center gap-3">
                   <h3
-                    ref={(el) => itemRefs.current[`${index}-question`] = el}
+                    ref={(el) => { itemRefs.current[`${index}-question`] = el }}
                     className={cn(
                       "font-semibold text-lg cursor-text",
                       editingItem?.index === index && editingItem?.field === 'question' && 
@@ -295,7 +295,7 @@ export function FAQWidget({
                   >
                     <div className="px-6 pb-4 border-t">
                       <p
-                        ref={(el) => itemRefs.current[`${index}-answer`] = el}
+                        ref={(el) => { itemRefs.current[`${index}-answer`] = el }}
                         className={cn(
                           "text-muted-foreground leading-relaxed mt-3 cursor-text",
                           editingItem?.index === index && editingItem?.field === 'answer' && 
@@ -336,41 +336,6 @@ export function FAQWidget({
             </Button>
           </motion.div>
         )}
-      </div>
-    </section>
-  )
-}
-              <button
-                className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/50 transition-colors"
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              >
-                <span className="font-medium pr-4">{item.question}</span>
-                <div className="shrink-0">
-                  {openIndex === index ? (
-                    <Minus className="w-5 h-5 text-primary" />
-                  ) : (
-                    <Plus className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </div>
-              </button>
-              
-              <AnimatePresence>
-                {openIndex === index && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="px-5 pb-5 text-muted-foreground">
-                      {item.answer}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   )

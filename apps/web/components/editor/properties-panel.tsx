@@ -57,7 +57,6 @@ import { cn } from '@/lib/utils'
 import { useEditor } from '@/contexts/editor-context'
 import { MediaUpload } from './media-upload'
 import { DataSourceConfig } from '@/components/data-sources/data-source-config'
-import { DataSourceConfig } from '@/components/data-sources/data-source-config'
 
 interface PropertiesPanelProps {
   selectedElement: any

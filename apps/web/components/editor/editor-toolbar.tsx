@@ -18,6 +18,8 @@ import {
   Users,
   Wifi,
   WifiOff,
+  Loader2,
+  ExternalLink,
   Sparkles,
   Download,
   Upload,
@@ -34,8 +36,8 @@ import {
   HelpCircle,
   ChevronDown,
   Check,
-  Loader2,
-  Home
+  Home,
+  FileText
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -66,6 +68,9 @@ interface EditorToolbarProps {
   onPreviewModeChange: (mode: 'desktop' | 'tablet' | 'mobile') => void
   showPreview: boolean
   onTogglePreview: () => void
+  onLivePreview: () => void
+  isGeneratingPreview: boolean
+  currentPage?: any
   canUndo: boolean
   canRedo: boolean
   onUndo: () => void
@@ -86,6 +91,9 @@ export function EditorToolbar({
   onPreviewModeChange,
   showPreview,
   onTogglePreview,
+  onLivePreview,
+  isGeneratingPreview,
+  currentPage,
   canUndo,
   canRedo,
   onUndo,
@@ -184,6 +192,19 @@ export function EditorToolbar({
 
         {/* Center Section - Preview Controls */}
         <div className="flex items-center gap-2">
+          {/* Current Page Indicator */}
+          <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-lg">
+            <FileText className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">
+              {currentPage?.title || 'No Page Selected'}
+            </span>
+            {currentPage?.is_homepage && (
+              <Home className="w-3 h-3 text-primary" />
+            )}
+          </div>
+
+          <Separator orientation="vertical" className="h-6" />
+
           {/* Device Preview Selector */}
           <div className="flex items-center bg-muted rounded-lg p-0.5">
             {previewModes.map((mode) => {
@@ -234,6 +255,32 @@ export function EditorToolbar({
               </Button>
             </TooltipTrigger>
             <TooltipContent>Toggle Preview (P)</TooltipContent>
+          </Tooltip>
+
+          {/* Live Preview */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLivePreview}
+                disabled={isGeneratingPreview}
+                className="gap-2 h-8"
+              >
+                {isGeneratingPreview ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <ExternalLink className="w-4 h-4" />
+                    Live Preview
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Open Live Preview (Shift+P)</TooltipContent>
           </Tooltip>
         </div>
 
@@ -327,26 +374,28 @@ export function EditorToolbar({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant={isDirty ? 'default' : 'ghost'}
                 size="sm"
                 onClick={onSave}
-                disabled={isSaving || !isDirty}
+                disabled={isSaving}
                 className="gap-2 h-8"
               >
                 {isSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
+                ) : isDirty ? (
                   <Save className="w-4 h-4" />
+                ) : (
+                  <Check className="w-4 h-4" />
                 )}
                 <span className="hidden sm:inline">
-                  {isSaving ? 'Saving...' : isDirty ? 'Save' : 'Saved'}
+                  {isSaving ? 'Saving All...' : isDirty ? 'Save All' : 'All Saved'}
                 </span>
                 {isDirty && !isSaving && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Save (⌘S)</TooltipContent>
+            <TooltipContent>Save All App Data (⌘S)</TooltipContent>
           </Tooltip>
 
           {/* Publish Button */}

@@ -1,111 +1,106 @@
 """
-Preview Service
-Handles app preview URLs for development and production environments
+Preview Service for WebCraft Platform
+Generates temporary preview URLs for apps
 """
 
-import os
-import uuid
-from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from datetime import datetime, timedelta
+import uuid
+import secrets
+from typing import Optional, Dict, Any, List
 
 from core.database import App, PreviewSession
-from core.redis_client import get_redis_client
 
 
 class PreviewService:
-    """Service for managing app preview URLs and sessions"""
+    """Service for creating and managing app previews"""
     
     def __init__(self, db: Session):
         self.db = db
-        self.redis = get_redis_client()
-        self.environment = os.getenv("ENVIRONMENT", "development")
-        self.preview_base_url = os.getenv("PREVIEW_BASE_URL", "http://localhost")
-        self.preview_domain = os.getenv("PREVIEW_DOMAIN", "preview.webcraft.local")
-        self.api_url = os.getenv("API_URL", "http://localhost:8000")
-        
-    async def create_preview_url(self, app: App, device: Optional[str] = None) -> Dict[str, Any]:
+    
+    async def create_preview_url(self, app: App, device: str = "desktop") -> Dict[str, Any]:
         """
         Create a preview URL for an app
         
         Args:
             app: The app to create preview for
-            device: Optional device type (mobile, tablet, desktop)
+            device: Device type (desktop, tablet, mobile)
             
         Returns:
-            Dictionary with preview URL and metadata
+            Dictionary with preview data including URL and token
         """
         
-        # Generate preview session
-        preview_token = str(uuid.uuid4())
+        # Generate unique preview token
+        token = str(uuid.uuid4())
+        
+        # Set expiration (24 hours from now)
         expires_at = datetime.utcnow() + timedelta(hours=24)
         
-        # Store preview session in Redis for fast access
-        preview_data = {
-            "app_id": str(app.id),
-            "app_slug": app.slug,
-            "owner_id": str(app.owner_id),
-            "created_at": datetime.utcnow().isoformat(),
-            "expires_at": expires_at.isoformat(),
-            "device": device or "desktop"
-        }
-        
-        # Store in Redis with 24-hour expiration
-        import json
-        await self.redis.setex(
-            f"preview:{preview_token}",
-            86400,  # 24 hours
-            json.dumps(preview_data)
-        )
-        
-        # Also store in database for persistence
+        # Create preview session
         preview_session = PreviewSession(
-            id=uuid.uuid4(),
+            token=token,
+            device_type=device,
+            expires_at=expires_at,
             app_id=app.id,
-            token=preview_token,
-            device_type=device or "desktop",
-            expires_at=expires_at
+            access_count=0
         )
         
         self.db.add(preview_session)
         self.db.commit()
+        self.db.refresh(preview_session)
         
-        # Generate preview URLs based on environment
-        if self.environment == "development":
-            preview_url = self._generate_dev_preview_url(app, preview_token, device)
-        else:
-            preview_url = self._generate_prod_preview_url(app, preview_token, device)
+        # Generate preview URL
+        base_url = "http://localhost:3000"  # In production, use actual domain
+        preview_url = f"{base_url}/preview/{token}"
+        
+        if device != "desktop":
+            preview_url += f"?device={device}"
         
         return {
+            "success": True,
+            "token": token,
             "preview_url": preview_url,
-            "token": preview_token,
+            "device_type": device,
             "expires_at": expires_at.isoformat(),
-            "expires_in_hours": 24,
-            "device": device or "desktop",
-            "mobile_preview": self._get_device_preview_url(app, preview_token, "mobile"),
-            "tablet_preview": self._get_device_preview_url(app, preview_token, "tablet"),
-            "desktop_preview": self._get_device_preview_url(app, preview_token, "desktop"),
-            "qr_code_url": f"{self.api_url}/api/v1/preview/{preview_token}/qr"
+            "valid_for_hours": 24
         }
     
-    def _generate_dev_preview_url(self, app: App, token: str, device: Optional[str] = None) -> str:
-        """Generate preview URL for development environment"""
-        base_url = "http://localhost:3000"  # Next.js dev server
-        device_param = f"&device={device}" if device else ""
-        return f"{base_url}/preview/{token}?app_id={app.id}{device_param}"
+    async def get_preview_session(self, token: str) -> Optional[PreviewSession]:
+        """
+        Get preview session by token
+        
+        Args:
+            token: Preview token
+            
+        Returns:
+            PreviewSession if valid, None otherwise
+        """
+        
+        session = self.db.query(PreviewSession).filter(
+            PreviewSession.token == token,
+            PreviewSession.expires_at > datetime.utcnow()
+        ).first()
+        
+        if session:
+            # Update access count and last accessed
+            session.access_count += 1
+            session.last_accessed = datetime.utcnow()
+            self.db.commit()
+        
+        return session
     
-    def _generate_prod_preview_url(self, app: App, token: str, device: Optional[str] = None) -> str:
-        """Generate preview URL for production environment"""
-        device_param = f"&device={device}" if device else ""
-        return f"https://{self.preview_domain}/preview/{token}?app_id={app.id}{device_param}"
-    
-    def _get_device_preview_url(self, app: App, token: str, device: str) -> str:
-        """Get preview URL for specific device"""
-        if self.environment == "development":
-            return f"http://localhost:3000/preview/{token}?app_id={app.id}&device={device}"
-        else:
-            return f"https://{self.preview_domain}/preview/{token}?app_id={app.id}&device={device}"
+    async def cleanup_expired_sessions(self):
+        """Clean up expired preview sessions"""
+        
+        expired_sessions = self.db.query(PreviewSession).filter(
+            PreviewSession.expires_at <= datetime.utcnow()
+        )
+        
+        count = expired_sessions.count()
+        expired_sessions.delete()
+        self.db.commit()
+        
+        return count
     
     async def get_preview_data(self, token: str) -> Optional[Dict[str, Any]]:
         """
@@ -115,104 +110,22 @@ class PreviewService:
             token: Preview token
             
         Returns:
-            Preview data if valid, None if expired or not found
+            Dictionary with preview data if valid, None otherwise
         """
         
-        # Try Redis first for fast access
-        preview_data = await self.redis.get(f"preview:{token}")
-        if preview_data:
-            import json
-            return json.loads(preview_data)  # Convert string back to dict
-        
-        # Fallback to database
-        preview_session = self.db.query(PreviewSession).filter(
-            PreviewSession.token == token,
-            PreviewSession.expires_at > datetime.utcnow()
-        ).first()
-        
-        if not preview_session:
-            return None
-        
-        # Get app data
-        app = self.db.query(App).filter(App.id == preview_session.app_id).first()
-        if not app:
+        session = await self.get_preview_session(token)
+        if not session:
             return None
         
         return {
-            "app_id": str(app.id),
-            "app_slug": app.slug,
-            "owner_id": str(app.owner_id),
-            "device": preview_session.device_type,
-            "expires_at": preview_session.expires_at.isoformat()
+            "app_id": session.app_id,
+            "device_type": session.device_type,
+            "expires_at": session.expires_at.isoformat(),
+            "access_count": session.access_count
         }
     
-    async def validate_preview_token(self, token: str) -> bool:
-        """
-        Validate if preview token is still valid
-        
-        Args:
-            token: Preview token to validate
-            
-        Returns:
-            True if valid, False otherwise
-        """
-        
-        preview_data = await self.get_preview_data(token)
-        return preview_data is not None
-    
-    async def cleanup_expired_previews(self):
-        """Clean up expired preview sessions from database"""
-        
-        expired_sessions = self.db.query(PreviewSession).filter(
-            PreviewSession.expires_at < datetime.utcnow()
-        ).all()
-        
-        for session in expired_sessions:
-            # Remove from Redis
-            await self.redis.delete(f"preview:{session.token}")
-            # Remove from database
-            self.db.delete(session)
-        
-        self.db.commit()
-        
-        return len(expired_sessions)
-    
-    async def revoke_preview(self, token: str) -> bool:
-        """
-        Revoke a preview session
-        
-        Args:
-            token: Preview token to revoke
-            
-        Returns:
-            True if revoked, False if not found
-        """
-        
-        # Remove from Redis
-        await self.redis.delete(f"preview:{token}")
-        
-        # Remove from database
-        preview_session = self.db.query(PreviewSession).filter(
-            PreviewSession.token == token
-        ).first()
-        
-        if preview_session:
-            self.db.delete(preview_session)
-            self.db.commit()
-            return True
-        
-        return False
-    
-    async def get_app_preview_sessions(self, app_id: uuid.UUID) -> list:
-        """
-        Get all active preview sessions for an app
-        
-        Args:
-            app_id: App ID
-            
-        Returns:
-            List of active preview sessions
-        """
+    async def get_app_preview_sessions(self, app_id: str) -> List[Dict[str, Any]]:
+        """Get all active preview sessions for an app"""
         
         sessions = self.db.query(PreviewSession).filter(
             PreviewSession.app_id == app_id,
@@ -223,66 +136,93 @@ class PreviewService:
             {
                 "token": session.token,
                 "device_type": session.device_type,
-                "created_at": session.created_at.isoformat(),
                 "expires_at": session.expires_at.isoformat(),
-                "preview_url": self._get_device_preview_url(
-                    type('App', (), {'id': app_id, 'slug': 'preview'})(),
-                    session.token,
-                    session.device_type
-                )
+                "access_count": session.access_count,
+                "last_accessed": session.last_accessed.isoformat() if session.last_accessed else None,
+                "created_at": session.created_at.isoformat()
             }
             for session in sessions
         ]
     
+    async def revoke_preview(self, token: str) -> bool:
+        """Revoke a preview session"""
+        
+        session = self.db.query(PreviewSession).filter(
+            PreviewSession.token == token
+        ).first()
+        
+        if session:
+            self.db.delete(session)
+            self.db.commit()
+            return True
+        
+        return False
+    
     def get_iframe_embed_code(self, token: str, width: str = "100%", height: str = "600px") -> str:
-        """
-        Generate iframe embed code for preview
+        """Generate iframe embed code for preview"""
         
-        Args:
-            token: Preview token
-            width: Iframe width
-            height: Iframe height
-            
-        Returns:
-            HTML iframe code
-        """
-        
-        if self.environment == "development":
-            preview_url = f"http://localhost:3000/preview/{token}/embed"
-        else:
-            preview_url = f"https://{self.preview_domain}/preview/{token}/embed"
+        base_url = "http://localhost:3000"  # In production, use actual domain
+        embed_url = f"{base_url}/preview/{token}/embed"
         
         return f'''<iframe 
-    src="{preview_url}" 
+    src="{embed_url}" 
     width="{width}" 
     height="{height}" 
     frameborder="0" 
-    scrolling="auto"
-    sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+    allowfullscreen
+    style="border: 1px solid #ddd; border-radius: 8px;">
 </iframe>'''
     
-    async def generate_qr_code_url(self, token: str) -> str:
+    async def get_app_preview_data(self, app: App, device: str = "desktop") -> Dict[str, Any]:
         """
-        Generate QR code URL for mobile preview
+        Get app data formatted for preview
         
         Args:
-            token: Preview token
+            app: The app to get preview data for
+            device: Device type for responsive preview
             
         Returns:
-            QR code image URL
+            Dictionary with app preview data
         """
         
-        preview_data = await self.get_preview_data(token)
-        if not preview_data:
-            raise HTTPException(status_code=404, detail="Preview not found")
+        # Get app pages
+        pages = []
+        for page in app.pages:
+            if page.is_published:
+                pages.append({
+                    "id": str(page.id),
+                    "title": page.title,
+                    "slug": page.slug,
+                    "content": page.content,
+                    "meta_title": page.meta_title,
+                    "meta_description": page.meta_description,
+                    "is_homepage": page.is_homepage
+                })
         
-        mobile_url = self._get_device_preview_url(
-            type('App', (), {'id': preview_data['app_id'], 'slug': preview_data['app_slug']})(),
-            token,
-            "mobile"
-        )
+        # Get app widgets
+        widgets = []
+        for widget in app.widgets:
+            widgets.append({
+                "id": str(widget.id),
+                "widget_id": str(widget.widget_id),
+                "config": widget.config,
+                "position": widget.position,
+                "page_id": str(widget.page_id) if widget.page_id else None
+            })
         
-        # Generate QR code using external service or library
-        qr_api_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={mobile_url}"
-        
-        return qr_api_url
+        return {
+            "app": {
+                "id": str(app.id),
+                "name": app.name,
+                "slug": app.slug,
+                "description": app.description,
+                "app_type": app.app_type,
+                "config": app.config,
+                "theme_config": app.theme_config,
+                "seo_config": app.seo_config
+            },
+            "pages": pages,
+            "widgets": widgets,
+            "device": device,
+            "preview_mode": True
+        }

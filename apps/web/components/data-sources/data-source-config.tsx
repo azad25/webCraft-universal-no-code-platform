@@ -45,7 +45,7 @@ interface DataSourceConfigProps {
   // Current configuration
   dataSourceId?: string;
   dataEndpointId?: string;
-  dataSourceType?: 'api' | 'scraper';
+  dataSourceType?: 'api' | 'scraper' | 'collection';
   autoRefresh?: boolean;
   refreshInterval?: number;
   fieldMappings?: Record<string, string>;
@@ -54,7 +54,7 @@ interface DataSourceConfigProps {
   onConfigChange: (config: {
     dataSourceId?: string;
     dataEndpointId?: string;
-    dataSourceType?: 'api' | 'scraper';
+    dataSourceType?: 'api' | 'scraper' | 'collection';
     autoRefresh?: boolean;
     refreshInterval?: number;
     fieldMappings?: Record<string, string>;
@@ -131,7 +131,7 @@ export function DataSourceConfig({
     }
   };
 
-  const handleDataSourceSelect = (sourceId: string, endpointId?: string, sourceType?: 'api' | 'scraper') => {
+  const handleDataSourceSelect = (sourceId: string, endpointId?: string, sourceType?: 'api' | 'scraper' | 'collection') => {
     onConfigChange({
       dataSourceId: sourceId,
       dataEndpointId: endpointId,
@@ -187,7 +187,7 @@ export function DataSourceConfig({
     return 'Selected Endpoint';
   };
 
-  const isConfigured = dataSourceId && (dataSourceType === 'scraper' || dataEndpointId);
+  const isConfigured = dataSourceId && (dataSourceType === 'scraper' || dataSourceType === 'collection' || dataEndpointId);
 
   return (
     <div className="space-y-4">

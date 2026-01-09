@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getAuthToken } from '@/lib/dev-auth'
 
-import { EditorSidebar } from './editor-sidebar'
+import { EditorSidebar } from './editor-sidebar-fixed'
 import { EditorCanvas } from './editor-canvas'
 import { EditorToolbar } from './editor-toolbar'
 import { PropertiesPanel } from './properties-panel'
@@ -14,6 +15,7 @@ import { AIAssistant } from './ai-assistant'
 import { FloatingToolbar } from './floating-toolbar'
 import { InlineEditor } from './inline-editor'
 import { ResizeHandles } from './resize-handles'
+import { PageManager } from './page-manager'
 import { EditorProvider, useEditor } from '@/contexts/editor-context'
 import { WebSocketProvider } from '@/contexts/websocket-context'
 
@@ -26,7 +28,8 @@ import {
   Maximize2,
   Minimize2,
   Eye,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from 'lucide-react'
 
 interface LiveEditorProps {
@@ -56,6 +59,7 @@ function EditorContent({ appId }: { appId: string }) {
     undo,
     redo,
     saveApp,
+    savePage,
     isSaving,
     isDirty,
     isLoading,
@@ -63,10 +67,16 @@ function EditorContent({ appId }: { appId: string }) {
     duplicateElement,
     selectElement,
     addElement,
-    updateElement
+    updateElement,
+    currentPage,
+    currentPageId,
+    pages,
+    switchToPage,
+    createPage
   } = useEditor()
 
   // Handle inline editor
+  // Enhanced inline editor with media support and direct editing
   const handleOpenInlineEditor = useCallback((element: any, position?: { x: number; y: number }) => {
     if (!position) {
       // Calculate position from element
@@ -102,8 +112,13 @@ function EditorContent({ appId }: { appId: string }) {
   const handleElementResize = useCallback((elementId: string, newSize: { width: number; height: number }) => {
     updateElement(elementId, { size: newSize })
   }, [updateElement])
-  // Handle adding elements from sidebar
+  // Handle adding elements from sidebar - require page selection
   const handleAddElement = useCallback((elementData: any) => {
+    if (!currentPageId) {
+      alert('Please select a page before adding elements')
+      return
+    }
+    
     // Handle different data structures from sidebar
     let elementConfig
     if (elementData.element) {
@@ -135,17 +150,19 @@ function EditorContent({ appId }: { appId: string }) {
     }
     
     addElement(elementConfig)
-  }, [addElement])
+  }, [addElement, currentPageId])
 
   // Enhanced save function with user feedback
   const handleSave = useCallback(async () => {
     try {
-      await saveApp()
-      console.log('✅ App saved successfully')
+      console.log(`💾 Saving current page...`)
+      await savePage()
+      console.log('✅ Page saved successfully')
     } catch (error) {
-      console.error('❌ Failed to save app:', error)
+      console.error('❌ Failed to save page:', error)
+      alert(`Failed to save page: ${error}`)
     }
-  }, [saveApp])
+  }, [savePage])
 
   // Generate and open live preview
   const handleLivePreview = useCallback(async () => {
@@ -153,34 +170,50 @@ function EditorContent({ appId }: { appId: string }) {
 
     setIsGeneratingPreview(true)
     try {
+      console.log(`🔄 Generating preview for app ${appId}`)
+      
       // Save first to ensure latest changes are included
       if (isDirty) {
-        await saveApp()
+        console.log('💾 Saving page before preview...')
+        await savePage()
       }
 
       // Generate preview
-      const response = await fetch(`/api/v1/apps/${appId}/preview`, {
-        method: 'POST',
+      const token = getAuthToken()
+      console.log(`🔑 Using auth token: ${token.substring(0, 20)}...`)
+      
+      const response = await fetch(`/api/apps/${appId}/preview`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || 'dev-bypass-token'}`
+          'Authorization': `Bearer ${token}`
         }
       })
 
+      console.log(`📡 Preview API response: ${response.status} ${response.statusText}`)
+
       if (response.ok) {
         const data = await response.json()
-        const previewUrl = `${window.location.origin}/preview/${data.token}?device=${previewMode}`
+        console.log('📦 Preview data:', data)
+        
+        const previewUrl = data.preview_url || `${window.location.origin}/preview/${data.token}?device=${previewMode}&page=${currentPageId}`
         window.open(previewUrl, '_blank', 'width=1200,height=800')
         console.log('✅ Preview generated:', previewUrl)
       } else {
-        console.error('❌ Failed to generate preview:', response.statusText)
+        const errorData = await response.text()
+        console.error('❌ Failed to generate preview:', response.status, response.statusText)
+        console.error('❌ Error details:', errorData)
+        
+        // Show user-friendly error
+        alert(`Failed to generate preview: ${response.status} ${response.statusText}`)
       }
     } catch (error) {
       console.error('❌ Preview generation error:', error)
+      alert(`Preview generation failed: ${error}`)
     } finally {
       setIsGeneratingPreview(false)
     }
-  }, [appId, saveApp, isDirty, isGeneratingPreview, previewMode])
+  }, [appId, savePage, isDirty, isGeneratingPreview, previewMode, currentPageId])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -293,6 +326,66 @@ function EditorContent({ appId }: { appId: string }) {
     )
   }
 
+  // Show page selection required state
+  if (!currentPageId && !isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="text-center max-w-md mx-auto p-6">
+          <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Select a Page to Edit</h2>
+          <p className="text-muted-foreground mb-6">
+            You need to select a page before you can start adding elements and designing your app.
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-yellow-800">
+              <strong>Available Pages:</strong> {pages.length}
+            </p>
+            {pages.length > 0 ? (
+              <div className="mt-2 space-y-1">
+                {pages.map(page => (
+                  <button
+                    key={page.id}
+                    onClick={() => switchToPage(page.id)}
+                    className="block w-full text-left px-3 py-2 text-sm bg-white border border-yellow-300 rounded hover:bg-yellow-50 transition-colors"
+                  >
+                    {page.title} {page.is_homepage && '🏠'}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-2">
+                <p className="text-sm text-red-600 mb-3">
+                  No pages found. Let's create a homepage for you.
+                </p>
+                <Button 
+                  onClick={async () => {
+                    try {
+                      await createPage({
+                        title: 'Home',
+                        slug: 'home',
+                        content: { elements: [] },
+                        is_homepage: true,
+                        is_published: true,
+                        meta_title: 'Home',
+                        meta_description: 'Welcome to your app'
+                      })
+                    } catch (error) {
+                      console.error('Failed to create homepage:', error)
+                      alert('Failed to create homepage. Please try again.')
+                    }
+                  }}
+                  className="w-full"
+                >
+                  Create Homepage
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden">
       {/* Top Toolbar */}
@@ -302,6 +395,9 @@ function EditorContent({ appId }: { appId: string }) {
         onPreviewModeChange={setPreviewMode}
         showPreview={showPreview}
         onTogglePreview={() => setShowPreview(!showPreview)}
+        onLivePreview={handleLivePreview}
+        isGeneratingPreview={isGeneratingPreview}
+        currentPage={currentPage}
         canUndo={canUndo}
         canRedo={canRedo}
         onUndo={undo}
@@ -318,17 +414,22 @@ function EditorContent({ appId }: { appId: string }) {
 
       {/* Main Editor Area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Widget Library */}
+        {/* Left Sidebar - Enhanced Builder Panel */}
         <AnimatePresence mode="wait">
           {leftSidebarOpen && (
             <motion.div
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 280, opacity: 1 }}
+              animate={{ width: 320, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
               className="h-full border-r bg-background overflow-y-auto overflow-x-hidden"
             >
-              <EditorSidebar onAddElement={handleAddElement} />
+              <EditorSidebar 
+                appId={appId}
+                onAddElement={handleAddElement} 
+                currentPageId={currentPageId}
+                selectedElement={selectedElement}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -380,7 +481,7 @@ function EditorContent({ appId }: { appId: string }) {
               className="h-full border-l bg-background overflow-y-auto overflow-x-hidden"
             >
               <Tabs value={rightPanelTab} onValueChange={setRightPanelTab} className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-transparent p-1 flex-shrink-0">
+                <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-transparent p-1 flex-shrink-0">
                   <TabsTrigger
                     value="properties"
                     className="flex items-center gap-2 data-[state=active]:bg-accent"
@@ -395,6 +496,13 @@ function EditorContent({ appId }: { appId: string }) {
                     <Layers className="w-4 h-4" />
                     Layers
                   </TabsTrigger>
+                  <TabsTrigger
+                    value="pages"
+                    className="flex items-center gap-2 data-[state=active]:bg-accent"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Pages
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="properties" className="flex-1 mt-0 overflow-y-auto overflow-x-hidden">
@@ -403,6 +511,10 @@ function EditorContent({ appId }: { appId: string }) {
 
                 <TabsContent value="layers" className="flex-1 mt-0 overflow-y-auto overflow-x-hidden">
                   <LayersPanel app={null} />
+                </TabsContent>
+
+                <TabsContent value="pages" className="flex-1 mt-0 overflow-y-auto overflow-x-hidden">
+                  <PageManager appId={appId} />
                 </TabsContent>
               </Tabs>
             </motion.div>

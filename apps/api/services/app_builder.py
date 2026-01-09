@@ -71,6 +71,7 @@ class AppBuilderService:
     async def _apply_template(self, app: App, template_id: str):
         """Apply a template to an app"""
         from services.template_service import TemplateService
+        from core.database import Template, TemplatePage
         
         template_service = TemplateService(self.db)
         template = await template_service.get_template(template_id)
@@ -81,46 +82,81 @@ class AppBuilderService:
         # Copy template config
         app.config = {**app.config, **template.get("config", {})}
         
-        # Create pages from template - handle both template structures
-        pages = template.get("pages", [])
-        pages_config = template.get("pages_config", {})
-        
-        # If pages_config exists, use that structure (from templates router)
-        if pages_config:
-            for page_key, page_data in pages_config.items():
-                elements = page_data.get("content", {}).get("elements", [])
+        if template.get("database_template"):
+            # This is a database template, pages are already included
+            print(f"🔄 Using database template: {template['name']}")
+            
+            pages_created = 0
+            for page_data in template.get("pages", []):
                 page = Page(
                     app_id=app.id,
-                    title=page_data.get("title", page_key.title()),
-                    slug=page_key,
-                    content={
-                        "elements": elements
-                    },
-                    is_homepage=page_data.get("is_homepage", page_key == "home"),
-                    meta_title=page_data.get("title", page_key.title()),
-                    meta_description=f"{app.name} - {page_data.get('title', page_key.title())}"
+                    title=page_data["name"],
+                    slug=page_data["slug"],
+                    content=page_data["content"],
+                    is_homepage=page_data["is_homepage"],
+                    meta_title=page_data["name"],
+                    meta_description=f"{app.name} - {page_data['name']}"
                 )
                 self.db.add(page)
+                pages_created += 1
+                print(f"✅ Created page: {page_data['name']}")
+            
+            # Don't create default page if template pages were created
+            if pages_created > 0:
+                return
         else:
-            # Use the original pages structure (from template_service)
-            for page_data in pages:
-                # Handle both direct elements and nested content.elements
-                elements = page_data.get("elements", [])
-                if not elements and "content" in page_data:
-                    elements = page_data["content"].get("elements", [])
-                
-                page = Page(
-                    app_id=app.id,
-                    title=page_data.get("name", "Home"),
-                    slug=page_data.get("slug", "home"),
-                    content={
-                        "elements": elements
-                    },
-                    is_homepage=page_data.get("slug") == "home",
-                    meta_title=page_data.get("name", "Home"),
-                    meta_description=f"{app.name} - {page_data.get('name', 'Home')}"
-                )
-                self.db.add(page)
+            # This is a hardcoded template
+            print(f"🔄 Using hardcoded template: {template_id}")
+            
+            pages = template.get("pages", [])
+            pages_config = template.get("pages_config", {})
+            pages_created = 0
+            
+            # If pages_config exists, use that structure
+            if pages_config:
+                for page_key, page_data in pages_config.items():
+                    elements = page_data.get("content", {}).get("elements", [])
+                    page = Page(
+                        app_id=app.id,
+                        title=page_data.get("title", page_key.title()),
+                        slug=page_key,
+                        content={
+                            "elements": elements
+                        },
+                        is_homepage=page_data.get("is_homepage", page_key == "home"),
+                        meta_title=page_data.get("title", page_key.title()),
+                        meta_description=f"{app.name} - {page_data.get('title', page_key.title())}"
+                    )
+                    self.db.add(page)
+                    pages_created += 1
+            else:
+                # Use the original pages structure
+                for page_data in pages:
+                    elements = page_data.get("elements", [])
+                    if not elements and "content" in page_data:
+                        elements = page_data["content"].get("elements", [])
+                    
+                    page = Page(
+                        app_id=app.id,
+                        title=page_data.get("name", "Home"),
+                        slug=page_data.get("slug", "home"),
+                        content={
+                            "elements": elements
+                        },
+                        is_homepage=page_data.get("slug") == "home",
+                        meta_title=page_data.get("name", "Home"),
+                        meta_description=f"{app.name} - {page_data.get('name', 'Home')}"
+                    )
+                    self.db.add(page)
+                    pages_created += 1
+            
+            # Don't create default page if template pages were created
+            if pages_created > 0:
+                return
+        
+        # Only create default homepage if no template pages were created
+        print("🔄 No template pages found, creating default homepage")
+        await self._create_default_page(app)
     
     async def _create_default_page(self, app: App):
         """Create a default homepage"""
@@ -229,7 +265,98 @@ class AppBuilderService:
             "exported_at": datetime.utcnow().isoformat()
         }
     
+    async def create_template_from_app(
+        self, 
+        app_id: uuid.UUID, 
+        creator_id: uuid.UUID,
+        template_name: str,
+        template_description: str,
+        category: str,
+        is_premium: bool = False,
+        price: int = 0
+    ) -> Dict[str, Any]:
+        """Create a template from an existing app"""
+        from core.database import Template, TemplatePage
+        from slugify import slugify
+        
+        # Get the source app
+        app = self.db.query(App).filter(App.id == app_id).first()
+        if not app:
+            raise ValueError("App not found")
+        
+        # Generate unique slug
+        base_slug = slugify(template_name)
+        slug = base_slug
+        counter = 1
+        while self.db.query(Template).filter(Template.slug == slug).first():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        # Create template
+        template = Template(
+            name=template_name,
+            slug=slug,
+            description=template_description,
+            category=category,
+            config=app.config,
+            is_premium=is_premium,
+            price=price,
+            creator_id=creator_id
+        )
+        
+        self.db.add(template)
+        self.db.flush()
+        
+        # Copy pages to template pages
+        for page in app.pages:
+            template_page = TemplatePage(
+                template_id=template.id,
+                title=page.title,
+                slug=page.slug,
+                content=page.content,
+                is_homepage=page.is_homepage,
+                meta_title=page.meta_title,
+                meta_description=page.meta_description
+            )
+            self.db.add(template_page)
+        
+        self.db.commit()
+        self.db.refresh(template)
+        
+        return {
+            "id": template.slug,
+            "name": template.name,
+            "description": template.description,
+            "category": template.category,
+            "created_at": template.created_at.isoformat()
+        }
+    
     async def import_app(self, user_id: uuid.UUID, data: Dict[str, Any]) -> App:
+        """Import app from exported data"""
+        app = await self.create_app(
+            user_id=user_id,
+            name=data["name"],
+            description=data.get("description"),
+            app_type=data["app_type"],
+            config=data.get("config", {}),
+            theme_config=data.get("theme_config", {})
+        )
+        
+        # Import pages
+        for page_data in data.get("pages", []):
+            page = Page(
+                app_id=app.id,
+                title=page_data["title"],
+                slug=page_data["slug"],
+                content=page_data.get("content", {}),
+                is_homepage=page_data.get("is_homepage", False),
+                meta_title=page_data.get("meta_title"),
+                meta_description=page_data.get("meta_description")
+            )
+            self.db.add(page)
+        
+        self.db.commit()
+        return app
         """Import app from exported data"""
         app = await self.create_app(
             user_id=user_id,

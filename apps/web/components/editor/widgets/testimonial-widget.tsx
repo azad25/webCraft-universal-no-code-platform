@@ -36,7 +36,6 @@ interface TestimonialWidgetProps {
 }
 
 export function TestimonialWidget({
-export function TestimonialWidget({
   // Data source props
   dataSourceId,
   dataEndpointId,
@@ -92,7 +91,7 @@ export function TestimonialWidget({
     setError(null)
     
     try {
-      const response = await fetchDataSourceData(dataSourceId, dataEndpointId, {}, true)
+      const response = await fetchDataSourceData(dataSourceId, dataEndpointId || '', {}, true)
       
       // Transform API response to testimonial format
       let transformedData = response.data
