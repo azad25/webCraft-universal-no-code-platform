@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -270,7 +270,7 @@ export function VideoWidget({
 
         {/* Edit Overlay */}
         {isEditing && hasVideo && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             whileHover={{ opacity: 1 }}
             className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 z-10"
@@ -283,19 +283,19 @@ export function VideoWidget({
               <Settings className="w-4 h-4 mr-2" />
               Change Video
             </Button>
-          </motion.div>
+          </m.div>
         )}
       </div>
 
       {/* Edit Modal */}
       {showEditModal && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
           onClick={() => setShowEditModal(false)}
         >
-          <motion.div
+          <m.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="bg-card rounded-xl p-6 w-full max-w-md shadow-2xl"
@@ -420,8 +420,8 @@ export function VideoWidget({
                 Add Video
               </Button>
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </div>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 
 interface DropIndicatorProps {
   y: number
@@ -9,7 +9,7 @@ interface DropIndicatorProps {
 
 export function DropIndicator({ y, width }: DropIndicatorProps) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scaleX: 0.8 }}
       animate={{ opacity: 1, scaleX: 1 }}
       exit={{ opacity: 0, scaleX: 0.8 }}
@@ -29,6 +29,6 @@ export function DropIndicator({ y, width }: DropIndicatorProps) {
           Drop here
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }

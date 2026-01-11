@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -13,14 +13,14 @@ export function DropZone({ isActive, onDrop }: DropZoneProps) {
   return (
     <AnimatePresence>
       {isActive && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 pointer-events-none z-50"
         >
           <div className="absolute inset-4 border-2 border-dashed border-primary/50 rounded-lg bg-primary/5 flex items-center justify-center">
-            <motion.div
+            <m.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="flex flex-col items-center gap-2 text-primary"
@@ -29,9 +29,9 @@ export function DropZone({ isActive, onDrop }: DropZoneProps) {
                 <Plus className="w-6 h-6" />
               </div>
               <p className="text-sm font-medium">Drop here to add</p>
-            </motion.div>
+            </m.div>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

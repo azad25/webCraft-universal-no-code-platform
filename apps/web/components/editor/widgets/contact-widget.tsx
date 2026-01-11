@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -169,14 +169,14 @@ export function ContactWidget({
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <motion.h2
+            <m.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-3xl md:text-4xl font-bold"
             >
               {title}
-            </motion.h2>
+            </m.h2>
             {dataSourceId && (
               <Badge variant="outline" className="text-xs">
                 <Database className="w-3 h-3 mr-1" />
@@ -188,7 +188,7 @@ export function ContactWidget({
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
             )}
           </div>
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -196,7 +196,7 @@ export function ContactWidget({
             className="text-lg text-muted-foreground max-w-2xl mx-auto"
           >
             {subtitle}
-          </motion.p>
+          </m.p>
           {dataSourceId && lastRefresh && (
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-xs text-muted-foreground">
@@ -214,7 +214,7 @@ export function ContactWidget({
           layout === 'side-by-side' && showForm && "md:grid-cols-2"
         )}>
           {/* Contact Info */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -248,11 +248,11 @@ export function ContactWidget({
                 />
               </div>
             )}
-          </motion.div>
+          </m.div>
 
           {/* Contact Form */}
           {showForm && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -331,7 +331,7 @@ export function ContactWidget({
                   </Button>
                 </form>
               )}
-            </motion.div>
+            </m.div>
           )}
         </div>
       </div>

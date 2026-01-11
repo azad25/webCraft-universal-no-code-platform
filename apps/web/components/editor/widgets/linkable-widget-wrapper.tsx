@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { SmartLink } from '@/components/ui/smart-link'
 import { ExternalLink, MousePointer, Link as LinkIcon } from 'lucide-react'
@@ -148,7 +148,7 @@ export function LinkableWidgetWrapper({
           hasLink && isPreview && "transition-transform hover:scale-[1.02] active:scale-[0.98]"
         )}
       >
-        <motion.div
+        <m.div
           className="w-full h-full"
           whileHover={hasLink && isPreview ? { 
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)" 
@@ -156,24 +156,24 @@ export function LinkableWidgetWrapper({
           onDoubleClick={handleDoubleClick}
         >
           {children}
-        </motion.div>
+        </m.div>
       </SmartLink>
 
       {/* Link Indicator */}
       {hasLink && showLinkIndicator && (isSelected || isHovered || !isPreview) && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           className={getIndicatorClasses()}
         >
           {React.createElement(getLinkIcon(), { className: "w-3 h-3" })}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Link Preview Tooltip (for editor mode) */}
       {hasLink && !isPreview && (isSelected || isHovered) && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
@@ -194,18 +194,18 @@ export function LinkableWidgetWrapper({
           {linkConfig?.openInNewTab && (
             <ExternalLink className="w-3 h-3 ml-1 inline" />
           )}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Click hint for editor mode */}
       {hasLink && !isPreview && isSelected && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs whitespace-nowrap z-20 pointer-events-none"
         >
           🔗 Linked • Preview to test
-        </motion.div>
+        </m.div>
       )}
     </div>
   )

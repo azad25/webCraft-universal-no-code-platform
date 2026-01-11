@@ -47,7 +47,7 @@ export const widgetLayersApi = {
   // Get widget decomposition for a specific element
   async decomposeWidget(appId: string, elementId: string): Promise<WidgetDecomposition> {
     try {
-      const response = await apiClient.get(`/api/v1/apps/${appId}/widget-layers/${elementId}/decompose`)
+      const response = await apiClient.get(`/apps/${appId}/widget-layers/${elementId}/decompose`)
       return response.data
     } catch (error) {
       console.error('Failed to decompose widget:', error)
@@ -64,7 +64,7 @@ export const widgetLayersApi = {
   ): Promise<{ success: boolean; updated_at: string }> {
     try {
       const response = await apiClient.put(
-        `/api/v1/apps/${appId}/widget-layers/${elementId}/sub-element/${subElementPath}`,
+        `/apps/${appId}/widget-layers/${elementId}/sub-element/${subElementPath}`,
         { value }
       )
       return response.data
@@ -85,7 +85,7 @@ export const widgetLayersApi = {
       if (pageId) params.page_id = pageId
       if (widgetType) params.widget_type = widgetType
 
-      const response = await apiClient.get(`/api/v1/apps/${appId}/widget-layers`, { params })
+      const response = await apiClient.get(`/apps/${appId}/widget-layers`, { params })
       return response.data
     } catch (error) {
       console.error('Failed to get widget layers:', error)

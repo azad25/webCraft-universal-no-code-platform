@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
 import { useAppSelector, useAppDispatch } from '@/store'
 import { selectToasts, removeToast } from '@/store/slices/uiSlice'
@@ -66,7 +66,7 @@ function Toast({ toast, Icon, onClose }: ToastProps) {
   }, [toast.duration, onClose])
   
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -91,6 +91,6 @@ function Toast({ toast, Icon, onClose }: ToastProps) {
       >
         <X className="w-4 h-4" />
       </button>
-    </motion.div>
+    </m.div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { Plus, Trash2, Play, Settings, ChevronRight, Zap, Mail, MessageSquare, Database, Clock, GitBranch, Repeat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -73,7 +73,7 @@ export function WorkflowBuilder({ steps, onStepsChange, triggerType }: WorkflowB
     <div className="relative">
       {/* Trigger Node */}
       <div className="flex flex-col items-center">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="w-64"
@@ -91,7 +91,7 @@ export function WorkflowBuilder({ steps, onStepsChange, triggerType }: WorkflowB
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
 
         {/* Connection Line */}
         {steps.length > 0 && (
@@ -105,7 +105,7 @@ export function WorkflowBuilder({ steps, onStepsChange, triggerType }: WorkflowB
 
           return (
             <div key={step.id} className="flex flex-col items-center">
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -148,7 +148,7 @@ export function WorkflowBuilder({ steps, onStepsChange, triggerType }: WorkflowB
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </m.div>
 
               {/* Connection Line */}
               <div className="w-0.5 h-8 bg-border" />
@@ -157,7 +157,7 @@ export function WorkflowBuilder({ steps, onStepsChange, triggerType }: WorkflowB
         })}
 
         {/* Add Action Button */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="relative"

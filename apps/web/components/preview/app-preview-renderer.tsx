@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { Monitor, Smartphone, Tablet, Eye, EyeOff, RotateCcw, ExternalLink } from 'lucide-react'
 import { WidgetRenderer } from '@/components/editor/widget-renderer'
 import { Button } from '@/components/ui/button'
@@ -155,7 +155,7 @@ export function AppPreviewRenderer({
 
       {/* Preview Container */}
       <div className="flex-1 overflow-auto p-8 flex justify-center">
-        <motion.div
+        <m.div
           key={`${currentDevice}-${refreshKey}`}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -262,7 +262,7 @@ export function AppPreviewRenderer({
               <div className="w-32 h-1 bg-slate-600 rounded-full" />
             </div>
           )}
-        </motion.div>
+        </m.div>
       </div>
 
       {/* Preview Stats */}

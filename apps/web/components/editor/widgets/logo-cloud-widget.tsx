@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -136,7 +136,7 @@ export function LogoCloudWidget({
         
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
           {activeLogos.map((logo, index) => (
-            <motion.div
+            <m.div
               key={index}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -158,7 +158,7 @@ export function LogoCloudWidget({
                   {logo.name}
                 </div>
               )}
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

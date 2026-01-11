@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 
 interface Collaborator {
   id: string
@@ -17,7 +17,7 @@ export function CollaboratorCursors({ collaborators }: CollaboratorCursorsProps)
   return (
     <AnimatePresence>
       {collaborators.map((collaborator) => (
-        <motion.div
+        <m.div
           key={collaborator.id}
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -51,7 +51,7 @@ export function CollaboratorCursors({ collaborators }: CollaboratorCursorsProps)
           >
             {collaborator.name}
           </div>
-        </motion.div>
+        </m.div>
       ))}
     </AnimatePresence>
   )

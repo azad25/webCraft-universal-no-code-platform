@@ -88,7 +88,7 @@ export const mediaApi = {
     if (altText) formData.append('alt_text', altText)
     if (tags?.length) formData.append('tags', tags.join(','))
 
-    const response = await api.post<UploadResponse>(`/api/v1/apps/${appId}/media/upload`, formData, {
+    const response = await api.post<UploadResponse>(`/apps/${appId}/media/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -111,7 +111,7 @@ export const mediaApi = {
     
     if (folderId) formData.append('folder_id', folderId)
 
-    const response = await api.post<UploadResponse[]>(`/api/v1/apps/${appId}/media/upload/batch`, formData, {
+    const response = await api.post<UploadResponse[]>(`/apps/${appId}/media/upload/batch`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -140,7 +140,7 @@ export const mediaApi = {
 
   // List media
   async listMedia(appId: string, params?: MediaListParams): Promise<MediaItem[]> {
-    const response = await api.get<MediaItem[]>(`/api/v1/apps/${appId}/media`, {
+    const response = await api.get<MediaItem[]>(`/apps/${appId}/media`, {
       params
     })
     return response.data
@@ -175,7 +175,7 @@ export const mediaApi = {
 
   // Folder management
   async createFolder(appId: string, name: string, parentId?: string): Promise<MediaFolder> {
-    const response = await api.post<MediaFolder>(`/api/v1/apps/${appId}/media/folders`, {
+    const response = await api.post<MediaFolder>(`/apps/${appId}/media/folders`, {
       name,
       parent_id: parentId
     })
@@ -183,7 +183,7 @@ export const mediaApi = {
   },
 
   async listFolders(appId: string, parentId?: string): Promise<MediaFolder[]> {
-    const response = await api.get<MediaFolder[]>(`/api/v1/apps/${appId}/media/folders`, {
+    const response = await api.get<MediaFolder[]>(`/apps/${appId}/media/folders`, {
       params: { parent_id: parentId }
     })
     return response.data

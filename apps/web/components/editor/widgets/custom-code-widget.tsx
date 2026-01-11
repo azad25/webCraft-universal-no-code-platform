@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { Code, Eye, EyeOff, AlertTriangle, ExternalLink, Edit3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -119,7 +119,7 @@ export function CustomCodeWidget({
   // Editor mode (when not in preview)
   if (!isPreview) {
     return (
-      <motion.div
+      <m.div
         ref={containerRef}
         className={cn(
           "relative border-2 border-dashed rounded-lg p-4 min-h-[100px] transition-all",
@@ -211,7 +211,7 @@ export function CustomCodeWidget({
             <p className="text-xs">Click to edit content</p>
           </div>
         )}
-      </motion.div>
+      </m.div>
     )
   }
 

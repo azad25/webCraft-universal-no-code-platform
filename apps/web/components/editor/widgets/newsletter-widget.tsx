@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -239,7 +239,7 @@ export function NewsletterWidget({
         className="w-full py-12 px-6"
         style={{ backgroundColor }}
       >
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-xl mx-auto text-center p-8"
@@ -249,7 +249,7 @@ export function NewsletterWidget({
           </div>
           <h3 className="text-xl font-semibold mb-2">You're Subscribed!</h3>
           <p className="text-muted-foreground">{activeSuccessMessage}</p>
-        </motion.div>
+        </m.div>
       </section>
     )
   }
@@ -266,24 +266,24 @@ export function NewsletterWidget({
         {style !== 'card' && (
           <>
             {showIcon && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-6"
               >
                 <Sparkles className="w-7 h-7 text-primary" />
-              </motion.div>
+              </m.div>
             )}
-            <motion.h2
+            <m.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-2xl md:text-3xl font-bold mb-4"
             >
               {activeTitle}
-            </motion.h2>
-            <motion.p
+            </m.h2>
+            <m.p
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -291,11 +291,11 @@ export function NewsletterWidget({
               className="text-muted-foreground mb-8 max-w-xl mx-auto"
             >
               {activeSubtitle}
-            </motion.p>
+            </m.p>
           </>
         )}
         
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -304,7 +304,7 @@ export function NewsletterWidget({
           {style === 'inline' && renderInline()}
           {style === 'stacked' && renderStacked()}
           {style === 'card' && renderCard()}
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

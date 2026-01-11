@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -127,7 +127,7 @@ export function StepsWidget({
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {activeSteps.map((step, index) => (
-          <motion.div
+          <m.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -147,7 +147,7 @@ export function StepsWidget({
             
             <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
             <p className="text-sm text-muted-foreground">{step.description}</p>
-          </motion.div>
+          </m.div>
         ))}
       </div>
     </div>
@@ -160,7 +160,7 @@ export function StepsWidget({
       
       <div className="space-y-8">
         {activeSteps.map((step, index) => (
-          <motion.div
+          <m.div
             key={index}
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -182,7 +182,7 @@ export function StepsWidget({
               <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
               <p className="text-muted-foreground">{step.description}</p>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
     </div>
@@ -191,7 +191,7 @@ export function StepsWidget({
   const renderCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {activeSteps.map((step, index) => (
-        <motion.div
+        <m.div
           key={index}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -218,7 +218,7 @@ export function StepsWidget({
               →
             </div>
           )}
-        </motion.div>
+        </m.div>
       ))}
     </div>
   )
@@ -229,14 +229,14 @@ export function StepsWidget({
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <motion.h2
+            <m.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-3xl md:text-4xl font-bold"
             >
               {title}
-            </motion.h2>
+            </m.h2>
             {dataSourceId && (
               <Badge variant="outline" className="text-xs">
                 <Database className="w-3 h-3 mr-1" />
@@ -248,7 +248,7 @@ export function StepsWidget({
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
             )}
           </div>
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -256,7 +256,7 @@ export function StepsWidget({
             className="text-lg text-muted-foreground"
           >
             {subtitle}
-          </motion.p>
+          </m.p>
           {dataSourceId && lastRefresh && (
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-xs text-muted-foreground">

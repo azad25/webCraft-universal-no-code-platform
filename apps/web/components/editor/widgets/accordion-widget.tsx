@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { ChevronDown, Plus, Minus } from 'lucide-react'
 
@@ -84,7 +84,7 @@ export function AccordionWidget({
                   onClick={() => toggleItem(index)}
                 >
                   <span className="font-medium pr-4">{item.title}</span>
-                  <motion.div
+                  <m.div
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                     className="shrink-0"
@@ -98,12 +98,12 @@ export function AccordionWidget({
                         <Plus className="w-5 h-5 text-muted-foreground" />
                       )
                     )}
-                  </motion.div>
+                  </m.div>
                 </button>
                 
                 <AnimatePresence>
                   {isOpen && (
-                    <motion.div
+                    <m.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -115,7 +115,7 @@ export function AccordionWidget({
                       )}>
                         {item.content}
                       </div>
-                    </motion.div>
+                    </m.div>
                   )}
                 </AnimatePresence>
               </div>

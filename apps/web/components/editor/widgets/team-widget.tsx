@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Twitter, Linkedin, Github, Database, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -131,14 +131,14 @@ export function TeamWidget({
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <motion.h2
+            <m.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-3xl md:text-4xl font-bold"
             >
               {title}
-            </motion.h2>
+            </m.h2>
             {dataSourceId && (
               <Badge variant="outline" className="text-xs">
                 <Database className="w-3 h-3 mr-1" />
@@ -150,7 +150,7 @@ export function TeamWidget({
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
             )}
           </div>
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -158,7 +158,7 @@ export function TeamWidget({
             className="text-lg text-muted-foreground"
           >
             {subtitle}
-          </motion.p>
+          </m.p>
           {dataSourceId && lastRefresh && (
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-xs text-muted-foreground">
@@ -181,7 +181,7 @@ export function TeamWidget({
           )}
         >
           {activeMembers.map((member, index) => (
-            <motion.div
+            <m.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -219,7 +219,7 @@ export function TeamWidget({
                   })}
                 </div>
               )}
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

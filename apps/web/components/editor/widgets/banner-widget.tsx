@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { X, ArrowRight, Sparkles, AlertCircle, Info, CheckCircle } from 'lucide-react'
@@ -59,7 +59,7 @@ export function BannerWidget({
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: position === 'top' ? -20 : 0 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: position === 'top' ? -20 : 0 }}
@@ -101,7 +101,7 @@ export function BannerWidget({
             </button>
           )}
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   )
 }

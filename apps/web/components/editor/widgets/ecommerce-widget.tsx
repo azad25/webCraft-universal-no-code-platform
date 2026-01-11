@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { ShoppingCart, Heart, Star, Plus, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -120,7 +120,7 @@ export function EcommerceWidget({
 
   // Default card layout
   return (
-    <motion.div
+    <m.div
       className="w-full bg-white rounded-xl border overflow-hidden"
       whileHover={{ y: isEditing ? 0 : -4 }}
       transition={{ duration: 0.2 }}
@@ -191,6 +191,6 @@ export function EcommerceWidget({
           </div>
         )}
       </div>
-    </motion.div>
+    </m.div>
   )
 }

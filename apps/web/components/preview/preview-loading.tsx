@@ -1,7 +1,7 @@
 'use client';
 
 import { Loader2, Monitor, Smartphone, Tablet, Zap } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 interface PreviewLoadingProps {
   device?: string;
@@ -35,7 +35,7 @@ export function PreviewLoading({ device = 'desktop', message = 'Loading preview.
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
       <div className="text-center">
         {/* Enhanced Device Preview Frame */}
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -51,7 +51,7 @@ export function PreviewLoading({ device = 'desktop', message = 'Loading preview.
           {/* Enhanced Loading Content */}
           <div className="h-full flex items-center justify-center p-8">
             <div className="text-center">
-              <motion.div 
+              <m.div 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
@@ -61,32 +61,32 @@ export function PreviewLoading({ device = 'desktop', message = 'Loading preview.
                   <Zap className="w-10 h-10 text-slate-600" />
                 </div>
                 {getDeviceIcon()}
-              </motion.div>
+              </m.div>
               
-              <motion.div
+              <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
                 className="mb-6"
               >
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-slate-600" />
-              </motion.div>
+              </m.div>
               
               {/* Enhanced Loading Skeleton */}
               <div className="space-y-3">
-                <motion.div 
+                <m.div 
                   initial={{ width: 0 }}
                   animate={{ width: '12rem' }}
                   transition={{ delay: 0.6, duration: 0.8 }}
                   className="h-4 bg-slate-200 rounded-lg animate-pulse mx-auto"
                 />
-                <motion.div 
+                <m.div 
                   initial={{ width: 0 }}
                   animate={{ width: '8rem' }}
                   transition={{ delay: 0.8, duration: 0.8 }}
                   className="h-4 bg-slate-200 rounded-lg animate-pulse mx-auto"
                 />
-                <motion.div 
+                <m.div 
                   initial={{ width: 0 }}
                   animate={{ width: '10rem' }}
                   transition={{ delay: 1.0, duration: 0.8 }}
@@ -102,10 +102,10 @@ export function PreviewLoading({ device = 'desktop', message = 'Loading preview.
               <div className="w-32 h-1 bg-slate-600 rounded-full"></div>
             </div>
           )}
-        </motion.div>
+        </m.div>
         
         {/* Enhanced Loading Message */}
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -119,7 +119,7 @@ export function PreviewLoading({ device = 'desktop', message = 'Loading preview.
           {/* Loading Progress Dots */}
           <div className="flex items-center justify-center space-x-2 mt-4">
             {[0, 1, 2].map((i) => (
-              <motion.div
+              <m.div
                 key={i}
                 className="w-2 h-2 bg-slate-400 rounded-full"
                 animate={{
@@ -134,7 +134,7 @@ export function PreviewLoading({ device = 'desktop', message = 'Loading preview.
               />
             ))}
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </div>
   );

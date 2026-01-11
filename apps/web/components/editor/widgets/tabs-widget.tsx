@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface TabItem {
@@ -96,7 +96,7 @@ export function TabsWidget({
               
               {/* Animated indicator for underline style */}
               {style === 'underline' && activeTab === index && (
-                <motion.div
+                <m.div
                   layoutId="tab-indicator"
                   className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
                 />
@@ -106,7 +106,7 @@ export function TabsWidget({
         </div>
 
         {/* Tab Content */}
-        <motion.div
+        <m.div
           key={activeTab}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -116,7 +116,7 @@ export function TabsWidget({
           <p className="text-muted-foreground leading-relaxed">
             {tabs[activeTab]?.content}
           </p>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

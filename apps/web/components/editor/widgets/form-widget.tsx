@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -150,7 +150,7 @@ export function FormWidget({
 
   if (isSubmitted && !isEditing) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full h-full flex items-center justify-center p-8"
@@ -164,7 +164,7 @@ export function FormWidget({
           </div>
           <p className="text-lg font-medium text-gray-900">{successMessage}</p>
         </div>
-      </motion.div>
+      </m.div>
     )
   }
 

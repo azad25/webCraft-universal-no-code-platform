@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { useDrag } from 'react-dnd'
 import { 
   Search, Plus, Grid, Type, Image, MousePointer2, FormInput, 
@@ -1297,7 +1297,7 @@ function DraggableWidget({ widget, category }: { widget: any, category: string }
   }
 
   return (
-    <motion.div
+    <m.div
       ref={drag as any}
       className={cn(
         "group p-4 rounded-xl border-2 border-dashed border-transparent hover:border-primary/30 cursor-grab active:cursor-grabbing transition-all duration-200",
@@ -1341,7 +1341,7 @@ function DraggableWidget({ widget, category }: { widget: any, category: string }
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -2287,7 +2287,7 @@ function ElementLibraryContent({ onAddElement }: { onAddElement: (element: any) 
           ) : (
             <AnimatePresence mode="popLayout">
               {currentElements.map((element) => (
-                <motion.div
+                <m.div
                   key={element.id}
                   layout
                   initial={{ opacity: 0, y: 10 }}
@@ -2355,7 +2355,7 @@ function ElementLibraryContent({ onAddElement }: { onAddElement: (element: any) 
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </m.div>
               ))}
             </AnimatePresence>
           )}
@@ -2479,7 +2479,7 @@ function DataTabContent({ appId, onAddElement }: { appId: string; onAddElement: 
             {dataWidgets.map((widget) => {
               const IconComponent = widget.icon;
               return (
-                <motion.div
+                <m.div
                   key={widget.id}
                   className={cn(
                     "group p-3 rounded-lg border-2 border-dashed border-transparent hover:border-primary/50 cursor-pointer transition-all duration-200",
@@ -2499,7 +2499,7 @@ function DataTabContent({ appId, onAddElement }: { appId: string; onAddElement: 
                       <p className="text-xs text-muted-foreground truncate">{widget.description}</p>
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               );
             })}
           </div>

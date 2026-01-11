@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { useDrop } from 'react-dnd'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 import { WidgetRenderer } from './widget-renderer'
@@ -357,7 +357,7 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
           }}
         >
           {/* Canvas Frame */}
-          <motion.div
+          <m.div
             key={previewMode} // Force re-render on device change for smooth transition
             className="relative bg-white dark:bg-slate-900 shadow-2xl rounded-lg overflow-hidden"
             style={{
@@ -398,7 +398,7 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
                     const isPositioned = element.style?.position === 'absolute' || element.position?.x !== 0 || element.position?.y !== 0
                     
                     return (
-                      <motion.div
+                      <m.div
                         key={element.id}
                         layout={!isPositioned} // Only use layout animation for stacked elements
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -449,7 +449,7 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
                             <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
                           </div>
                         )}
-                      </motion.div>
+                      </m.div>
                     )
                   })}
                 </AnimatePresence>
@@ -473,7 +473,7 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
               
               {/* Empty State */}
               {elements.length === 0 && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="absolute inset-0 flex items-center justify-center"
@@ -492,10 +492,10 @@ export function EditorCanvas({ previewMode, showPreview, onOpenInlineEditor, onS
                       <Badge variant="secondary">Templates</Badge>
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
 

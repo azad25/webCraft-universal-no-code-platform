@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { m, useMotionValue, useTransform, animate } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Database, RefreshCw, Loader2 } from 'lucide-react'
@@ -43,11 +43,11 @@ function AnimatedNumber({ value, suffix = '', prefix = '' }: { value: number; su
   }, [count, value])
 
   return (
-    <motion.span ref={ref}>
+    <m.span ref={ref}>
       {prefix}
-      <motion.span>{rounded}</motion.span>
+      <m.span>{rounded}</m.span>
       {suffix}
-    </motion.span>
+    </m.span>
   )
 }
 
@@ -215,7 +215,7 @@ export function StatsWidget({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {activeStats.map((stat, index) => (
-            <motion.div
+            <m.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -231,7 +231,7 @@ export function StatsWidget({
                 />
               </div>
               <p className="text-muted-foreground">{stat.label}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
         

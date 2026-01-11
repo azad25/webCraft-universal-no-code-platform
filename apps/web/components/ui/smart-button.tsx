@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -340,13 +340,13 @@ export function SmartButton({
       )}
 
       {animate && !isEditing ? (
-        <motion.div
+        <m.div
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className={cn(fullWidth ? "w-full" : "inline-block")}
         >
           {buttonElement}
-        </motion.div>
+        </m.div>
       ) : (
         <div className={cn(fullWidth ? "w-full" : "inline-block")}>
           {buttonElement}

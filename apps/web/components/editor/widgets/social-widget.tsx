@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Github, Mail, Globe, Database, RefreshCw, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -197,7 +197,7 @@ export function SocialWidget({
             const Icon = platformIcons[link.platform] || Globe
             
             return (
-              <motion.a
+              <m.a
                 key={index}
                 href={isEditing ? undefined : link.url}
                 target="_blank"
@@ -217,7 +217,7 @@ export function SocialWidget({
                 {showLabels && (
                   <span className="text-sm font-medium capitalize">{link.platform}</span>
                 )}
-              </motion.a>
+              </m.a>
             )
           })}
         </div>

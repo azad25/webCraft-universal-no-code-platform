@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { X, Send, Sparkles, Loader2, Copy, Check, Wand2, Image, Code, FileText, Palette } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -152,7 +152,7 @@ export function AIAssistant({ app, onClose }: AIAssistantProps) {
         <div className="space-y-4">
           <AnimatePresence>
             {messages.map((message) => (
-              <motion.div
+              <m.div
                 key={message.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -190,12 +190,12 @@ export function AIAssistant({ app, onClose }: AIAssistantProps) {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </AnimatePresence>
 
           {isLoading && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex justify-start"
@@ -204,7 +204,7 @@ export function AIAssistant({ app, onClose }: AIAssistantProps) {
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">Thinking...</span>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </div>
       </ScrollArea>

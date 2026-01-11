@@ -46,7 +46,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     if (refreshToken) {
       const refreshResult = await baseQuery(
         {
-          url: '/api/auth/refresh',
+          url: '/api/v2/auth/refresh',
           method: 'POST',
           body: { refresh_token: refreshToken }
         },
@@ -107,26 +107,36 @@ export const apiSlice = createApi({
     'Analytics',
     'Comments',
     'Automation',
-    'Automations'
+    'Automations',
+    'DataSources',
+    'Actions',
+    'Webhooks',
+    'Collections',
+    'Assets',
+    'Deployment',
+    'Integrations',
+    'SEO',
+    'CrossApp',
+    'WidgetLayers'
   ],
   endpoints: (builder) => ({
     // ==================== Apps ====================
     getApps: builder.query<any, { page?: number; perPage?: number; appType?: string }>({
       query: (params) => ({
-        url: '/api/apps',
+        url: '/apps/',
         params
       }),
       providesTags: ['Apps']
     }),
     
     getApp: builder.query<any, string>({
-      query: (id) => `/api/apps/${id}`,
+      query: (id) => `/apps/${id}`,
       providesTags: (result, error, id) => [{ type: 'App', id }]
     }),
     
     createApp: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/api/apps',
+        url: '/apps/',
         method: 'POST',
         body
       }),
@@ -135,7 +145,7 @@ export const apiSlice = createApi({
     
     updateApp: builder.mutation<any, { id: string; body: any }>({
       query: ({ id, body }) => ({
-        url: `/api/apps/${id}`,
+        url: `/apps/${id}`,
         method: 'PUT',
         body
       }),
@@ -144,7 +154,7 @@ export const apiSlice = createApi({
     
     deleteApp: builder.mutation<void, string>({
       query: (id) => ({
-        url: `/api/apps/${id}`,
+        url: `/apps/${id}`,
         method: 'DELETE'
       }),
       invalidatesTags: ['Apps']
@@ -152,7 +162,7 @@ export const apiSlice = createApi({
     
     publishApp: builder.mutation<any, { id: string; body: any }>({
       query: ({ id, body }) => ({
-        url: `/api/apps/${id}/publish`,
+        url: `/apps/${id}/publish`,
         method: 'POST',
         body
       }),
@@ -161,51 +171,51 @@ export const apiSlice = createApi({
     
     unpublishApp: builder.mutation<any, string>({
       query: (id) => ({
-        url: `/api/apps/${id}/unpublish`,
+        url: `/apps/${id}/unpublish`,
         method: 'POST'
       }),
       invalidatesTags: (result, error, id) => [{ type: 'App', id }, 'Apps']
     }),
     
     getAppAnalytics: builder.query<any, { id: string; days?: number }>({
-      query: ({ id, days = 30 }) => `/api/apps/${id}/analytics?days=${days}`,
+      query: ({ id, days = 30 }) => `/apps/${id}/analytics?days=${days}`,
       providesTags: ['Analytics']
     }),
     
     // ==================== Preview ====================
     createPreview: builder.mutation<any, { id: string; device?: string }>({
       query: ({ id, device = 'desktop' }) => ({
-        url: `/api/apps/${id}/preview?device=${device}`,
+        url: `/apps/${id}/preview?device=${device}`,
         method: 'GET'
       })
     }),
     
     getPreviewData: builder.query<any, { token: string; device?: string }>({
-      query: ({ token, device = 'desktop' }) => `/api/apps/preview/${token}?device=${device}`
+      query: ({ token, device = 'desktop' }) => `/apps/preview/${token}?device=${device}`
     }),
     
     // ==================== Templates ====================
     getTemplates: builder.query<any, { category?: string; search?: string; page?: number }>({
       query: (params) => ({
-        url: '/api/templates',
+        url: '/api/v2/templates/',
         params
       }),
       providesTags: ['Templates']
     }),
     
     getTemplate: builder.query<any, string>({
-      query: (id) => `/api/templates/${id}`,
+      query: (id) => `/api/v2/templates/${id}`,
       providesTags: (result, error, id) => [{ type: 'Template', id }]
     }),
     
     getFeaturedTemplates: builder.query<any, number>({
-      query: (limit = 6) => `/api/templates/featured?limit=${limit}`,
+      query: (limit = 6) => `/api/v2/templates/featured?limit=${limit}`,
       providesTags: ['Templates']
     }),
     
     installTemplate: builder.mutation<any, { id: string; body: any }>({
       query: ({ id, body }) => ({
-        url: `/api/templates/${id}/install`,
+        url: `/api/v2/templates/${id}/install`,
         method: 'POST',
         body
       }),
@@ -213,22 +223,22 @@ export const apiSlice = createApi({
     }),
     
     // ==================== Widgets ====================
-    getWidgets: builder.query<any, { category?: string }>({
-      query: (params) => ({
-        url: '/api/widgets',
+    getWidgets: builder.query<any, { appId: string; category?: string }>({
+      query: ({ appId, ...params }) => ({
+        url: `/api/v2/apps/${appId}/widgets`,
         params
       }),
       providesTags: ['Widgets']
     }),
     
-    getWidget: builder.query<any, string>({
-      query: (id) => `/api/widgets/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Widget', id }]
+    getWidget: builder.query<any, { appId: string; widgetId: string }>({
+      query: ({ appId, widgetId }) => `/api/v2/apps/${appId}/widgets/${widgetId}`,
+      providesTags: (result, error, { widgetId }) => [{ type: 'Widget', id: widgetId }]
     }),
     
     // ==================== Pages ====================
     getPages: builder.query<any, string>({
-      query: (appId) => `/api/apps/${appId}/pages`,
+      query: (appId) => `/api/v2/apps/${appId}/pages`,
       providesTags: (result, error, appId) => [
         { type: 'App', id: appId },
         ...(result?.pages || []).map((page: any) => ({ type: 'Page' as const, id: page.id }))
@@ -236,13 +246,13 @@ export const apiSlice = createApi({
     }),
     
     getPage: builder.query<any, { appId: string; pageId: string }>({
-      query: ({ appId, pageId }) => `/api/apps/${appId}/pages/${pageId}`,
+      query: ({ appId, pageId }) => `/api/v2/apps/${appId}/pages/${pageId}`,
       providesTags: (result, error, { pageId }) => [{ type: 'Page', id: pageId }]
     }),
     
     createPage: builder.mutation<any, { appId: string; body: any }>({
       query: ({ appId, body }) => ({
-        url: `/api/apps/${appId}/pages`,
+        url: `/api/v2/apps/${appId}/pages`,
         method: 'POST',
         body
       }),
@@ -251,7 +261,7 @@ export const apiSlice = createApi({
     
     updatePage: builder.mutation<any, { appId: string; pageId: string; body: any }>({
       query: ({ appId, pageId, body }) => ({
-        url: `/api/apps/${appId}/pages/${pageId}`,
+        url: `/api/v2/apps/${appId}/pages/${pageId}`,
         method: 'PUT',
         body
       }),
@@ -263,7 +273,7 @@ export const apiSlice = createApi({
     
     updatePageContent: builder.mutation<any, { appId: string; pageId: string; content: any }>({
       query: ({ appId, pageId, content }) => ({
-        url: `/api/apps/${appId}/pages/${pageId}/content`,
+        url: `/api/v2/apps/${appId}/pages/${pageId}/content`,
         method: 'PUT',
         body: content
       }),
@@ -272,7 +282,7 @@ export const apiSlice = createApi({
     
     deletePage: builder.mutation<void, { appId: string; pageId: string }>({
       query: ({ appId, pageId }) => ({
-        url: `/api/apps/${appId}/pages/${pageId}`,
+        url: `/api/v2/apps/${appId}/pages/${pageId}`,
         method: 'DELETE'
       }),
       invalidatesTags: (result, error, { appId }) => [{ type: 'App', id: appId }]
@@ -280,14 +290,14 @@ export const apiSlice = createApi({
     
     duplicatePage: builder.mutation<any, { appId: string; pageId: string; newTitle: string; newSlug: string }>({
       query: ({ appId, pageId, newTitle, newSlug }) => ({
-        url: `/api/apps/${appId}/pages/${pageId}/duplicate?new_title=${encodeURIComponent(newTitle)}&new_slug=${encodeURIComponent(newSlug)}`,
+        url: `/api/v2/apps/${appId}/pages/${pageId}/duplicate?new_title=${encodeURIComponent(newTitle)}&new_slug=${encodeURIComponent(newSlug)}`,
         method: 'POST'
       }),
       invalidatesTags: (result, error, { appId }) => [{ type: 'App', id: appId }]
     }),
     generateContent: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/api/ai/generate-content',
+        url: '/ai/generate-content',
         method: 'POST',
         body
       })
@@ -295,25 +305,25 @@ export const apiSlice = createApi({
     
     generateImage: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/api/ai/generate-image',
+        url: '/ai/generate-image',
         method: 'POST',
         body
       })
     }),
     
     getAISuggestions: builder.query<any, { appId: string; type: string }>({
-      query: ({ appId, type }) => `/api/ai/apps/${appId}/suggestions?suggestion_type=${type}`
+      query: ({ appId, type }) => `/ai/apps/${appId}/suggestions?suggestion_type=${type}`
     }),
     
     // ==================== User ====================
     getCurrentUser: builder.query<any, void>({
-      query: () => '/api/auth/me',
+      query: () => '/auth/me',
       providesTags: ['User']
     }),
     
     updateProfile: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/api/auth/me',
+        url: '/auth/me',
         method: 'PUT',
         body
       }),
@@ -480,9 +490,267 @@ export const apiSlice = createApi({
     
     getAutomationTemplates: builder.query<any, { category?: string }>({
       query: ({ category }) => ({
-        url: '/api/automation-templates',
+        url: '/automation-templates',
         params: { category }
       })
+    }),
+
+    // ==================== Data Sources (V2) ====================
+    getDataSources: builder.query<any, { appId: string }>({
+      query: ({ appId }) => ({
+        url: '/data-sources',
+        params: { app_id: appId }
+      }),
+      providesTags: ['DataSources']
+    }),
+
+    createDataSource: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: '/data-sources',
+        method: 'POST',
+        body,
+        params: { app_id: appId }
+      }),
+      invalidatesTags: ['DataSources']
+    }),
+
+    updateDataSource: builder.mutation<any, { id: string; body: any }>({
+      query: ({ id, body }) => ({
+        url: `/data-sources/${id}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: ['DataSources']
+    }),
+
+    deleteDataSource: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/data-sources/${id}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: ['DataSources']
+    }),
+
+    testDataSource: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/data-sources/${id}/test`,
+        method: 'POST'
+      })
+    }),
+
+    // ==================== Actions (V2) ====================
+    getActions: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/actions/apps/${appId}`,
+      providesTags: ['Actions']
+    }),
+
+    createAction: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/actions/apps/${appId}`,
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: ['Actions']
+    }),
+
+    updateAction: builder.mutation<any, { appId: string; actionId: string; body: any }>({
+      query: ({ appId, actionId, body }) => ({
+        url: `/actions/apps/${appId}/${actionId}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: ['Actions']
+    }),
+
+    deleteAction: builder.mutation<any, { appId: string; actionId: string }>({
+      query: ({ appId, actionId }) => ({
+        url: `/actions/apps/${appId}/${actionId}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: ['Actions']
+    }),
+
+    executeAction: builder.mutation<any, { appId: string; actionId: string; body: any }>({
+      query: ({ appId, actionId, body }) => ({
+        url: `/actions/apps/${appId}/${actionId}/execute`,
+        method: 'POST',
+        body
+      })
+    }),
+
+    // ==================== Webhooks (V2) ====================
+    getWebhooks: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/webhooks/apps/${appId}`,
+      providesTags: ['Webhooks']
+    }),
+
+    createWebhook: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/webhooks/apps/${appId}`,
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: ['Webhooks']
+    }),
+
+    updateWebhook: builder.mutation<any, { appId: string; webhookId: string; body: any }>({
+      query: ({ appId, webhookId, body }) => ({
+        url: `/webhooks/apps/${appId}/${webhookId}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: ['Webhooks']
+    }),
+
+    deleteWebhook: builder.mutation<any, { appId: string; webhookId: string }>({
+      query: ({ appId, webhookId }) => ({
+        url: `/webhooks/apps/${appId}/${webhookId}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: ['Webhooks']
+    }),
+
+    testWebhook: builder.mutation<any, { appId: string; webhookId: string }>({
+      query: ({ appId, webhookId }) => ({
+        url: `/webhooks/apps/${appId}/${webhookId}/test`,
+        method: 'POST'
+      })
+    }),
+
+    // ==================== Collections (V2) ====================
+    getCollections: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/apps/${appId}/collections`,
+      providesTags: ['Collections']
+    }),
+
+    createCollection: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/apps/${appId}/collections`,
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: ['Collections']
+    }),
+
+    updateCollection: builder.mutation<any, { appId: string; collectionId: string; body: any }>({
+      query: ({ appId, collectionId, body }) => ({
+        url: `/apps/${appId}/collections/${collectionId}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: ['Collections']
+    }),
+
+    deleteCollection: builder.mutation<any, { appId: string; collectionId: string }>({
+      query: ({ appId, collectionId }) => ({
+        url: `/apps/${appId}/collections/${collectionId}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: ['Collections']
+    }),
+
+    // ==================== Assets (V2) ====================
+    getAssets: builder.query<any, { appId: string; assetType?: string }>({
+      query: ({ appId, assetType }) => ({
+        url: `/apps/${appId}/assets`,
+        params: assetType ? { asset_type: assetType } : {}
+      }),
+      providesTags: ['Assets']
+    }),
+
+    // ==================== Export (V2) ====================
+    exportToStatic: builder.mutation<any, { appId: string }>({
+      query: ({ appId }) => ({
+        url: `/apps/${appId}/export/static`,
+        method: 'POST'
+      })
+    }),
+
+    exportToGitHub: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/apps/${appId}/export/github`,
+        method: 'POST',
+        body
+      })
+    }),
+
+    exportToNetlify: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/apps/${appId}/export/netlify`,
+        method: 'POST',
+        body
+      })
+    }),
+
+    exportToVercel: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/apps/${appId}/export/vercel`,
+        method: 'POST',
+        body
+      })
+    }),
+
+    getExportStatus: builder.query<any, { appId: string; exportId?: string }>({
+      query: ({ appId, exportId }) => ({
+        url: `/apps/${appId}/export/status`,
+        params: exportId ? { export_id: exportId } : {}
+      })
+    }),
+
+    // ==================== Deployment (V2) ====================
+    getDeploymentStatus: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/apps/${appId}/deployment/status`,
+      providesTags: ['Deployment']
+    }),
+
+    // ==================== Integrations (V2) ====================
+    getAvailableIntegrations: builder.query<any, void>({
+      query: () => '/integrations/available',
+      providesTags: ['Integrations']
+    }),
+
+    getIntegrationCategories: builder.query<any, void>({
+      query: () => '/integrations/categories',
+      providesTags: ['Integrations']
+    }),
+
+    getAppIntegrations: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/integrations/apps/${appId}/integrations`,
+      providesTags: ['Integrations']
+    }),
+
+    connectIntegration: builder.mutation<any, { appId: string; body: any }>({
+      query: ({ appId, body }) => ({
+        url: `/integrations/apps/${appId}/integrations/connect`,
+        method: 'POST',
+        body
+      }),
+      invalidatesTags: ['Integrations']
+    }),
+
+    // ==================== SEO (V2) ====================
+    getSEOMeta: builder.query<any, { appId: string; pageSlug?: string }>({
+      query: ({ appId, pageSlug }) => ({
+        url: `/apps/${appId}/seo/meta`,
+        params: pageSlug ? { page_slug: pageSlug } : {}
+      }),
+      providesTags: ['SEO']
+    }),
+
+    // ==================== V2 Exclusive Features ====================
+    getEnhancedAnalytics: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/apps/${appId}/analytics/enhanced`,
+      providesTags: ['Analytics']
+    }),
+
+    getCrossAppConnections: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/cross-app/apps/${appId}/connections`,
+      providesTags: ['CrossApp']
+    }),
+
+    getWidgetLayers: builder.query<any, { appId: string }>({
+      query: ({ appId }) => `/apps/${appId}/widget-layers`,
+      providesTags: ['WidgetLayers']
     })
   })
 })
@@ -555,5 +823,59 @@ export const {
   useGetAutomationLogsQuery,
   useEnableAutomationMutation,
   useDisableAutomationMutation,
-  useGetAutomationTemplatesQuery
+  useGetAutomationTemplatesQuery,
+  
+  // Data Sources (V2)
+  useGetDataSourcesQuery,
+  useCreateDataSourceMutation,
+  useUpdateDataSourceMutation,
+  useDeleteDataSourceMutation,
+  useTestDataSourceMutation,
+  
+  // Actions (V2)
+  useGetActionsQuery,
+  useCreateActionMutation,
+  useUpdateActionMutation,
+  useDeleteActionMutation,
+  useExecuteActionMutation,
+  
+  // Webhooks (V2)
+  useGetWebhooksQuery,
+  useCreateWebhookMutation,
+  useUpdateWebhookMutation,
+  useDeleteWebhookMutation,
+  useTestWebhookMutation,
+  
+  // Collections (V2)
+  useGetCollectionsQuery,
+  useCreateCollectionMutation,
+  useUpdateCollectionMutation,
+  useDeleteCollectionMutation,
+  
+  // Assets (V2)
+  useGetAssetsQuery,
+  
+  // Export (V2)
+  useExportToStaticMutation,
+  useExportToGitHubMutation,
+  useExportToNetlifyMutation,
+  useExportToVercelMutation,
+  useGetExportStatusQuery,
+  
+  // Deployment (V2)
+  useGetDeploymentStatusQuery,
+  
+  // Integrations (V2)
+  useGetAvailableIntegrationsQuery,
+  useGetIntegrationCategoriesQuery,
+  useGetAppIntegrationsQuery,
+  useConnectIntegrationMutation,
+  
+  // SEO (V2)
+  useGetSEOMetaQuery,
+  
+  // V2 Exclusive Features
+  useGetEnhancedAnalyticsQuery,
+  useGetCrossAppConnectionsQuery,
+  useGetWidgetLayersQuery
 } = apiSlice

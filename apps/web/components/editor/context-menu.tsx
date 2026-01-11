@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { useEditor } from '@/contexts/editor-context'
 import { 
   Copy, 
@@ -42,7 +42,7 @@ export function ContextMenu({ x, y, onClose }: ContextMenuProps) {
   ]
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -71,6 +71,6 @@ export function ContextMenu({ x, y, onClose }: ContextMenuProps) {
           </button>
         )
       })}
-    </motion.div>
+    </m.div>
   )
 }

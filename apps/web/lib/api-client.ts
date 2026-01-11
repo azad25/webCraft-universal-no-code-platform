@@ -21,7 +21,7 @@ interface ApiClientConfig {
 
 // Default configuration
 const defaultConfig: ApiClientConfig = {
-  baseURL: '', // Use relative URLs to go through Next.js API proxy
+  baseURL: '/api/v2', // Use V2 API by default
   timeout: 30000,
   retry: {
     retries: 3,
@@ -60,9 +60,9 @@ const createApiClient = (config: Partial<ApiClientConfig> = {}): AxiosInstance =
       }
       
       // Add auth token (but not for auth endpoints)
-      const isAuthEndpoint = config.url?.includes('/api/auth/login') || 
-                            config.url?.includes('/api/auth/register') || 
-                            config.url?.includes('/api/auth/refresh')
+      const isAuthEndpoint = config.url?.includes('/auth/login') || 
+                            config.url?.includes('/auth/register') || 
+                            config.url?.includes('/auth/refresh')
       
       if (!isAuthEndpoint) {
         let token = typeof window !== 'undefined' ? getAuthToken() : null
@@ -113,7 +113,7 @@ const createApiClient = (config: Partial<ApiClientConfig> = {}): AxiosInstance =
           const refreshToken = localStorage.getItem('refreshToken')
           
           if (refreshToken) {
-            const response = await instance.post(`/api/auth/refresh`, {
+            const response = await instance.post(`/auth/refresh`, {
               refresh_token: refreshToken
             })
             
@@ -235,6 +235,42 @@ export const api = {
   
   delete: <T>(url: string, config?: AxiosRequestConfig) => 
     apiClient.delete<T>(url, config)
+}
+
+// V2 API utilities
+export const v2Api = {
+  get: <T>(endpoint: string, config?: AxiosRequestConfig) => 
+    apiClient.get<T>(`/api/v2${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, config),
+  
+  post: <T>(endpoint: string, data?: any, config?: AxiosRequestConfig) => 
+    apiClient.post<T>(`/api/v2${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, data, config),
+  
+  put: <T>(endpoint: string, data?: any, config?: AxiosRequestConfig) => 
+    apiClient.put<T>(`/api/v2${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, data, config),
+  
+  patch: <T>(endpoint: string, data?: any, config?: AxiosRequestConfig) => 
+    apiClient.patch<T>(`/api/v2${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, data, config),
+  
+  delete: <T>(endpoint: string, config?: AxiosRequestConfig) => 
+    apiClient.delete<T>(`/api/v2${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, config)
+}
+
+// V1 API utilities (for backward compatibility)
+export const v1Api = {
+  get: <T>(endpoint: string, config?: AxiosRequestConfig) => 
+    apiClient.get<T>(`/api/v1${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, config),
+  
+  post: <T>(endpoint: string, data?: any, config?: AxiosRequestConfig) => 
+    apiClient.post<T>(`/api/v1${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, data, config),
+  
+  put: <T>(endpoint: string, data?: any, config?: AxiosRequestConfig) => 
+    apiClient.put<T>(`/api/v1${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, data, config),
+  
+  patch: <T>(endpoint: string, data?: any, config?: AxiosRequestConfig) => 
+    apiClient.patch<T>(`/api/v1${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, data, config),
+  
+  delete: <T>(endpoint: string, config?: AxiosRequestConfig) => 
+    apiClient.delete<T>(`/api/v1${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`, config)
 }
 
 // SWR fetcher

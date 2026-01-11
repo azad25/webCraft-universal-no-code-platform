@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { 
   Sparkles, Layout, Type, Image, Users, DollarSign, 
   MessageSquare, HelpCircle, Mail, BarChart, ArrowRight,
@@ -498,7 +498,7 @@ export function SectionTemplates({ onSelectSection }: SectionTemplatesProps) {
       <ScrollArea className="flex-1 p-4">
         <div className="grid grid-cols-2 gap-3">
           {filteredSections.map((section) => (
-            <motion.div
+            <m.div
               key={section.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -513,7 +513,7 @@ export function SectionTemplates({ onSelectSection }: SectionTemplatesProps) {
                 </div>
                 <p className="text-sm font-medium">{section.name}</p>
               </button>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 

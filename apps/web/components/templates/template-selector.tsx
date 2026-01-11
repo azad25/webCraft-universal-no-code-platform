@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { 
   Layout, Rocket, Briefcase, ShoppingCart, Building, 
   FileText, Utensils, Calendar, Cloud, Palette, Home,
@@ -178,7 +178,7 @@ export function TemplateSelector({ onSelect, selectedId }: TemplateSelectorProps
             const isHovered = hoveredId === template.id
 
             return (
-              <motion.button
+              <m.button
                 key={template.id}
                 onClick={() => onSelect(template.id)}
                 onMouseEnter={() => setHoveredId(template.id)}
@@ -233,7 +233,7 @@ export function TemplateSelector({ onSelect, selectedId }: TemplateSelectorProps
                     {template.pages} page{template.pages > 1 ? 's' : ''} included
                   </p>
                 )}
-              </motion.button>
+              </m.button>
             )
           })}
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Plus, Minus, Trash2, X, ShoppingBag, CreditCard, Truck, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -280,7 +280,7 @@ export function CartWidget({
         
         <AnimatePresence>
           {isOpen && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -358,7 +358,7 @@ export function CartWidget({
                   </>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
@@ -399,7 +399,7 @@ export function CartWidget({
           <div className={cn(isFullPage && "lg:col-span-2")}>
             <div className="space-y-4">
               {cartItems.map((item) => (
-                <motion.div
+                <m.div
                   key={item.id}
                   layout
                   className="flex gap-4 p-4 border rounded-lg"
@@ -458,7 +458,7 @@ export function CartWidget({
                       </Button>
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               ))}
             </div>
           </div>

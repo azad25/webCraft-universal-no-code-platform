@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { useDrag } from 'react-dnd'
 import { 
   Search, Plus, Grid, Type, Image, MousePointer2, FormInput, 
@@ -506,7 +506,7 @@ function DraggableWidget({
   const categoryColor = ENHANCED_CATEGORIES[category as keyof typeof ENHANCED_CATEGORIES]?.color || 'bg-gray-500'
 
   return (
-    <motion.div
+    <m.div
       ref={drag as any}
       className={cn(
         "group p-3 rounded-lg border cursor-pointer transition-all duration-200",
@@ -535,7 +535,7 @@ function DraggableWidget({
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 

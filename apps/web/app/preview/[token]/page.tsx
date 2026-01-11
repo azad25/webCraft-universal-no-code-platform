@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { Loader2, Smartphone, Tablet, Monitor, ExternalLink, QrCode, ArrowLeft, RefreshCw, Eye, EyeOff, Copy, Check, Keyboard, Home, Globe, Layers, Zap } from 'lucide-react';
-import { m, AnimatePresence } from \'framer-motion\';
+import { m, AnimatePresence } from 'framer-motion';
 import { WidgetRenderer } from '@/components/editor/widget-renderer';
 import { PreviewLoading } from '@/components/preview/preview-loading';
 import { PreviewError } from '@/components/preview/preview-error';

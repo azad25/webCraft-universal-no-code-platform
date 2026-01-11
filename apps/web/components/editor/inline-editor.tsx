@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useEditor } from '@/contexts/editor-context'
 
@@ -1734,7 +1734,7 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
 
   return (
     <TooltipProvider>
-      <motion.div
+      <m.div
         ref={editorRef}
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1891,7 +1891,7 @@ export function InlineEditor({ element, position, onClose, onUpdate, onDelete, o
             </Button>
           </div>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Media Manager */}
       {appId && (

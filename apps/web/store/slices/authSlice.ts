@@ -66,7 +66,7 @@ export const login = createAsyncThunk<AuthResponse, LoginCredentials>(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/auth/login', credentials)
+      const response = await apiClient.post('/auth/login', credentials)
       
       // Map API response to expected format
       const authResponse: AuthResponse = {
@@ -102,7 +102,7 @@ export const register = createAsyncThunk<AuthResponse, RegisterData>(
   'auth/register',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/auth/register', {
+      const response = await apiClient.post('/auth/register', {
         email: data.email,
         username: data.username,
         password: data.password,
@@ -143,7 +143,7 @@ export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
-      await apiClient.post('/api/auth/logout')
+      await apiClient.post('/auth/logout')
     } catch (error) {
       // Continue with logout even if API call fails
     } finally {
@@ -163,7 +163,7 @@ export const refreshAccessToken = createAsyncThunk<AuthResponse, void>(
         throw new Error('No refresh token')
       }
       
-      const response = await apiClient.post('/api/auth/refresh', {
+      const response = await apiClient.post('/auth/refresh', {
         refresh_token: refreshToken
       })
       
@@ -192,7 +192,7 @@ export const fetchCurrentUser = createAsyncThunk<User, void>(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get<User>('/api/auth/me')
+      const response = await apiClient.get<User>('/auth/me')
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to fetch user')
@@ -211,13 +211,13 @@ export const initializeAuth = createAsyncThunk<User | null, void>(
       }
       
       // Try to fetch current user
-      const response = await apiClient.get<User>('/api/auth/me')
+      const response = await apiClient.get<User>('/auth/me')
       return response.data
     } catch (error: any) {
       // Try to refresh token
       try {
         await dispatch(refreshAccessToken()).unwrap()
-        const response = await apiClient.get<User>('/api/auth/me')
+        const response = await apiClient.get<User>('/auth/me')
         return response.data
       } catch {
         localStorage.removeItem('accessToken')
@@ -232,7 +232,7 @@ export const updateProfile = createAsyncThunk<User, Partial<User>>(
   'auth/updateProfile',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put<User>('/api/auth/me', data)
+      const response = await apiClient.put<User>('/auth/me', data)
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to update profile')
@@ -244,7 +244,7 @@ export const changePassword = createAsyncThunk<void, { currentPassword: string; 
   'auth/changePassword',
   async (data, { rejectWithValue }) => {
     try {
-      await apiClient.post('/api/auth/change-password', {
+      await apiClient.post('/auth/change-password', {
         current_password: data.currentPassword,
         new_password: data.newPassword
       })
@@ -259,7 +259,7 @@ export const loginWithGoogle = createAsyncThunk<AuthResponse, string>(
   'auth/loginWithGoogle',
   async (code, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/auth/oauth/callback', {
+      const response = await apiClient.post('/auth/oauth/callback', {
         provider: 'google',
         code,
         state: localStorage.getItem('oauth_state')
@@ -289,7 +289,7 @@ export const loginWithApple = createAsyncThunk<AuthResponse, { code: string; idT
   'auth/loginWithApple',
   async ({ code, idToken }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/auth/oauth/callback', {
+      const response = await apiClient.post('/auth/oauth/callback', {
         provider: 'apple',
         code,
         id_token: idToken,

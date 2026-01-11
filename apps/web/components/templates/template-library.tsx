@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { 
   Search, Filter, Grid, List, Star, Download, Eye, 
   Rocket, Briefcase, ShoppingCart, Building, FileText,
@@ -348,7 +348,7 @@ function TemplateCard({
 }) {
   if (viewMode === 'list') {
     return (
-      <motion.div
+      <m.div
         layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -398,12 +398,12 @@ function TemplateCard({
             </div>
           </div>
         </Card>
-      </motion.div>
+      </m.div>
     )
   }
 
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -459,7 +459,7 @@ function TemplateCard({
           </span>
         </CardFooter>
       </Card>
-    </motion.div>
+    </m.div>
   )
 }
 

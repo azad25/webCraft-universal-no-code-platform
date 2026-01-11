@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, ExternalLink, Download, Play, Mail, Phone } from 'lucide-react'
@@ -92,7 +92,7 @@ export function EnhancedButtonWidget({
         alignment === 'right' && "text-right"
       )}
     >
-      <motion.div
+      <m.div
         whileHover={!inlineEditing && !isEditing ? { scale: 1.02 } : undefined}
         whileTap={!inlineEditing && !isEditing ? { scale: 0.98 } : undefined}
         className={cn(fullWidth ? "w-full" : "inline-block")}
@@ -142,7 +142,7 @@ export function EnhancedButtonWidget({
             </a>
           )}
         </Button>
-      </motion.div>
+      </m.div>
     </WidgetContainer>
   )
 }

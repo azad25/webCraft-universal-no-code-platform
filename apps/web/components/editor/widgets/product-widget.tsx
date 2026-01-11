@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { ShoppingCart, Heart, Star, Plus, Minus, Eye, Share2, Database, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -597,7 +597,7 @@ export function ProductWidget({
 
   // Default card layout
   return (
-    <motion.div
+    <m.div
       className="w-full bg-white rounded-xl border overflow-hidden"
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
@@ -674,6 +674,6 @@ export function ProductWidget({
           </div>
         )}
       </div>
-    </motion.div>
+    </m.div>
   )
 }

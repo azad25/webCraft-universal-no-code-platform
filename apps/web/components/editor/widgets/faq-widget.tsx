@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { ChevronDown, Plus, Minus, Database, RefreshCw, Loader2, Edit3, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -161,7 +161,7 @@ export function FAQWidget({
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <motion.h2
+          <m.h2
             ref={titleRef}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -178,8 +178,8 @@ export function FAQWidget({
             onDoubleClick={handleTitleEdit}
           >
             {title}
-          </motion.h2>
-          <motion.p
+          </m.h2>
+          <m.p
             ref={subtitleRef}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -197,13 +197,13 @@ export function FAQWidget({
             onDoubleClick={handleSubtitleEdit}
           >
             {subtitle}
-          </motion.p>
+          </m.p>
         </div>
 
         {/* FAQ Items */}
         <div className="space-y-4">
           {localItems.map((item, index) => (
-            <motion.div
+            <m.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -275,18 +275,18 @@ export function FAQWidget({
                   )}
                 </div>
                 
-                <motion.div
+                <m.div
                   animate={{ rotate: openIndex === index ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
                   <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                </motion.div>
+                </m.div>
               </button>
 
               {/* Answer Content */}
               <AnimatePresence>
                 {openIndex === index && (
-                  <motion.div
+                  <m.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -312,16 +312,16 @@ export function FAQWidget({
                         {item.answer}
                       </p>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 
         {/* Add New FAQ Button */}
         {!isPreview && isSelected && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="mt-6 text-center"
@@ -334,7 +334,7 @@ export function FAQWidget({
               <Plus className="w-4 h-4" />
               Add FAQ Item
             </Button>
-          </motion.div>
+          </m.div>
         )}
       </div>
     </section>

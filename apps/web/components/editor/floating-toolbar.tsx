@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { useEditor } from '@/contexts/editor-context'
 import { Button } from '@/components/ui/button'
 import { 
@@ -140,7 +140,7 @@ export function FloatingToolbar({ selectedElement, onStartEditing }: FloatingToo
   return (
     <AnimatePresence>
       <TooltipProvider>
-        <motion.div
+        <m.div
           ref={toolbarRef}
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -184,7 +184,7 @@ export function FloatingToolbar({ selectedElement, onStartEditing }: FloatingToo
               </Tooltip>
             )
           })}
-        </motion.div>
+        </m.div>
       </TooltipProvider>
     </AnimatePresence>
   )

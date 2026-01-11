@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useEditor } from '@/contexts/editor-context'
 
@@ -114,7 +114,7 @@ export function WidgetToolbar({ element, position, isVisible, onClose, appId }: 
 
   return (
     <TooltipProvider>
-      <motion.div
+      <m.div
         ref={toolbarRef}
         initial={{ opacity: 0, y: 10, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -302,7 +302,7 @@ export function WidgetToolbar({ element, position, isVisible, onClose, appId }: 
         {/* Expandable Sections */}
         <AnimatePresence>
           {activeSection && (
-            <motion.div
+            <m.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -541,10 +541,10 @@ export function WidgetToolbar({ element, position, isVisible, onClose, appId }: 
                   </div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </m.div>
     </TooltipProvider>
   )
 }

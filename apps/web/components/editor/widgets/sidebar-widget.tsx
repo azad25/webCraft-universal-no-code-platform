@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -452,7 +452,7 @@ export function SidebarWidget({
         {/* Submenu */}
         <AnimatePresence>
           {hasChildren && isExpanded && !isCollapsed && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -461,7 +461,7 @@ export function SidebarWidget({
               <div className="py-1">
                 {item.children?.map(child => renderMenuItem(child, level + 1))}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
@@ -589,7 +589,7 @@ export function SidebarWidget({
         {/* Overlay Background */}
         <AnimatePresence>
           {isVisible && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -602,7 +602,7 @@ export function SidebarWidget({
         {/* Sidebar */}
         <AnimatePresence>
           {isVisible && (
-            <motion.div
+            <m.div
               initial={{ 
                 x: position === 'left' ? '-100%' : '100%',
                 opacity: 0 
@@ -621,7 +621,7 @@ export function SidebarWidget({
               )}
             >
               {sidebarContent}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </>

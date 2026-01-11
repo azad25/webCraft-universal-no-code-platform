@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -152,7 +152,7 @@ export function TimelineWidget({
       )}
       <div className="space-y-8">
         {activeItems.map((item, index) => (
-          <motion.div
+          <m.div
             key={index}
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -176,7 +176,7 @@ export function TimelineWidget({
               <h3 className="text-lg font-semibold mt-1">{item.title}</h3>
               <p className="text-muted-foreground mt-1">{item.description}</p>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
     </div>
@@ -191,7 +191,7 @@ export function TimelineWidget({
         {activeItems.map((item, index) => {
           const isLeft = index % 2 === 0
           return (
-            <motion.div
+            <m.div
               key={index}
               initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -221,7 +221,7 @@ export function TimelineWidget({
               
               {/* Spacer */}
               <div className="flex-1" />
-            </motion.div>
+            </m.div>
           )
         })}
       </div>
@@ -232,7 +232,7 @@ export function TimelineWidget({
     <div className="relative overflow-x-auto pb-4">
       <div className="flex gap-8 min-w-max px-4">
         {activeItems.map((item, index) => (
-          <motion.div
+          <m.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -264,7 +264,7 @@ export function TimelineWidget({
               <h3 className="font-semibold mt-1">{item.title}</h3>
               <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
     </div>

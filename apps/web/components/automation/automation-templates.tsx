@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -209,7 +209,7 @@ export function AutomationTemplates({ onSelectTemplate, onClose }: AutomationTem
             const CategoryIcon = categoryIcons[template.category] || Bot
             
             return (
-              <motion.div
+              <m.div
                 key={template.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -295,7 +295,7 @@ export function AutomationTemplates({ onSelectTemplate, onClose }: AutomationTem
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </m.div>
             )
           })}
         </AnimatePresence>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { 
   Code, FileText, Palette, Zap, Image, Video, Music, 
   Upload, Download, Trash2, Edit3, Copy, Eye, 

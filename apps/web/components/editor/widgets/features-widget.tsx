@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -187,14 +187,14 @@ export function FeaturesWidget({
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <motion.h2
+            <m.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-3xl md:text-4xl font-bold"
             >
               {title}
-            </motion.h2>
+            </m.h2>
             {dataSourceId && (
               <Badge variant="outline" className="text-xs">
                 <Database className="w-3 h-3 mr-1" />
@@ -206,7 +206,7 @@ export function FeaturesWidget({
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
             )}
           </div>
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -214,7 +214,7 @@ export function FeaturesWidget({
             className="text-lg text-muted-foreground max-w-2xl mx-auto"
           >
             {subtitle}
-          </motion.p>
+          </m.p>
           {dataSourceId && lastRefresh && (
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-xs text-muted-foreground">
@@ -239,7 +239,7 @@ export function FeaturesWidget({
           {activeFeatures.map((feature, index) => {
             const Icon = ICONS[feature.icon] || Zap
             return (
-              <motion.div
+              <m.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -255,7 +255,7 @@ export function FeaturesWidget({
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm">{feature.description}</p>
-              </motion.div>
+              </m.div>
             )
           })}
         </div>

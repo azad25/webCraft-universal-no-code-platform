@@ -2,7 +2,7 @@
 
 import { AlertTriangle, RefreshCw, ArrowLeft, ExternalLink, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 interface PreviewErrorProps {
   error: string;
@@ -59,14 +59,14 @@ export function PreviewError({ error, token, onRetry, isRetrying = false }: Prev
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-      <motion.div 
+      <m.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
         className="text-center max-w-lg mx-auto"
       >
         {/* Enhanced Error Icon */}
-        <motion.div 
+        <m.div 
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, duration: 0.3 }}
@@ -81,10 +81,10 @@ export function PreviewError({ error, token, onRetry, isRetrying = false }: Prev
           `}>
             <span className="text-2xl">{errorInfo.icon}</span>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Enhanced Error Content */}
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -119,10 +119,10 @@ export function PreviewError({ error, token, onRetry, isRetrying = false }: Prev
               {error}
             </pre>
           </details>
-        </motion.div>
+        </m.div>
 
         {/* Enhanced Action Buttons */}
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
@@ -158,10 +158,10 @@ export function PreviewError({ error, token, onRetry, isRetrying = false }: Prev
               <span>Try Embed View</span>
             </a>
           )}
-        </motion.div>
+        </m.div>
 
         {/* Enhanced Help Text */}
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
@@ -178,8 +178,8 @@ export function PreviewError({ error, token, onRetry, isRetrying = false }: Prev
               </code>
             </div>
           )}
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
     </div>
   );
 }

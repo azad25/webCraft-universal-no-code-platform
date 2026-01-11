@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { X, ChevronLeft, ChevronRight, Database, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -218,7 +218,7 @@ export function GalleryWidget({
           style={{ gap }}
         >
           {activeImages.map((image, index) => (
-            <motion.div
+            <m.div
               key={index}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -238,7 +238,7 @@ export function GalleryWidget({
                   <p className="text-white text-sm">{image.caption}</p>
                 </div>
               )}
-            </motion.div>
+            </m.div>
           ))}
         </div>
         
@@ -253,7 +253,7 @@ export function GalleryWidget({
         {/* Lightbox */}
         <AnimatePresence>
           {selectedIndex !== null && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -278,7 +278,7 @@ export function GalleryWidget({
                 <ChevronLeft className="w-8 h-8" />
               </Button>
               
-              <motion.img
+              <m.img
                 key={selectedIndex}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -297,7 +297,7 @@ export function GalleryWidget({
               >
                 <ChevronRight className="w-8 h-8" />
               </Button>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>

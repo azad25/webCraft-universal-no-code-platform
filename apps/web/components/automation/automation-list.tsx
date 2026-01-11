@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -178,7 +178,7 @@ export function AutomationList({
               const triggerColor = TRIGGER_COLORS[automation.triggerType] || 'bg-gray-500'
 
               return (
-                <motion.div
+                <m.div
                   key={automation.id}
                   layout
                   initial={{ opacity: 0, y: 20 }}
@@ -281,7 +281,7 @@ export function AutomationList({
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </m.div>
               )
             })}
           </AnimatePresence>

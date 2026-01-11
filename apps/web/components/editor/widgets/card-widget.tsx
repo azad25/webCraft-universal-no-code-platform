@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -234,7 +234,7 @@ export function CardWidget({
   }, [inlineEditingButton])
 
   return (
-    <motion.div
+    <m.div
       className={cn(
         "w-full h-full overflow-hidden border cursor-pointer",
         shadowClasses[shadow],
@@ -397,6 +397,6 @@ export function CardWidget({
           acceptTypes={['image']}
         />
       )}
-    </motion.div>
+    </m.div>
   )
 }

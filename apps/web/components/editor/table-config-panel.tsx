@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -214,7 +214,7 @@ export function TableConfigPanel({
 
       <div className="space-y-2">
         {columns.map((column, index) => (
-          <motion.div
+          <m.div
             key={column.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -269,7 +269,7 @@ export function TableConfigPanel({
                 <Trash2 className="w-3 h-3" />
               </Button>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
 
@@ -295,7 +295,7 @@ export function TableConfigPanel({
 
       <div className="space-y-2">
         {actions.map((action) => (
-          <motion.div
+          <m.div
             key={action.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -331,7 +331,7 @@ export function TableConfigPanel({
                 <Trash2 className="w-3 h-3" />
               </Button>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
 
@@ -466,7 +466,7 @@ export function TableConfigPanel({
             {/* Content */}
             <div className="flex-1 pl-4 overflow-y-auto">
               <AnimatePresence mode="wait">
-                <motion.div
+                <m.div
                   key={activeTab}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -476,7 +476,7 @@ export function TableConfigPanel({
                   {activeTab === 'columns' && renderColumnsTab()}
                   {activeTab === 'actions' && renderActionsTab()}
                   {activeTab === 'data' && renderDataTab()}
-                </motion.div>
+                </m.div>
               </AnimatePresence>
             </div>
           </div>

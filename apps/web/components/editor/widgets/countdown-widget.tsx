@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface CountdownWidgetProps {
@@ -68,7 +68,7 @@ export function CountdownWidget({
   const renderCards = () => (
     <div className="flex justify-center gap-4">
       {timeUnits.map((unit, index) => (
-        <motion.div
+        <m.div
           key={unit.label}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -82,7 +82,7 @@ export function CountdownWidget({
             {String(unit.value).padStart(2, '0')}
           </div>
           <span className="text-sm text-muted-foreground">{unit.label}</span>
-        </motion.div>
+        </m.div>
       ))}
     </div>
   )
@@ -107,7 +107,7 @@ export function CountdownWidget({
         const strokeDashoffset = circumference - (percentage / 100) * circumference
 
         return (
-          <motion.div
+          <m.div
             key={unit.label}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -141,7 +141,7 @@ export function CountdownWidget({
               <span className="text-2xl font-bold">{String(unit.value).padStart(2, '0')}</span>
               <span className="text-xs text-muted-foreground">{unit.label}</span>
             </div>
-          </motion.div>
+          </m.div>
         )
       })}
     </div>
@@ -154,23 +154,23 @@ export function CountdownWidget({
     >
       <div className="max-w-4xl mx-auto text-center">
         {title && (
-          <motion.h2
+          <m.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl md:text-4xl font-bold mb-4"
           >
             {title}
-          </motion.h2>
+          </m.h2>
         )}
         {subtitle && (
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-lg text-muted-foreground mb-8"
           >
             {subtitle}
-          </motion.p>
+          </m.p>
         )}
         
         {style === 'cards' && renderCards()}

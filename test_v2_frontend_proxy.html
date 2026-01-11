@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V2 Frontend Proxy Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success { background: #28a745; color: white; }
+        .status.error { background: #dc3545; color: white; }
+        .status.pending { background: #ffc107; color: black; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 V2 Frontend Proxy Test</h1>
+        <p>This test verifies that the frontend proxy correctly routes V2 API calls.</p>
+        
+        <div class="test-section info">
+            <h3>📋 Test Configuration</h3>
+            <p><strong>Frontend URL:</strong> <span id="frontend-url">http://localhost:3000</span></p>
+            <p><strong>Proxy Endpoint:</strong> <span id="proxy-url">/api/v2/*</span></p>
+            <p><strong>Backend API:</strong> <span id="backend-url">http://localhost:8000/api/v2/*</span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Quick Tests</h3>
+            <button onclick="testV2Health()">Test V2 Health</button>
+            <button onclick="testV2Templates()">Test V2 Templates</button>
+            <button onclick="testV1Health()">Test V1 Health (Comparison)</button>
+            <button onclick="runAllTests()">Run All Tests</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let testResults = [];
+
+        function addResult(testName, status, details, response = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            testResults.push({
+                testName,
+                status,
+                details,
+                response,
+                timestamp
+            });
+            updateResultsDisplay();
+        }
+
+        function updateResultsDisplay() {
+            const resultsDiv = document.getElementById('results');
+            
+            if (testResults.length === 0) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="test-section"><h3>📊 Test Results</h3>';
+            
+            testResults.forEach((result, index) => {
+                const statusClass = result.status === 'success' ? 'success' : 
+                                  result.status === 'error' ? 'error' : 'pending';
+                
+                html += `
+                    <div class="test-result" style="margin: 10px 0; padding: 10px; border-left: 4px solid ${
+                        result.status === 'success' ? '#28a745' : 
+                        result.status === 'error' ? '#dc3545' : '#ffc107'
+                    }; background: #f8f9fa;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>${result.testName}</strong>
+                            <span class="status ${statusClass}">${result.status.toUpperCase()}</span>
+                        </div>
+                        <div style="margin: 5px 0; font-size: 14px; color: #666;">
+                            ${result.timestamp} - ${result.details}
+                        </div>
+                        ${result.response ? `<pre style="margin: 10px 0; font-size: 12px;">${JSON.stringify(result.response, null, 2)}</pre>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        async function makeApiCall(url, options = {}) {
+            try {
+                console.log(`🔄 Making request to: ${url}`);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    ...options
+                });
+
+                const responseData = await response.text();
+                let parsedData;
+                
+                try {
+                    parsedData = JSON.parse(responseData);
+                } catch (e) {
+                    parsedData = responseData;
+                }
+
+                console.log(`📡 Response (${response.status}):`, parsedData);
+
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: parsedData,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+            } catch (error) {
+                console.error('🚨 Request failed:', error);
+                throw error;
+            }
+        }
+
+        async function testV2Health() {
+            addResult('V2 Health Check', 'pending', 'Testing V2 health endpoint...');
+            
+            try {
+                const response = await makeApiCall('/api/v2/health');
+                
+                if (response.ok) {
+                    addResult('V2 Health Check', 'success', 
+                        `V2 health endpoint accessible (${response.status})`, 
+                        response.data);
+                } else {
+                    addResult('V2 Health Check', 'error', 
+                        `V2 health endpoint returned ${response.status}: ${response.statusText}`, 
+                        response.data);
+                }
+            } catch (error) {
+                addResult('V2 Health Check', 'error', 
+                    `Failed to reach V2 health endpoint: ${error.message}`);
+            }
+        }
+
+        async function testV2Templates() {
+            addResult('V2 Templates', 'pending', 'Testing V2 templates endpoint...');
+            
+            try {
+                const response = await makeApiCall('/api/v2/templates');
+                
+                if (response.ok) {
+                    addResult('V2 Templates', 'success', 
+                        `V2 templates endpoint accessible (${response.status})`, 
+                        response.data);
+                } else if (response.status === 401 || response.status === 403) {
+                    addResult('V2 Templates', 'success', 
+                        `V2 templates endpoint accessible but requires auth (${response.status})`, 
+                        response.data);
+                } else {
+                    addResult('V2 Templates', 'error', 
+                        `V2 templates endpoint returned ${response.status}: ${response.statusText}`, 
+                        response.data);
+                }
+            } catch (error) {
+                addResult('V2 Templates', 'error', 
+                    `Failed to reach V2 templates endpoint: ${error.message}`);
+            }
+        }
+
+        async function testV1Health() {
+            addResult('V1 Health Check', 'pending', 'Testing V1 health endpoint for comparison...');
+            
+            try {
+                const response = await makeApiCall('/api/v1/health');
+                
+                if (response.ok) {
+                    addResult('V1 Health Check', 'success', 
+                        `V1 health endpoint accessible (${response.status})`, 
+                        response.data);
+                } else {
+                    addResult('V1 Health Check', 'error', 
+                        `V1 health endpoint returned ${response.status}: ${response.statusText}`, 
+                        response.data);
+                }
+            } catch (error) {
+                addResult('V1 Health Check', 'error', 
+                    `Failed to reach V1 health endpoint: ${error.message}`);
+            }
+        }
+
+        async function testDirectBackendConnection() {
+            addResult('Direct Backend', 'pending', 'Testing direct backend connection...');
+            
+            try {
+                // Try to reach backend directly (this might fail due to CORS)
+                const response = await makeApiCall('http://localhost:8000/api/v2/health');
+                
+                addResult('Direct Backend', 'success', 
+                    `Direct backend connection works (${response.status})`, 
+                    response.data);
+            } catch (error) {
+                addResult('Direct Backend', 'info', 
+                    `Direct backend connection failed (expected due to CORS): ${error.message}`);
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            
+            addResult('Test Suite', 'pending', 'Running comprehensive V2 proxy tests...');
+            
+            // Run tests sequentially with small delays
+            await testV1Health();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testV2Health();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testV2Templates();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testDirectBackendConnection();
+            
+            // Summary
+            const successCount = testResults.filter(r => r.status === 'success').length;
+            const errorCount = testResults.filter(r => r.status === 'error').length;
+            
+            addResult('Test Suite Complete', 
+                errorCount === 0 ? 'success' : 'info', 
+                `Completed: ${successCount} passed, ${errorCount} failed`);
+        }
+
+        function clearResults() {
+            testResults = [];
+            updateResultsDisplay();
+        }
+
+        // Auto-update URLs based on current location
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentOrigin = window.location.origin;
+            document.getElementById('frontend-url').textContent = currentOrigin;
+            document.getElementById('proxy-url').textContent = `${currentOrigin}/api/v2/*`;
+        });
+
+        // Show initial info
+        console.log('🧪 V2 Frontend Proxy Test loaded');
+        console.log('📍 Current origin:', window.location.origin);
+        console.log('🔧 Use the buttons above to test V2 API routing through the frontend proxy');
+    </script>
+</body>
+</html>

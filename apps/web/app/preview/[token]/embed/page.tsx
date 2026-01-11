@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { Loader2, Monitor, ExternalLink, Globe, Layers, Home, Zap } from 'lucide-react';
-import { m } from \'framer-motion\';
+import { m } from 'framer-motion';
 import { WidgetRenderer } from '@/components/editor/widget-renderer';
 import { PreviewLoading } from '@/components/preview/preview-loading';
 import { PreviewError } from '@/components/preview/preview-error';

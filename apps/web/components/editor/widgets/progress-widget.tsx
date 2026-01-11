@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -136,7 +136,7 @@ export function ProgressWidget({
         )}
       </div>
       <div className="h-2 bg-muted rounded-full overflow-hidden">
-        <motion.div
+        <m.div
           className="h-full rounded-full"
           style={{ backgroundColor: item.color || '#3b82f6' }}
           initial={{ width: 0 }}
@@ -164,7 +164,7 @@ export function ProgressWidget({
               strokeWidth="8"
               className="text-muted"
             />
-            <motion.circle
+            <m.circle
               cx="50%"
               cy="50%"
               r="45%"
@@ -204,7 +204,7 @@ export function ProgressWidget({
               strokeWidth="8"
               className="text-muted"
             />
-            <motion.path
+            <m.path
               d="M 5 50 A 45 45 0 0 1 95 50"
               fill="none"
               stroke={item.color || '#3b82f6'}

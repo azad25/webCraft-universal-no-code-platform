@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { ImageIcon, Upload, Edit, Link as LinkIcon, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -162,7 +162,7 @@ export function ImageWidget({
   const imageContent = (
     <figure className="relative w-full group">
       {localSrc ? (
-        <motion.div
+        <m.div
           className={cn(
             "relative overflow-hidden",
             SHADOW_CLASSES[shadow]
@@ -187,7 +187,7 @@ export function ImageWidget({
           
           {/* Edit Overlay */}
           {!isPreview && (isHovered || isSelected) && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2"
@@ -196,9 +196,9 @@ export function ImageWidget({
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
-            </motion.div>
+            </m.div>
           )}
-        </motion.div>
+        </m.div>
       ) : (
         <div
           className={cn(

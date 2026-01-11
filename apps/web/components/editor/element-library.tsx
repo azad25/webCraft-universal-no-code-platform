@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { 
   Search, Plus, Grid, Type, Image, MousePointer2, FormInput, 
   CreditCard, List, BarChart, Video, Map, Share2, ShoppingCart, 
@@ -444,7 +444,7 @@ function ElementCard({
   onAdd: () => void
 }) {
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -511,6 +511,6 @@ function ElementCard({
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   )
 }

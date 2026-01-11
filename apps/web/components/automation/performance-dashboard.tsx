@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -184,7 +184,7 @@ export function PerformanceDashboard({ appId }: PerformanceDashboardProps) {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -202,9 +202,9 @@ export function PerformanceDashboard({ appId }: PerformanceDashboardProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -223,9 +223,9 @@ export function PerformanceDashboard({ appId }: PerformanceDashboardProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -243,9 +243,9 @@ export function PerformanceDashboard({ appId }: PerformanceDashboardProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -262,7 +262,7 @@ export function PerformanceDashboard({ appId }: PerformanceDashboardProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

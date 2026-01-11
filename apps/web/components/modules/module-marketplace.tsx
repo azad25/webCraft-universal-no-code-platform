@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { Search, Package, Check, Loader2, Star, Download, ExternalLink } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -40,7 +40,7 @@ interface ModuleCardProps {
 
 function ModuleCard({ module, isEnabled, isInstalling, onEnable, onDisable }: ModuleCardProps) {
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -109,7 +109,7 @@ function ModuleCard({ module, isEnabled, isInstalling, onEnable, onDisable }: Mo
           )}
         </Button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
