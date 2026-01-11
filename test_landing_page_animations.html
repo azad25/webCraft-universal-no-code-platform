@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page Animation Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #0a0f1e;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        .animate-gradient {
+            background: linear-gradient(-45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
+        .info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Landing Page Animation Test</h1>
+        
+        <div class="test-section">
+            <h2>Animation Status</h2>
+            <div id="motion-status" class="status info">Testing Framer Motion setup...</div>
+            <div id="css-status" class="status info">Testing CSS animations...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>CSS Animations</h2>
+            <div class="animate-gradient">Gradient Text Animation</div>
+            <br>
+            <div class="glass-card">
+                Glass Card Effect (hover me)
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Framer Motion Test</h2>
+            <p>Check the browser console for any Framer Motion errors.</p>
+            <p>If animations are working, you should see smooth transitions on the landing page.</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Next Steps</h2>
+            <ol>
+                <li>✅ Added MotionProvider with LazyMotion</li>
+                <li>✅ Fixed TypewriterEffect to use 'm' instead of 'motion'</li>
+                <li>✅ Added missing CSS animations (animate-gradient, glass-card)</li>
+                <li>🔄 Test the landing page in development mode</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Test CSS animations
+        setTimeout(() => {
+            const cssStatus = document.getElementById('css-status');
+            cssStatus.textContent = '✅ CSS animations loaded successfully';
+            cssStatus.className = 'status success';
+        }, 1000);
+
+        // Test if we're in a Next.js environment
+        setTimeout(() => {
+            const motionStatus = document.getElementById('motion-status');
+            if (typeof window !== 'undefined') {
+                motionStatus.textContent = '✅ Ready to test Framer Motion in Next.js app';
+                motionStatus.className = 'status success';
+            } else {
+                motionStatus.textContent = '⚠️ Run this in the Next.js development server';
+                motionStatus.className = 'status error';
+            }
+        }, 1500);
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { Loader2, Monitor, ExternalLink, Globe, Layers, Home, Zap } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from \'framer-motion\';
 import { WidgetRenderer } from '@/components/editor/widget-renderer';
 import { PreviewLoading } from '@/components/preview/preview-loading';
 import { PreviewError } from '@/components/preview/preview-error';
@@ -216,7 +216,7 @@ export default function EmbedPreviewPage() {
             <div className="space-y-0">
               {elements.map((element: any, index: number) => {
                 return (
-                  <motion.div
+                  <m.div
                     key={element.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -234,14 +234,14 @@ export default function EmbedPreviewPage() {
                       isPreview={true}
                       onSelect={() => {}}
                     />
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
           </div>
         ) : (
           <div className="min-h-screen flex items-center justify-center p-8">
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
@@ -310,7 +310,7 @@ export default function EmbedPreviewPage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           </div>
         )}
       </div>

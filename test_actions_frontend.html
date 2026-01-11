@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actions & Events System Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.success { background-color: #10b981; }
+        .toast.error { background-color: #ef4444; }
+        .toast.warning { background-color: #f59e0b; }
+        .toast.info { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Actions & Events System Test</h1>
+                <p class="text-gray-600 mb-8">Test the enhanced actions and events functionality</p>
+                
+                <!-- Test Configuration -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+                    <h2 class="text-lg font-semibold text-blue-900 mb-2">Configuration</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-blue-700 mb-1">App ID</label>
+                            <input type="text" id="appId" class="w-full px-3 py-2 border border-blue-300 rounded-md text-sm" 
+                                   placeholder="Enter app ID">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-blue-700 mb-1">API Base URL</label>
+                            <input type="text" id="apiUrl" value="http://localhost:8000" 
+                                   class="w-full px-3 py-2 border border-blue-300 rounded-md text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Sections -->
+                <div class="space-y-8">
+                    <!-- Button Click Actions -->
+                    <section class="border border-gray-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Button Click Actions</h2>
+                        <p class="text-gray-600 mb-4">Test various button click actions</p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button id="message-button" 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
+                                    data-action-type="show_message">
+                                Show Message
+                            </button>
+                            
+                            <button id="navigation-button" 
+                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors"
+                                    data-action-type="navigate">
+                                Navigate
+                            </button>
+                            
+                            <button id="api-button" 
+                                    class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md transition-colors"
+                                    data-action-type="api_call">
+                                API Call
+                            </button>
+                            
+                            <button id="email-button" 
+                                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors"
+                                    data-action-type="send_email">
+                                Send Email
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 p-4 bg-gray-50 rounded-md">
+                            <h3 class="font-medium text-gray-900 mb-2">Button Click Results:</h3>
+                            <div id="button-results" class="text-sm text-gray-600 font-mono"></div>
+                        </div>
+                    </section>
+
+                    <!-- Form Submission Actions -->
+                    <section class="border border-gray-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Form Submission Actions</h2>
+                        <p class="text-gray-600 mb-4">Test form submission with data creation</p>
+                        
+                        <form id="contact-form" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                    <input type="text" name="name" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email" name="email" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                                <textarea name="message" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                            </div>
+                            <button type="submit" 
+                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-md transition-colors">
+                                Submit Contact Form
+                            </button>
+                        </form>
+                        
+                        <div class="mt-4 p-4 bg-gray-50 rounded-md">
+                            <h3 class="font-medium text-gray-900 mb-2">Form Submission Results:</h3>
+                            <div id="form-results" class="text-sm text-gray-600 font-mono"></div>
+                        </div>
+                    </section>
+
+                    <!-- Conditional Actions -->
+                    <section class="border border-gray-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Conditional Actions</h2>
+                        <p class="text-gray-600 mb-4">Test conditional logic based on input values</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email (try @gmail.com vs others)</label>
+                                <input type="email" id="conditional-email" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                       placeholder="test@gmail.com or test@yahoo.com">
+                            </div>
+                            <button id="conditional-button" 
+                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md transition-colors">
+                                Test Conditional Logic
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 p-4 bg-gray-50 rounded-md">
+                            <h3 class="font-medium text-gray-900 mb-2">Conditional Results:</h3>
+                            <div id="conditional-results" class="text-sm text-gray-600 font-mono"></div>
+                        </div>
+                    </section>
+
+                    <!-- Element Manipulation -->
+                    <section class="border border-gray-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Element Manipulation</h2>
+                        <p class="text-gray-600 mb-4">Test UI element updates and visibility toggles</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex gap-4">
+                                <button id="update-element-button" 
+                                        class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md transition-colors">
+                                    Update Element
+                                </button>
+                                <button id="toggle-visibility-button" 
+                                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors">
+                                    Toggle Visibility
+                                </button>
+                            </div>
+                            
+                            <div id="target-element" 
+                                 class="p-4 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-md">
+                                <h3 class="font-medium text-gray-900">Target Element</h3>
+                                <p class="text-gray-600">This element will be updated by actions</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Action Logs -->
+                    <section class="border border-gray-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Action Execution Logs</h2>
+                        <div class="bg-black text-green-400 p-4 rounded-md font-mono text-sm h-64 overflow-y-auto" id="action-logs">
+                            <div>🚀 Actions & Events System Ready</div>
+                            <div>📡 Waiting for actions...</div>
+                        </div>
+                        <button id="clear-logs" class="mt-2 text-sm text-gray-500 hover:text-gray-700">Clear Logs</button>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Action Service Implementation
+        class ActionService {
+            constructor(appId, apiUrl) {
+                this.appId = appId;
+                this.apiUrl = apiUrl;
+            }
+
+            async executeWidgetEvent(widgetId, eventType, eventData) {
+                try {
+                    this.log(`🎯 Executing ${eventType} event for widget: ${widgetId}`);
+                    
+                    const response = await fetch(
+                        `${this.apiUrl}/api/apps/${this.appId}/widgets/${widgetId}/events/${eventType}`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer admin-test-token'
+                            },
+                            body: JSON.stringify(eventData)
+                        }
+                    );
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        this.log(`✅ Event executed successfully`);
+                        this.log(`📊 Results: ${result.results?.length || 0} actions executed`);
+                        
+                        // Process results
+                        if (result.results) {
+                            for (const actionResult of result.results) {
+                                this.handleActionResult(actionResult);
+                            }
+                        }
+                        
+                        return result;
+                    } else {
+                        this.log(`❌ Event execution failed: ${result.error || 'Unknown error'}`);
+                        return { success: false, error: result.error };
+                    }
+                } catch (error) {
+                    this.log(`❌ Network error: ${error.message}`);
+                    return { success: false, error: error.message };
+                }
+            }
+
+            handleActionResult(result) {
+                if (!result.success) {
+                    this.log(`❌ Action failed: ${result.action} - ${result.error}`);
+                    return;
+                }
+
+                this.log(`✅ Action completed: ${result.action}`);
+
+                switch (result.action) {
+                    case 'show_message':
+                        this.showToast(result.message, result.type, result.duration);
+                        break;
+                    case 'navigate':
+                        this.log(`🔗 Navigation: ${result.url}`);
+                        if (result.open_in_new_tab) {
+                            window.open(result.url, '_blank');
+                        } else {
+                            window.location.href = result.url;
+                        }
+                        break;
+                    case 'update_element':
+                        this.updateElement(result.target_element, result.updates);
+                        break;
+                    case 'toggle_visibility':
+                        this.toggleVisibility(result.target_element, result.visible);
+                        break;
+                    case 'api_call':
+                        this.log(`🌐 API Call: ${result.method} ${result.url} - Status: ${result.status_code}`);
+                        break;
+                    case 'create_record':
+                        this.log(`💾 Record created: ${result.record_id}`);
+                        break;
+                    case 'send_email':
+                        this.log(`📧 Email sent to: ${result.to}`);
+                        break;
+                }
+            }
+
+            showToast(message, type = 'info', duration = 5000) {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type} show`;
+                toast.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" style="margin-left: 12px; background: none; border: none; color: white; cursor: pointer;">×</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, duration);
+            }
+
+            updateElement(elementId, updates) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    Object.entries(updates).forEach(([key, value]) => {
+                        if (key === 'text' || key === 'innerHTML') {
+                            element.innerHTML = value;
+                        } else if (key === 'style') {
+                            Object.assign(element.style, value);
+                        } else if (key === 'class') {
+                            element.className = value;
+                        } else {
+                            element.setAttribute(key, value);
+                        }
+                    });
+                    this.log(`🎨 Updated element: ${elementId}`);
+                }
+            }
+
+            toggleVisibility(elementId, visible) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    if (visible !== undefined) {
+                        element.style.display = visible ? '' : 'none';
+                    } else {
+                        element.style.display = element.style.display === 'none' ? '' : 'none';
+                    }
+                    this.log(`👁️ Toggled visibility: ${elementId} - ${element.style.display === 'none' ? 'hidden' : 'visible'}`);
+                }
+            }
+
+            log(message) {
+                const logs = document.getElementById('action-logs');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                logs.appendChild(logEntry);
+                logs.scrollTop = logs.scrollHeight;
+            }
+        }
+
+        // Initialize
+        let actionService;
+
+        function initializeActionService() {
+            const appId = document.getElementById('appId').value;
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            if (!appId) {
+                alert('Please enter an App ID');
+                return false;
+            }
+            
+            actionService = new ActionService(appId, apiUrl);
+            actionService.log(`🚀 Action Service initialized for app: ${appId}`);
+            return true;
+        }
+
+        // Button click handlers
+        document.getElementById('message-button').addEventListener('click', async () => {
+            if (!initializeActionService()) return;
+            
+            await actionService.executeWidgetEvent('message-button', 'click', {
+                buttonText: 'Show Message',
+                timestamp: Date.now()
+            });
+        });
+
+        document.getElementById('navigation-button').addEventListener('click', async () => {
+            if (!initializeActionService()) return;
+            
+            await actionService.executeWidgetEvent('navigation-button', 'click', {
+                buttonText: 'Navigate',
+                timestamp: Date.now()
+            });
+        });
+
+        document.getElementById('api-button').addEventListener('click', async () => {
+            if (!initializeActionService()) return;
+            
+            await actionService.executeWidgetEvent('api-button', 'click', {
+                buttonText: 'API Call',
+                timestamp: Date.now()
+            });
+        });
+
+        document.getElementById('email-button').addEventListener('click', async () => {
+            if (!initializeActionService()) return;
+            
+            await actionService.executeWidgetEvent('email-button', 'click', {
+                buttonText: 'Send Email',
+                recipient: 'test@example.com',
+                timestamp: Date.now()
+            });
+        });
+
+        // Form submission handler
+        document.getElementById('contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!initializeActionService()) return;
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            await actionService.executeWidgetEvent('contact-form', 'submit', data);
+        });
+
+        // Conditional logic handler
+        document.getElementById('conditional-button').addEventListener('click', async () => {
+            if (!initializeActionService()) return;
+            
+            const email = document.getElementById('conditional-email').value;
+            
+            await actionService.executeWidgetEvent('conditional-button', 'click', {
+                email: email,
+                timestamp: Date.now()
+            });
+        });
+
+        // Element manipulation handlers
+        document.getElementById('update-element-button').addEventListener('click', async () => {
+            if (!initializeActionService()) return;
+            
+            await actionService.executeWidgetEvent('update-element-button', 'click', {
+                targetElement: 'target-element',
+                updates: {
+                    innerHTML: '<h3 class="font-medium text-green-600">Element Updated!</h3><p class="text-green-500">This content was updated by an action</p>',
+                    style: { backgroundColor: '#dcfce7', borderColor: '#16a34a' }
+                }
+            });
+        });
+
+        document.getElementById('toggle-visibility-button').addEventListener('click', async () => {
+            if (!initializeActionService()) return;
+            
+            await actionService.executeWidgetEvent('toggle-visibility-button', 'click', {
+                targetElement: 'target-element'
+            });
+        });
+
+        // Clear logs
+        document.getElementById('clear-logs').addEventListener('click', () => {
+            document.getElementById('action-logs').innerHTML = '<div>🚀 Actions & Events System Ready</div><div>📡 Waiting for actions...</div>';
+        });
+
+        // Auto-focus app ID input
+        document.getElementById('appId').focus();
+    </script>
+</body>
+</html>

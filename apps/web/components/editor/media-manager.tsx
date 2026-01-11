@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from \'framer-motion\'
 import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
@@ -93,7 +93,6 @@ export function MediaManager({
   const [selectedFolder, setSelectedFolder] = useState<string>('all')
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [media, setMedia] = useState<MediaItem[]>([])
   const [folders, setFolders] = useState<MediaFolder[]>([])
   const [loading, setLoading] = useState(false)
@@ -133,11 +132,10 @@ export function MediaManager({
     }
   }
 
-  // Handle file upload
-  const handleFileUpload = useCallback(async (files: FileList) => {
+  const handleFileSelect = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return
     setIsUploading(true)
-    setUploadProgress(0)
-
+    
     try {
       const fileArray = Array.from(files)
       
@@ -149,7 +147,7 @@ export function MediaManager({
           return
         }
       }
-
+      
       if (fileArray.length === 1) {
         // Single file upload
         const result = await mediaApi.uploadFile(
@@ -160,6 +158,10 @@ export function MediaManager({
         
         if (result.success && result.media) {
           setMedia(prev => [result.media!, ...prev])
+          console.log('File uploaded successfully:', result.media)
+        } else {
+          console.error('Upload failed:', result.error)
+          alert(`Upload failed: ${result.error}`)
         }
       } else {
         // Batch upload
@@ -173,15 +175,25 @@ export function MediaManager({
           .filter(r => r.success && r.media)
           .map(r => r.media!)
         
-        setMedia(prev => [...successfulUploads, ...prev])
+        const failedUploads = results.filter(r => !r.success)
+        
+        if (successfulUploads.length > 0) {
+          setMedia(prev => [...successfulUploads, ...prev])
+          console.log(`${successfulUploads.length} files uploaded successfully`)
+        }
+        
+        if (failedUploads.length > 0) {
+          console.error('Some uploads failed:', failedUploads)
+          alert(`${failedUploads.length} files failed to upload`)
+        }
       }
       
       setActiveTab('library')
     } catch (error) {
       console.error('Upload failed:', error)
+      alert(`Upload failed: ${error}`)
     } finally {
       setIsUploading(false)
-      setUploadProgress(0)
     }
   }, [appId, selectedFolder, maxSize])
 
@@ -237,7 +249,7 @@ export function MediaManager({
     const Icon = getFileIcon(item.type)
 
     return (
-      <motion.div
+      <m.div
         key={item.id}
         layout
         initial={{ opacity: 0, scale: 0.9 }}
@@ -297,7 +309,7 @@ export function MediaManager({
             </span>
           </div>
         </div>
-      </motion.div>
+      </m.div>
     )
   }
 
@@ -393,7 +405,25 @@ export function MediaManager({
           {/* Upload Tab */}
           <TabsContent value="upload" className="flex-1">
             <div className="flex flex-col items-center justify-center h-full space-y-4">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center w-full max-w-md">
+              <div 
+                className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center w-full max-w-md transition-colors hover:border-primary hover:bg-primary/5"
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const files = e.dataTransfer.files
+                  if (files && files.length > 0) {
+                    handleFileSelect(files)
+                  }
+                }}
+              >
                 <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">Upload Media</h3>
                 <p className="text-muted-foreground mb-4">
@@ -403,7 +433,7 @@ export function MediaManager({
                   type="file"
                   multiple
                   accept={selectedType === 'image' ? 'image/*' : selectedType === 'video' ? 'video/*' : '*/*'}
-                  onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                  onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
                   className="hidden"
                   id="file-upload"
                 />
@@ -416,15 +446,12 @@ export function MediaManager({
 
               {isUploading && (
                 <div className="w-full max-w-md">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm">Uploading...</span>
-                    <span className="text-sm">{uploadProgress}%</span>
+                  <div className="flex items-center justify-center mb-2">
+                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                    <span className="text-sm">Uploading files...</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
+                    <div className="bg-primary h-2 rounded-full animate-pulse w-full" />
                   </div>
                 </div>
               )}

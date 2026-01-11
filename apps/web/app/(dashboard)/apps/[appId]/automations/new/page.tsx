@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from \'framer-motion\'
 import { ArrowLeft, Save, Play, Zap, Clock, FileText, ShoppingCart, Users, Webhook, MousePointer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

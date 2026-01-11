@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from \'framer-motion\'
 import {
   BarChart3, Users, Eye, Clock, TrendingUp, TrendingDown, Globe,
   Monitor, Smartphone, Tablet, Chrome, ArrowUpRight, ArrowDownRight,
@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {metrics.map((metric, i) => (
-          <motion.div
+          <m.div
             key={metric.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -237,7 +237,7 @@ export default function AnalyticsPage() {
                 <p className="text-xs text-muted-foreground">{metric.title}</p>
               </CardContent>
             </Card>
-          </motion.div>
+          </m.div>
         ))}
       </div>
 

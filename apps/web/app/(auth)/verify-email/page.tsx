@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from \'framer-motion\'
 import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -56,7 +56,7 @@ export default function VerifyEmailPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
@@ -99,7 +99,7 @@ export default function VerifyEmailPage() {
             )}
           </div>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   )
 }

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Layer - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">Backend Development</li>
+                <li><a href="fastapi-setup.html"><i class="fab fa-python"></i> FastAPI Setup</a></li>
+                <li><a href="database-models.html"><i class="fas fa-database"></i> Database Models</a></li>
+                <li><a href="api-routers.html"><i class="fas fa-route"></i> API Routers</a></li>
+                <li><a href="services.html" class="active"><i class="fas fa-cogs"></i> Services Layer</a></li>
+                <li><a href="authentication.html"><i class="fas fa-lock"></i> Authentication</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <header>
+                <h1>Services Layer</h1>
+                <p>Business logic implementation patterns in WebCraft</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Service Architecture</h2>
+                    <p>WebCraft uses a service layer pattern to separate business logic from API routes. Services handle all data manipulation, validation, and external integrations.</p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Key Principles:</strong>
+                        <ul>
+                            <li>Services contain all business logic</li>
+                            <li>Routers only handle HTTP concerns</li>
+                            <li>Services are testable in isolation</li>
+                            <li>Services can call other services</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Base Service Pattern</h2>
+                    <pre><code class="language-python">"""Base service class"""
+from typing import TypeVar, Generic, Optional, List, Dict, Any
+from sqlalchemy.orm import Session
+from sqlalchemy import select, update, delete
+from datetime import datetime
+import uuid
+
+T = TypeVar('T')
+
+
+class BaseService(Generic[T]):
+    """Base service with common CRUD operations"""
+    
+    def __init__(self, db: Session, model: type):
+        self.db = db
+        self.model = model
+    
+    async def create(self, data: Dict[str, Any]) -> T:
+        """Create a new record"""
+        instance = self.model(**data)
+        self.db.add(instance)
+        self.db.commit()
+        self.db.refresh(instance)
+        return instance
+    
+    async def get_by_id(self, id: str) -> Optional[T]:
+        """Get a record by ID"""
+        return self.db.query(self.model).filter(
+            self.model.id == id
+        ).first()
+    
+    async def get_all(
+        self, 
+        filters: Dict[str, Any] = None,
+        skip: int = 0, 
+        limit: int = 100
+    ) -> List[T]:
+        """Get all records with optional filtering"""
+        query = self.db.query(self.model)
+        
+        if filters:
+            for key, value in filters.items():
+                if hasattr(self.model, key) and value is not None:
+                    query = query.filter(
+                        getattr(self.model, key) == value
+                    )
+        
+        return query.offset(skip).limit(limit).all()
+    
+    async def update(
+        self, 
+        id: str, 
+        data: Dict[str, Any]
+    ) -> Optional[T]:
+        """Update a record"""
+        instance = await self.get_by_id(id)
+        if not instance:
+            return None
+        
+        for key, value in data.items():
+            if value is not None and hasattr(instance, key):
+                setattr(instance, key, value)
+        
+        instance.updated_at = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(instance)
+        return instance
+    
+    async def delete(self, id: str) -> bool:
+        """Delete a record"""
+        instance = await self.get_by_id(id)
+        if not instance:
+            return False
+        
+        self.db.delete(instance)
+        self.db.commit()
+        return True
+    
+    async def count(self, filters: Dict[str, Any] = None) -> int:
+        """Count records"""
+        query = self.db.query(self.model)
+        
+        if filters:
+            for key, value in filters.items():
+                if hasattr(self.model, key) and value is not None:
+                    query = query.filter(
+                        getattr(self.model, key) == value
+                    )
+        
+        return query.count()</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Domain Service Example</h2>
+                    <pre><code class="language-python">"""Apps domain service"""
+from typing import Optional, Dict, Any, List
+from sqlalchemy.orm import Session
+from datetime import datetime
+import uuid
+import re
+
+from src.domains.apps.models import App
+from src.domains.pages.models import Page
+from src.common.exceptions import AppException
+
+
+class AppsService:
+    """Service for app management"""
+    
+    def __init__(self, db: Session):
+        self.db = db
+    
+    async def create_app(
+        self,
+        owner_id: str,
+        name: str,
+        app_type: str = "website",
+        description: str = None,
+        template_id: str = None
+    ) -> App:
+        """Create a new app with default configuration"""
+        
+        # Generate unique slug
+        slug = self._generate_slug(name)
+        
+        # Check slug uniqueness
+        existing = self.db.query(App).filter(App.slug == slug).first()
+        if existing:
+            slug = f"{slug}-{uuid.uuid4().hex[:6]}"
+        
+        # Create app
+        app = App(
+            id=uuid.uuid4(),
+            owner_id=owner_id,
+            name=name,
+            slug=slug,
+            app_type=app_type,
+            description=description,
+            config=self._get_default_config(app_type),
+            theme_config=self._get_default_theme(),
+            seo_config=self._get_default_seo(name, description),
+            is_published=False,
+            is_active=True
+        )
+        
+        self.db.add(app)
+        self.db.commit()
+        self.db.refresh(app)
+        
+        # Create default homepage
+        await self._create_default_page(app)
+        
+        # Apply template if provided
+        if template_id:
+            await self._apply_template(app, template_id)
+        
+        return app
+    
+    async def get_app(
+        self, 
+        app_id: str, 
+        owner_id: str
+    ) -> Optional[App]:
+        """Get app by ID with ownership check"""
+        return self.db.query(App).filter(
+            App.id == app_id,
+            App.owner_id == owner_id,
+            App.is_active == True
+        ).first()
+    
+    async def list_apps(
+        self,
+        owner_id: str,
+        app_type: str = None,
+        search: str = None,
+        skip: int = 0,
+        limit: int = 20
+    ) -> Dict[str, Any]:
+        """List apps with filtering"""
+        query = self.db.query(App).filter(
+            App.owner_id == owner_id,
+            App.is_active == True
+        )
+        
+        if app_type:
+            query = query.filter(App.app_type == app_type)
+        
+        if search:
+            query = query.filter(
+                App.name.ilike(f"%{search}%")
+            )
+        
+        total = query.count()
+        apps = query.order_by(App.created_at.desc())\
+                    .offset(skip).limit(limit).all()
+        
+        return {
+            "apps": apps,
+            "total": total,
+            "skip": skip,
+            "limit": limit
+        }
+    
+    async def update_app(
+        self,
+        app_id: str,
+        owner_id: str,
+        updates: Dict[str, Any]
+    ) -> Optional[App]:
+        """Update app settings"""
+        app = await self.get_app(app_id, owner_id)
+        if not app:
+            return None
+        
+        # Update allowed fields
+        allowed_fields = [
+            'name', 'description', 'config', 
+            'theme_config', 'seo_config'
+        ]
+        
+        for field in allowed_fields:
+            if field in updates and updates[field] is not None:
+                setattr(app, field, updates[field])
+        
+        app.updated_at = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(app)
+        
+        return app
+    
+    async def publish_app(
+        self, 
+        app_id: str, 
+        owner_id: str
+    ) -> Dict[str, Any]:
+        """Publish an app"""
+        app = await self.get_app(app_id, owner_id)
+        if not app:
+            raise AppException(404, "APP_NOT_FOUND", "App not found")
+        
+        # Validate app has content
+        pages = self.db.query(Page).filter(
+            Page.app_id == app_id,
+            Page.is_active == True
+        ).count()
+        
+        if pages == 0:
+            raise AppException(
+                400, 
+                "NO_PAGES", 
+                "App must have at least one page"
+            )
+        
+        app.is_published = True
+        app.published_at = datetime.utcnow()
+        self.db.commit()
+        
+        # Generate public URL
+        public_url = f"https://{app.slug}.webcraft.app"
+        
+        return {
+            "published": True,
+            "url": public_url,
+            "published_at": app.published_at.isoformat()
+        }
+    
+    async def duplicate_app(
+        self,
+        app_id: str,
+        owner_id: str,
+        new_name: str
+    ) -> App:
+        """Duplicate an existing app"""
+        original = await self.get_app(app_id, owner_id)
+        if not original:
+            raise AppException(404, "APP_NOT_FOUND", "App not found")
+        
+        # Create new app with same config
+        new_app = await self.create_app(
+            owner_id=owner_id,
+            name=new_name,
+            app_type=original.app_type,
+            description=original.description
+        )
+        
+        # Copy configuration
+        new_app.config = original.config.copy()
+        new_app.theme_config = original.theme_config.copy()
+        new_app.seo_config = original.seo_config.copy()
+        
+        # Copy pages
+        pages = self.db.query(Page).filter(
+            Page.app_id == app_id,
+            Page.is_active == True
+        ).all()
+        
+        for page in pages:
+            new_page = Page(
+                id=uuid.uuid4(),
+                app_id=new_app.id,
+                title=page.title,
+                slug=page.slug,
+                content=page.content.copy() if page.content else {},
+                is_homepage=page.is_homepage,
+                is_published=False
+            )
+            self.db.add(new_page)
+        
+        self.db.commit()
+        self.db.refresh(new_app)
+        
+        return new_app
+    
+    async def delete_app(
+        self, 
+        app_id: str, 
+        owner_id: str
+    ) -> bool:
+        """Soft delete an app"""
+        app = await self.get_app(app_id, owner_id)
+        if not app:
+            return False
+        
+        app.is_active = False
+        app.deleted_at = datetime.utcnow()
+        self.db.commit()
+        
+        return True
+    
+    def _generate_slug(self, name: str) -> str:
+        """Generate URL-friendly slug"""
+        slug = name.lower()
+        slug = re.sub(r'[^a-z0-9\s-]', '', slug)
+        slug = re.sub(r'[\s_]+', '-', slug)
+        slug = re.sub(r'-+', '-', slug)
+        return slug.strip('-')
+    
+    def _get_default_config(self, app_type: str) -> Dict[str, Any]:
+        """Get default config based on app type"""
+        configs = {
+            "website": {
+                "features": ["pages", "media", "seo"],
+                "analytics": True
+            },
+            "ecommerce": {
+                "features": ["pages", "media", "seo", "products", "cart"],
+                "currency": "USD",
+                "analytics": True
+            },
+            "crm": {
+                "features": ["contacts", "deals", "activities"],
+                "analytics": True
+            }
+        }
+        return configs.get(app_type, configs["website"])
+    
+    def _get_default_theme(self) -> Dict[str, Any]:
+        """Get default theme configuration"""
+        return {
+            "primaryColor": "#2563eb",
+            "secondaryColor": "#64748b",
+            "fontFamily": "Inter, sans-serif",
+            "borderRadius": "8px"
+        }
+    
+    def _get_default_seo(
+        self, 
+        name: str, 
+        description: str
+    ) -> Dict[str, Any]:
+        """Get default SEO configuration"""
+        return {
+            "title": name,
+            "description": description or f"Welcome to {name}",
+            "keywords": [],
+            "ogImage": None
+        }
+    
+    async def _create_default_page(self, app: App) -> Page:
+        """Create default homepage for app"""
+        page = Page(
+            id=uuid.uuid4(),
+            app_id=app.id,
+            title="Home",
+            slug="home",
+            is_homepage=True,
+            is_published=False,
+            content={
+                "elements": [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "hero",
+                        "props": {
+                            "title": f"Welcome to {app.name}",
+                            "subtitle": "Start building your app",
+                            "primaryButtonText": "Get Started"
+                        }
+                    }
+                ]
+            }
+        )
+        self.db.add(page)
+        self.db.commit()
+        return page
+    
+    async def _apply_template(
+        self, 
+        app: App, 
+        template_id: str
+    ) -> None:
+        """Apply template to app"""
+        # Template application logic
+        pass</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Service Composition</h2>
+                    <p>Services can call other services for complex operations:</p>
+                    
+                    <pre><code class="language-python">"""Export service with composition"""
+from typing import Dict, Any
+from sqlalchemy.orm import Session
+
+from src.domains.apps.service import AppsService
+from src.domains.pages.service import PagesService
+from src.domains.media.service import MediaService
+
+
+class ExportService:
+    """Service for exporting apps"""
+    
+    def __init__(self, db: Session):
+        self.db = db
+        self.apps_service = AppsService(db)
+        self.pages_service = PagesService(db)
+        self.media_service = MediaService(db)
+    
+    async def export_static(
+        self,
+        app_id: str,
+        owner_id: str,
+        options: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Export app as static files"""
+        
+        # Get app data
+        app = await self.apps_service.get_app(app_id, owner_id)
+        if not app:
+            raise AppException(404, "APP_NOT_FOUND", "App not found")
+        
+        # Get all pages
+        pages = await self.pages_service.list_pages(app_id)
+        
+        # Get all media
+        media = await self.media_service.list_media(app_id)
+        
+        # Generate static files
+        files = []
+        
+        for page in pages["pages"]:
+            html = await self._render_page(page, app)
+            files.append({
+                "path": f"{page['slug']}.html",
+                "content": html
+            })
+        
+        # Generate CSS
+        css = self._generate_css(app.theme_config)
+        files.append({"path": "styles.css", "content": css})
+        
+        # Copy media files
+        for item in media["items"]:
+            files.append({
+                "path": f"assets/{item['filename']}",
+                "url": item["url"]
+            })
+        
+        return {
+            "files": files,
+            "total_files": len(files)
+        }
+    
+    async def _render_page(
+        self, 
+        page: Dict, 
+        app
+    ) -> str:
+        """Render page to HTML"""
+        # HTML generation logic
+        return f"<!DOCTYPE html>..."
+    
+    def _generate_css(self, theme: Dict) -> str:
+        """Generate CSS from theme config"""
+        return f"""
+:root {{
+    --primary-color: {theme.get('primaryColor', '#2563eb')};
+    --secondary-color: {theme.get('secondaryColor', '#64748b')};
+    --font-family: {theme.get('fontFamily', 'Inter, sans-serif')};
+    --border-radius: {theme.get('borderRadius', '8px')};
+}}
+"""</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>External Service Integration</h2>
+                    <pre><code class="language-python">"""AI service with external API integration"""
+import httpx
+from typing import Dict, Any, Optional
+import os
+
+
+class AIService:
+    """Service for AI-powered features"""
+    
+    def __init__(self):
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.base_url = "https://api.openai.com/v1"
+    
+    async def generate_content(
+        self,
+        prompt: str,
+        content_type: str = "text",
+        max_tokens: int = 500
+    ) -> Dict[str, Any]:
+        """Generate content using AI"""
+        
+        if not self.api_key:
+            return {"error": "AI service not configured"}
+        
+        system_prompts = {
+            "hero": "Generate engaging hero section content...",
+            "description": "Write a compelling description...",
+            "seo": "Generate SEO-optimized content..."
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "gpt-4",
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": system_prompts.get(
+                                content_type, 
+                                "You are a helpful assistant."
+                            )
+                        },
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": max_tokens
+                },
+                timeout=30.0
+            )
+            
+            if response.status_code != 200:
+                return {"error": "AI generation failed"}
+            
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+            
+            return {
+                "content": content,
+                "tokens_used": data["usage"]["total_tokens"]
+            }
+    
+    async def analyze_design(
+        self, 
+        elements: list
+    ) -> Dict[str, Any]:
+        """Analyze design and provide suggestions"""
+        
+        suggestions = []
+        
+        # Check for common issues
+        if not any(e["type"] == "hero" for e in elements):
+            suggestions.append({
+                "type": "missing_element",
+                "message": "Consider adding a hero section",
+                "priority": "high"
+            })
+        
+        # Check accessibility
+        for element in elements:
+            if element["type"] == "image":
+                if not element.get("props", {}).get("alt"):
+                    suggestions.append({
+                        "type": "accessibility",
+                        "message": f"Add alt text to image",
+                        "element_id": element["id"],
+                        "priority": "medium"
+                    })
+        
+        return {
+            "suggestions": suggestions,
+            "score": 100 - (len(suggestions) * 10)
+        }</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Caching with Redis</h2>
+                    <pre><code class="language-python">"""Service with Redis caching"""
+import json
+from typing import Optional, Dict, Any
+from src.core.redis import redis_client
+
+
+class CachedService:
+    """Service with caching support"""
+    
+    def __init__(self, db):
+        self.db = db
+        self.cache_ttl = 3600  # 1 hour
+    
+    async def get_with_cache(
+        self,
+        key: str,
+        fetch_func,
+        ttl: int = None
+    ) -> Any:
+        """Get data with caching"""
+        
+        # Try cache first
+        cached = await redis_client.get(key)
+        if cached:
+            return json.loads(cached)
+        
+        # Fetch from source
+        data = await fetch_func()
+        
+        # Store in cache
+        await redis_client.setex(
+            key,
+            ttl or self.cache_ttl,
+            json.dumps(data, default=str)
+        )
+        
+        return data
+    
+    async def invalidate_cache(self, pattern: str) -> int:
+        """Invalidate cache by pattern"""
+        keys = await redis_client.keys(pattern)
+        if keys:
+            return await redis_client.delete(*keys)
+        return 0
+    
+    async def get_app_stats(self, app_id: str) -> Dict[str, Any]:
+        """Get app statistics with caching"""
+        cache_key = f"app_stats:{app_id}"
+        
+        return await self.get_with_cache(
+            cache_key,
+            lambda: self._calculate_stats(app_id),
+            ttl=300  # 5 minutes
+        )
+    
+    async def _calculate_stats(self, app_id: str) -> Dict[str, Any]:
+        """Calculate statistics (expensive operation)"""
+        # Complex database queries
+        return {
+            "page_views": 1000,
+            "unique_visitors": 500,
+            "avg_session_duration": 120
+        }</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Testing Services</h2>
+                    <pre><code class="language-python">"""Service tests"""
+import pytest
+from unittest.mock import Mock, AsyncMock
+from src.domains.apps.service import AppsService
+
+
+@pytest.fixture
+def mock_db():
+    """Create mock database session"""
+    db = Mock()
+    db.query.return_value.filter.return_value.first.return_value = None
+    db.add = Mock()
+    db.commit = Mock()
+    db.refresh = Mock()
+    return db
+
+
+@pytest.fixture
+def apps_service(mock_db):
+    """Create apps service with mock db"""
+    return AppsService(mock_db)
+
+
+class TestAppsService:
+    
+    @pytest.mark.asyncio
+    async def test_create_app(self, apps_service, mock_db):
+        """Test app creation"""
+        result = await apps_service.create_app(
+            owner_id="user-123",
+            name="Test App",
+            app_type="website"
+        )
+        
+        assert mock_db.add.called
+        assert mock_db.commit.called
+    
+    @pytest.mark.asyncio
+    async def test_generate_slug(self, apps_service):
+        """Test slug generation"""
+        assert apps_service._generate_slug("My App") == "my-app"
+        assert apps_service._generate_slug("Test  App!") == "test-app"
+        assert apps_service._generate_slug("  Spaces  ") == "spaces"
+    
+    @pytest.mark.asyncio
+    async def test_publish_app_no_pages(self, apps_service, mock_db):
+        """Test publishing app without pages fails"""
+        mock_db.query.return_value.filter.return_value.count.return_value = 0
+        
+        with pytest.raises(AppException) as exc:
+            await apps_service.publish_app("app-123", "user-123")
+        
+        assert exc.value.error_code == "NO_PAGES"</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Best Practices</h2>
+                    <ul>
+                        <li><strong>Single Responsibility:</strong> Each service handles one domain</li>
+                        <li><strong>Dependency Injection:</strong> Pass dependencies through constructor</li>
+                        <li><strong>Error Handling:</strong> Use custom exceptions with clear messages</li>
+                        <li><strong>Validation:</strong> Validate input at service level</li>
+                        <li><strong>Transactions:</strong> Use database transactions for multi-step operations</li>
+                        <li><strong>Caching:</strong> Cache expensive operations with appropriate TTL</li>
+                        <li><strong>Logging:</strong> Log important operations and errors</li>
+                        <li><strong>Testing:</strong> Write unit tests for all service methods</li>
+                    </ul>
+                </section>
+            </div>
+            
+            <footer>
+                <p>&copy; 2024 WebCraft Developer Documentation</p>
+            </footer>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

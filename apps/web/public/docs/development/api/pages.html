@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pages API - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">API Reference</li>
+                <li><a href="apps.html"><i class="fas fa-th-large"></i> Apps API</a></li>
+                <li><a href="widgets.html"><i class="fas fa-cube"></i> Widgets API</a></li>
+                <li><a href="pages.html" class="active"><i class="fas fa-file"></i> Pages API</a></li>
+                <li><a href="media.html"><i class="fas fa-image"></i> Media API</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Pages API</h1>
+                <p>Complete API reference for page management</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>The Pages API provides endpoints for creating, managing, and publishing pages within applications. Pages contain the visual content and structure of your application.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Base URL</h2>
+                    <pre><code class="language-bash">http://localhost:8000/api/v1/apps/{app_id}/pages</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>List Pages</h2>
+                    <p>Get all pages for an application.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">GET /api/v1/apps/{app_id}/pages
+Authorization: Bearer {token}
+
+Query Parameters:
+- is_published: bool (optional) - Filter by published status</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "pages": [
+    {
+      "id": "uuid",
+      "title": "Home Page",
+      "slug": "home",
+      "is_homepage": true,
+      "is_published": true,
+      "updated_at": "2024-01-01T00:00:00"
+    }
+  ],
+  "total": 5
+}</code></pre>
+
+                    <h3>Example</h3>
+                    <pre><code class="language-bash">curl -X GET "http://localhost:8000/api/v1/apps/{app_id}/pages" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Get Page</h2>
+                    <p>Get detailed information about a specific page.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">GET /api/v1/apps/{app_id}/pages/{page_id}
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "app_id": "uuid",
+  "title": "Home Page",
+  "slug": "home",
+  "content": {
+    "elements": [
+      {
+        "id": "element-1",
+        "type": "heading",
+        "position": {"x": 0, "y": 0},
+        "size": {"width": 800, "height": 100},
+        "props": {
+          "text": "Welcome to WebCraft",
+          "level": 1
+        },
+        "style": {
+          "fontSize": "48px",
+          "fontWeight": "bold",
+          "color": "#000000"
+        }
+      }
+    ],
+    "settings": {
+      "backgroundColor": "#ffffff",
+      "maxWidth": "1200px"
+    }
+  },
+  "is_homepage": true,
+  "is_published": true,
+  "meta_title": "Home Page - WebCraft",
+  "meta_description": "Welcome to our website",
+  "meta_keywords": "webcraft, no-code, builder",
+  "og_image": "https://example.com/og-image.jpg",
+  "created_at": "2024-01-01T00:00:00",
+  "updated_at": "2024-01-01T00:00:00"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Create Page</h2>
+                    <p>Create a new page in an application.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">POST /api/v1/apps/{app_id}/pages
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "title": "About Us",
+  "slug": "about",
+  "content": {
+    "elements": [],
+    "settings": {}
+  },
+  "is_homepage": false,
+  "is_published": false,
+  "meta_title": "About Us",
+  "meta_description": "Learn more about us",
+  "meta_keywords": "about, company"
+}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "app_id": "uuid",
+  "title": "About Us",
+  "slug": "about",
+  "content": {...},
+  "is_homepage": false,
+  "is_published": false,
+  "created_at": "2024-01-01T00:00:00",
+  "updated_at": "2024-01-01T00:00:00"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Update Page</h2>
+                    <p>Update an existing page. Only provided fields will be updated.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">PUT /api/v1/apps/{app_id}/pages/{page_id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "title": "Updated Page Title",
+  "content": {
+    "elements": [...],
+    "settings": {...}
+  },
+  "is_published": true
+}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "title": "Updated Page Title",
+  "updated_at": "2024-01-01T00:00:00",
+  ...
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Delete Page</h2>
+                    <p>Delete a page from an application.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">DELETE /api/v1/apps/{app_id}/pages/{page_id}
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "message": "Page deleted successfully"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Set Homepage</h2>
+                    <p>Set a page as the homepage for an application.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">POST /api/v1/apps/{app_id}/pages/{page_id}/set-homepage
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "message": "Homepage updated successfully",
+  "page": {
+    "id": "uuid",
+    "is_homepage": true
+  }
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Page Content Structure</h2>
+                    <p>Pages contain a content object with elements and settings:</p>
+                    
+                    <pre><code class="language-json">{
+  "content": {
+    "elements": [
+      {
+        "id": "unique-element-id",
+        "type": "widget-type",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "size": {
+          "width": 800,
+          "height": 100
+        },
+        "props": {
+          // Widget-specific properties
+        },
+        "style": {
+          // CSS styles
+        },
+        "children": [] // Nested elements
+      }
+    ],
+    "settings": {
+      "backgroundColor": "#ffffff",
+      "maxWidth": "1200px",
+      "padding": "20px"
+    }
+  }
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Element Structure</h2>
+                    <p>Each element in a page follows this structure:</p>
+                    
+                    <pre><code class="language-typescript">interface Element {
+  id: string
+  type: string  // Widget type (e.g., 'text', 'image', 'button')
+  position: {
+    x: number
+    y: number
+  }
+  size: {
+    width: number
+    height: number
+  }
+  props: Record<string, any>  // Widget-specific props
+  style: Record<string, any>  // CSS styles
+  children?: Element[]  // Nested elements
+  locked?: boolean
+  visible?: boolean
+  zIndex?: number
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>TypeScript Client Example</h2>
+                    <pre><code class="language-typescript">import { apiClient } from '@/lib/api-client'
+
+// List pages
+const getPages = async (appId: string, isPublished?: boolean) => {
+  const response = await apiClient.get(`/api/apps/${appId}/pages`, {
+    params: { is_published: isPublished }
+  })
+  return response.data
+}
+
+// Get page
+const getPage = async (appId: string, pageId: string) => {
+  const response = await apiClient.get(`/api/apps/${appId}/pages/${pageId}`)
+  return response.data
+}
+
+// Create page
+const createPage = async (appId: string, pageData: {
+  title: string
+  slug: string
+  content?: any
+  is_homepage?: boolean
+  is_published?: boolean
+}) => {
+  const response = await apiClient.post(`/api/apps/${appId}/pages`, pageData)
+  return response.data
+}
+
+// Update page
+const updatePage = async (
+  appId: string,
+  pageId: string,
+  updates: Partial<Page>
+) => {
+  const response = await apiClient.put(
+    `/api/apps/${appId}/pages/${pageId}`,
+    updates
+  )
+  return response.data
+}
+
+// Delete page
+const deletePage = async (appId: string, pageId: string) => {
+  const response = await apiClient.delete(
+    `/api/apps/${appId}/pages/${pageId}`
+  )
+  return response.data
+}
+
+// Set homepage
+const setHomepage = async (appId: string, pageId: string) => {
+  const response = await apiClient.post(
+    `/api/apps/${appId}/pages/${pageId}/set-homepage`
+  )
+  return response.data
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Error Responses</h2>
+                    <p>All endpoints may return these error responses:</p>
+                    
+                    <h3>401 Unauthorized</h3>
+                    <pre><code class="language-json">{
+  "detail": "Could not validate credentials"
+}</code></pre>
+
+                    <h3>404 Not Found</h3>
+                    <pre><code class="language-json">{
+  "detail": "Page not found"
+}</code></pre>
+
+                    <h3>400 Bad Request</h3>
+                    <pre><code class="language-json">{
+  "detail": "Validation error message"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="apps.html">Apps API</a> - App management endpoints</li>
+                        <li><a href="widgets.html">Widgets API</a> - Widget management</li>
+                        <li><a href="../frontend/editor-system.html">Editor System</a> - Visual editor implementation</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

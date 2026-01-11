@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Setup - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">Getting Started</li>
+                <li><a href="quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="environment-setup.html" class="active"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Environment Setup</h1>
+                <p>Configure your development environment for WebCraft</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>This guide will help you configure your development environment for WebCraft. We'll cover environment variables, database configuration, and service setup.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Environment Variables</h2>
+                    <p>WebCraft uses environment variables for configuration. Create a <code>.env</code> file in the project root.</p>
+                    
+                    <h3>Backend Environment Variables</h3>
+                    <pre><code class="language-bash"># Application
+APP_NAME=WebCraft API
+APP_VERSION=2.0.0
+DEBUG=true
+ENVIRONMENT=development
+
+# Server
+HOST=0.0.0.0
+PORT=8000
+WORKERS=4
+
+# Database - PostgreSQL
+DATABASE_URL=postgresql://webcraft:password@localhost:5434/webcraft_db
+DATABASE_POOL_SIZE=20
+DATABASE_MAX_OVERFLOW=10
+
+# Redis
+REDIS_URL=redis://localhost:6381
+REDIS_PASSWORD=
+REDIS_DB=0
+REDIS_CACHE_TTL=3600
+
+# Kafka
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_CONSUMER_GROUP=webcraft-api
+
+# JWT Authentication
+JWT_SECRET_KEY=your-secret-key-change-this-in-production
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# OAuth Providers (Optional)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# AI Services (Optional)
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+GOOGLE_AI_API_KEY=
+
+# Email Service (Optional)
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+FROM_EMAIL=noreply@webcraft.dev
+
+# AWS S3 Storage (Optional)
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=webcraft-assets
+
+# Rate Limiting
+RATE_LIMIT_REQUESTS_PER_MINUTE=100
+RATE_LIMIT_BURST=20
+
+# CORS
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001</code></pre>
+
+                    <h3>Frontend Environment Variables</h3>
+                    <pre><code class="language-bash"># API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_WS_URL=ws://localhost:8000
+
+# Feature Flags
+NEXT_PUBLIC_ENABLE_AI=true
+NEXT_PUBLIC_ENABLE_ANALYTICS=true
+
+# Optional: Analytics
+NEXT_PUBLIC_GA_ID=
+NEXT_PUBLIC_SENTRY_DSN=</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Database Configuration</h2>
+                    
+                    <h3>PostgreSQL Setup</h3>
+                    <p>WebCraft requires PostgreSQL 15+. Configure your database connection:</p>
+                    
+                    <h4>Connection String Format</h4>
+                    <pre><code class="language-bash">postgresql://[user]:[password]@[host]:[port]/[database]</code></pre>
+                    
+                    <h4>Example Configurations</h4>
+                    <pre><code class="language-bash"># Local Development
+DATABASE_URL=postgresql://webcraft:password@localhost:5434/webcraft_db
+
+# Docker
+DATABASE_URL=postgresql://webcraft:password@postgres:5432/webcraft_db
+
+# Production (with SSL)
+DATABASE_URL=postgresql://user:pass@db.example.com:5432/webcraft_db?sslmode=require</code></pre>
+
+                    <h3>Database Pool Settings</h3>
+                    <pre><code class="language-bash">DATABASE_POOL_SIZE=20          # Number of connections in pool
+DATABASE_MAX_OVERFLOW=10       # Additional connections allowed
+DATABASE_POOL_TIMEOUT=30       # Timeout in seconds
+DATABASE_POOL_RECYCLE=1800     # Recycle connections after 30 minutes</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Redis Configuration</h2>
+                    <p>Redis is used for caching, sessions, and real-time features.</p>
+                    
+                    <h3>Connection String</h3>
+                    <pre><code class="language-bash"># Local Development
+REDIS_URL=redis://localhost:6381
+
+# Docker
+REDIS_URL=redis://redis:6379
+
+# With Password
+REDIS_URL=redis://:password@localhost:6381
+
+# With Database Selection
+REDIS_URL=redis://localhost:6381/0</code></pre>
+
+                    <h3>Cache Configuration</h3>
+                    <pre><code class="language-bash">REDIS_CACHE_TTL=3600  # Cache TTL in seconds (1 hour default)
+REDIS_DB=0            # Database number (0-15)</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Kafka Configuration</h2>
+                    <p>Kafka is used for event streaming and real-time collaboration.</p>
+                    
+                    <h3>Basic Setup</h3>
+                    <pre><code class="language-bash">KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_CONSUMER_GROUP=webcraft-api</code></pre>
+
+                    <h3>Multiple Brokers</h3>
+                    <pre><code class="language-bash">KAFKA_BOOTSTRAP_SERVERS=broker1:9092,broker2:9092,broker3:9092</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Authentication Setup</h2>
+                    
+                    <h3>JWT Configuration</h3>
+                    <p>Generate secure secret keys for JWT tokens:</p>
+                    <pre><code class="language-bash"># Generate secret key (Python)
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Generate secret key (OpenSSL)
+openssl rand -base64 32</code></pre>
+
+                    <h3>OAuth Providers</h3>
+                    <p>Configure OAuth for social login:</p>
+                    
+                    <h4>Google OAuth</h4>
+                    <ol>
+                        <li>Go to <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a></li>
+                        <li>Create a new project or select existing</li>
+                        <li>Enable Google+ API</li>
+                        <li>Create OAuth 2.0 credentials</li>
+                        <li>Add authorized redirect URIs: <code>http://localhost:8000/api/v1/auth/google/callback</code></li>
+                    </ol>
+
+                    <h4>GitHub OAuth</h4>
+                    <ol>
+                        <li>Go to <a href="https://github.com/settings/developers" target="_blank">GitHub Developer Settings</a></li>
+                        <li>Create a new OAuth App</li>
+                        <li>Set Authorization callback URL: <code>http://localhost:8000/api/v1/auth/github/callback</code></li>
+                        <li>Copy Client ID and Client Secret</li>
+                    </ol>
+                </section>
+
+                <section class="doc-section">
+                    <h2>AI Services Configuration</h2>
+                    <p>Configure AI providers for content generation and design assistance.</p>
+                    
+                    <h3>OpenAI</h3>
+                    <pre><code class="language-bash">OPENAI_API_KEY=sk-...
+OPENAI_ORG_ID=org-...  # Optional</code></pre>
+                    <p>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></p>
+
+                    <h3>Anthropic Claude</h3>
+                    <pre><code class="language-bash">ANTHROPIC_API_KEY=sk-ant-...</code></pre>
+                    <p>Get your API key from <a href="https://console.anthropic.com" target="_blank">Anthropic Console</a></p>
+
+                    <h3>Google AI (Gemini)</h3>
+                    <pre><code class="language-bash">GOOGLE_AI_API_KEY=...</code></pre>
+                    <p>Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Storage Configuration</h2>
+                    
+                    <h3>AWS S3</h3>
+                    <pre><code class="language-bash">AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=webcraft-assets
+AWS_CLOUDFRONT_DOMAIN=cdn.example.com  # Optional</code></pre>
+
+                    <h3>Local Storage</h3>
+                    <p>If not using S3, files will be stored locally in <code>apps/api/storage/</code></p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Email Configuration</h2>
+                    <p>Configure email service for notifications and password resets.</p>
+                    
+                    <h3>SendGrid</h3>
+                    <pre><code class="language-bash">SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=apikey
+SMTP_PASSWORD=SG.xxx  # Your SendGrid API key
+FROM_EMAIL=noreply@webcraft.dev
+FROM_NAME=WebCraft</code></pre>
+
+                    <h3>Gmail SMTP</h3>
+                    <pre><code class="language-bash">SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password  # Use App Password, not regular password</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Development vs Production</h2>
+                    
+                    <h3>Development Settings</h3>
+                    <pre><code class="language-bash">DEBUG=true
+ENVIRONMENT=development
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001</code></pre>
+
+                    <h3>Production Settings</h3>
+                    <pre><code class="language-bash">DEBUG=false
+ENVIRONMENT=production
+CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+
+# Use strong secrets
+JWT_SECRET_KEY=very-long-random-string-here
+SECRET_KEY=another-very-long-random-string-here
+
+# Enable SSL for database
+DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Verification</h2>
+                    <p>Verify your environment configuration:</p>
+                    
+                    <h3>Check Environment Variables</h3>
+                    <pre><code class="language-bash"># Backend
+cd apps/api
+python -c "from core.config import settings; print(settings.DATABASE_URL)"
+
+# Frontend
+cd apps/web
+node -e "console.log(process.env.NEXT_PUBLIC_API_URL)"</code></pre>
+
+                    <h3>Test Database Connection</h3>
+                    <pre><code class="language-bash"># Using psql
+psql $DATABASE_URL -c "SELECT version();"
+
+# Using Python
+python -c "from core.database import engine; print(engine.connect())"</code></pre>
+
+                    <h3>Test Redis Connection</h3>
+                    <pre><code class="language-bash">redis-cli -u $REDIS_URL ping
+# Should return: PONG</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="project-structure.html">Project Structure</a> - Understand the codebase organization</li>
+                        <li><a href="../backend/fastapi-setup.html">FastAPI Setup</a> - Backend development guide</li>
+                        <li><a href="../frontend/nextjs-setup.html">Next.js Setup</a> - Frontend development guide</li>
+                        <li><a href="../tutorials/first-app.html">Build Your First App</a> - Start building</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

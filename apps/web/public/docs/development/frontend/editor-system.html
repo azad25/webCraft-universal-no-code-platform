@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor System - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="nextjs-setup.html"><i class="fab fa-react"></i> Next.js Setup</a></li>
+                <li><a href="component-architecture.html"><i class="fas fa-puzzle-piece"></i> Component Architecture</a></li>
+                <li><a href="state-management.html"><i class="fas fa-brain"></i> State Management</a></li>
+                <li><a href="editor-system.html" class="active"><i class="fas fa-edit"></i> Editor System</a></li>
+                <li><a href="widget-development.html"><i class="fas fa-cube"></i> Widget Development</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Editor System</h1>
+                <p>Understanding the visual editor architecture and implementation</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>The WebCraft visual editor is a Figma-like drag-and-drop interface built with React, React DnD, and Framer Motion. It provides real-time editing, multi-device preview, and a comprehensive widget library.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Editor Architecture</h2>
+                    <p>The editor consists of several key components:</p>
+                    
+                    <ul>
+                        <li><strong>LiveEditor</strong> - Main editor container</li>
+                        <li><strong>EditorCanvas</strong> - Canvas where elements are rendered</li>
+                        <li><strong>EditorSidebar</strong> - Widget library and page management</li>
+                        <li><strong>PropertiesPanel</strong> - Element property editor</li>
+                        <li><strong>WidgetRenderer</strong> - Renders widget components</li>
+                        <li><strong>ResizeHandles</strong> - Element resize functionality</li>
+                        <li><strong>InlineEditor</strong> - Inline text editing</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Editor Context</h2>
+                    <p>The editor uses React Context for state management:</p>
+                    
+                    <pre><code class="language-typescript">interface EditorContextValue {
+  // State
+  elements: Element[]
+  selectedElement: Element | null
+  currentPageId: string | null
+  pages: Page[]
+  
+  // Actions
+  addElement: (element: Omit<Element, 'id'>) => void
+  updateElement: (id: string, updates: Partial<Element>) => void
+  deleteElement: (id: string) => void
+  selectElement: (element: Element | null) => void
+  
+  // History
+  undo: () => void
+  redo: () => void
+  
+  // Save
+  savePage: () => Promise<void>
+}
+
+export function EditorProvider({ children, appId }: EditorProviderProps) {
+  // Editor state and logic
+  return (
+    <EditorContext.Provider value={value}>
+      {children}
+    </EditorContext.Provider>
+  )
+}
+
+export function useEditor() {
+  return useContext(EditorContext)
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Element Structure</h2>
+                    <p>Elements are the building blocks of the editor:</p>
+                    
+                    <pre><code class="language-typescript">interface Element {
+  id: string
+  type: string  // 'text', 'image', 'button', etc.
+  name?: string
+  position: { x: number; y: number }
+  size: { width: number; height: number }
+  props: Record<string, any>  // Widget-specific props
+  style: Record<string, any>  // CSS styles
+  children?: Element[]  // Nested elements
+  locked?: boolean
+  visible?: boolean
+  zIndex?: number
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Drag and Drop</h2>
+                    <p>The editor uses React DnD for drag-and-drop functionality:</p>
+                    
+                    <pre><code class="language-typescript">import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { useDrag, useDrop } from 'react-dnd'
+
+function LiveEditor({ appId }: { appId: string }) {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <EditorCanvas />
+      <EditorSidebar />
+    </DndProvider>
+  )
+}
+
+// Draggable widget from sidebar
+function WidgetItem({ widget }: { widget: Widget }) {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'widget',
+    item: { widget },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging()
+    })
+  })
+  
+  return (
+    <div ref={drag} className={isDragging ? 'dragging' : ''}>
+      {widget.name}
+    </div>
+  )
+}
+
+// Drop zone on canvas
+function EditorCanvas() {
+  const { addElement } = useEditor()
+  
+  const [{ isOver }, drop] = useDrop({
+    accept: 'widget',
+    drop: (item: { widget: Widget }, monitor) => {
+      const offset = monitor.getClientOffset()
+      const canvasPosition = getCanvasPosition(offset)
+      
+      addElement({
+        type: item.widget.type,
+        position: canvasPosition,
+        size: { width: 200, height: 100 },
+        props: item.widget.defaultProps,
+        style: {}
+      })
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver()
+    })
+  })
+  
+  return (
+    <div ref={drop} className={isOver ? 'drop-active' : ''}>
+      {/* Render elements */}
+    </div>
+  )
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Widget Rendering</h2>
+                    <p>Widgets are rendered dynamically based on their type:</p>
+                    
+                    <pre><code class="language-typescript">import { WidgetRegistry } from '@/lib/widget-registry'
+
+function WidgetRenderer({ element }: { element: Element }) {
+  const { selectedElement, selectElement, updateElement } = useEditor()
+  const isSelected = selectedElement?.id === element.id
+  
+  // Get widget component from registry
+  const WidgetComponent = WidgetRegistry.getComponent(element.type)
+  
+  if (!WidgetComponent) {
+    return <div>Unknown widget: {element.type}</div>
+  }
+  
+  return (
+    <div
+      data-element-id={element.id}
+      className={isSelected ? 'selected' : ''}
+      onClick={() => selectElement(element)}
+      style={{
+        position: 'absolute',
+        left: element.position.x,
+        top: element.position.y,
+        width: element.size.width,
+        height: element.size.height,
+        ...element.style
+      }}
+    >
+      <WidgetComponent
+        {...element.props}
+        isSelected={isSelected}
+        onUpdate={(updates) => updateElement(element.id, updates)}
+      />
+    </div>
+  )
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Element Selection and Editing</h2>
+                    <p>Elements can be selected and edited:</p>
+                    
+                    <pre><code class="language-typescript">function EditorCanvas() {
+  const { elements, selectedElement, selectElement, updateElement } = useEditor()
+  
+  const handleElementClick = (element: Element) => {
+    selectElement(element)
+  }
+  
+  const handleElementUpdate = (id: string, updates: Partial<Element>) => {
+    updateElement(id, updates)
+  }
+  
+  return (
+    <div className="canvas">
+      {elements.map(element => (
+        <div key={element.id}>
+          <WidgetRenderer
+            element={element}
+            isSelected={selectedElement?.id === element.id}
+            onSelect={() => handleElementClick(element)}
+            onUpdate={(updates) => handleElementUpdate(element.id, updates)}
+          />
+          {selectedElement?.id === element.id && (
+            <ResizeHandles
+              element={element}
+              onResize={(size) => handleElementUpdate(element.id, { size })}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Properties Panel</h2>
+                    <p>The properties panel allows editing element properties:</p>
+                    
+                    <pre><code class="language-typescript">function PropertiesPanel() {
+  const { selectedElement, updateElement } = useEditor()
+  
+  if (!selectedElement) {
+    return <div>No element selected</div>
+  }
+  
+  const handlePropChange = (key: string, value: any) => {
+    updateElement(selectedElement.id, {
+      props: {
+        ...selectedElement.props,
+        [key]: value
+      }
+    })
+  }
+  
+  const handleStyleChange = (key: string, value: any) => {
+    updateElement(selectedElement.id, {
+      style: {
+        ...selectedElement.style,
+        [key]: value
+      }
+    })
+  }
+  
+  return (
+    <div className="properties-panel">
+      <h3>Properties</h3>
+      
+      {/* Widget-specific properties */}
+      {selectedElement.type === 'text' && (
+        <input
+          value={selectedElement.props.text || ''}
+          onChange={(e) => handlePropChange('text', e.target.value)}
+        />
+      )}
+      
+      {/* Style properties */}
+      <input
+        type="color"
+        value={selectedElement.style.backgroundColor || '#ffffff'}
+        onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+      />
+      
+      <input
+        type="number"
+        value={selectedElement.size.width}
+        onChange={(e) => updateElement(selectedElement.id, {
+          size: { ...selectedElement.size, width: parseInt(e.target.value) }
+        })}
+      />
+    </div>
+  )
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Saving Changes</h2>
+                    <p>The editor automatically saves changes to the backend:</p>
+                    
+                    <pre><code class="language-typescript">async function savePage() {
+  const { currentPageId, elements, appId } = useEditor()
+  
+  try {
+    setIsSaving(true)
+    
+    await apiClient.put(`/api/apps/${appId}/pages/${currentPageId}`, {
+      content: {
+        elements: elements
+      }
+    })
+    
+    setIsDirty(false)
+    console.log('✅ Page saved')
+  } catch (error) {
+    console.error('❌ Failed to save:', error)
+  } finally {
+    setIsSaving(false)
+  }
+}
+
+// Auto-save on changes
+useEffect(() => {
+  if (isDirty) {
+    const timer = setTimeout(() => {
+      savePage()
+    }, 2000) // Save after 2 seconds of inactivity
+    
+    return () => clearTimeout(timer)
+  }
+}, [isDirty])</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Undo/Redo System</h2>
+                    <p>The editor maintains a history for undo/redo:</p>
+                    
+                    <pre><code class="language-typescript">interface HistoryEntry {
+  elements: Element[]
+  timestamp: number
+}
+
+function saveToHistory(elements: Element[]) {
+  const entry: HistoryEntry = {
+    elements: JSON.parse(JSON.stringify(elements)),
+    timestamp: Date.now()
+  }
+  
+  // Remove future history if we're not at the end
+  const newHistory = history.slice(0, historyIndex + 1)
+  newHistory.push(entry)
+  
+  // Limit history length
+  if (newHistory.length > maxHistoryLength) {
+    newHistory.shift()
+  }
+  
+  setHistory(newHistory)
+  setHistoryIndex(newHistory.length - 1)
+}
+
+function undo() {
+  if (historyIndex > 0) {
+    setHistoryIndex(historyIndex - 1)
+    setElements(history[historyIndex - 1].elements)
+  }
+}
+
+function redo() {
+  if (historyIndex < history.length - 1) {
+    setHistoryIndex(historyIndex + 1)
+    setElements(history[historyIndex + 1].elements)
+  }
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Multi-Device Preview</h2>
+                    <p>The editor supports previewing on different device sizes:</p>
+                    
+                    <pre><code class="language-typescript">type PreviewMode = 'desktop' | 'tablet' | 'mobile'
+
+function EditorToolbar() {
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('desktop')
+  
+  const previewSizes = {
+    desktop: { width: '100%', maxWidth: '1920px' },
+    tablet: { width: '768px' },
+    mobile: { width: '375px' }
+  }
+  
+  return (
+    <div className="toolbar">
+      <button onClick={() => setPreviewMode('desktop')}>Desktop</button>
+      <button onClick={() => setPreviewMode('tablet')}>Tablet</button>
+      <button onClick={() => setPreviewMode('mobile')}>Mobile</button>
+      
+      <div
+        className="canvas-container"
+        style={previewSizes[previewMode]}
+      >
+        <EditorCanvas />
+      </div>
+    </div>
+  )
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="widget-development.html">Widget Development</a> - Create custom widgets</li>
+                        <li><a href="drag-drop.html">Drag & Drop</a> - Advanced drag-and-drop patterns</li>
+                        <li><a href="../tutorials/custom-widget.html">Create Custom Widget Tutorial</a> - Step-by-step guide</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

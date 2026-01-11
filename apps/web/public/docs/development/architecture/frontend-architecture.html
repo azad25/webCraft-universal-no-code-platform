@@ -1588,6 +1588,517 @@ function WidgetLibrary({ widgets }: { widgets: Widget[] }) {
                     </div>
                 </section>
 
+                <section class="testing-strategies">
+                    <h2>Testing Strategies</h2>
+                    
+                    <div class="testing-patterns">
+                        <div class="pattern-section">
+                            <h3>Unit Testing with Jest and React Testing Library</h3>
+                            <p>Comprehensive unit testing for components and hooks with proper mocking strategies.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// __tests__/components/ui/Button.test.tsx
+import React from 'react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { Button } from '@/components/ui/Button'
+
+describe('Button Component', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByRole('button')).toHaveTextContent('Click me')
+  })
+
+  it('handles click events', async () => {
+    const user = userEvent.setup()
+    const handleClick = jest.fn()
+    
+    render(<Button onClick={handleClick}>Click me</Button>)
+    
+    await user.click(screen.getByRole('button'))
+    expect(handleClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('disables button when loading', () => {
+    render(<Button loading>Submit</Button>)
+    expect(screen.getByRole('button')).toBeDisabled()
+  })
+
+  it('applies correct variant styles', () => {
+    const { rerender } = render(<Button variant="primary">Test</Button>)
+    expect(screen.getByRole('button')).toHaveClass('btn-primary')
+    
+    rerender(<Button variant="secondary">Test</Button>)
+    expect(screen.getByRole('button')).toHaveClass('btn-secondary')
+  })
+})
+
+// __tests__/hooks/useAuth.test.ts
+import { renderHook, act } from '@testing-library/react-hooks'
+import { Provider } from 'react-redux'
+import { store } from '@/store'
+import { useAuth } from '@/hooks/useAuth'
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <Provider store={store}>{children}</Provider>
+)
+
+describe('useAuth Hook', () => {
+  it('returns initial auth state', () => {
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    
+    expect(result.current.isAuthenticated).toBe(false)
+    expect(result.current.user).toBeNull()
+    expect(result.current.isLoading).toBe(false)
+  })
+
+  it('handles login correctly', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    
+    await act(async () => {
+      await result.current.login('test@example.com', 'password')
+    })
+    
+    expect(result.current.isAuthenticated).toBe(true)
+  })
+})</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="pattern-section">
+                            <h3>Integration Testing</h3>
+                            <p>End-to-end testing for critical user flows with proper test data management.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-typescript">// __tests__/integration/editor-flow.test.tsx
+import React from 'react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+import { EditorFlow } from '@/components/editor/EditorFlow'
+
+const server = setupServer(
+  rest.get('/api/apps/:id', (req, res, ctx) => {
+    return res(ctx.json({
+      id: 'test-app',
+      name: 'Test Application',
+      widgets: []
+    }))
+  }),
+  rest.put('/api/apps/:id/widgets', (req, res, ctx) => {
+    return res(ctx.json({ success: true }))
+  })
+)
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+describe('Editor Flow Integration', () => {
+  it('allows user to create and save a page', async () => {
+    const user = userEvent.setup()
+    
+    render(<EditorFlow appId="test-app" />)
+    
+    // Wait for app to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Application')).toBeInTheDocument()
+    })
+    
+    // Add a text widget
+    await user.click(screen.getByRole('button', { name: /add text widget/i }))
+    
+    // Configure widget
+    await user.type(screen.getByLabelText('Text Content'), 'Hello World')
+    await user.type(screen.getByLabelText('Font Size'), '24')
+    
+    // Save changes
+    await user.click(screen.getByRole('button', { name: /save/i }))
+    
+    // Verify success message
+    await waitFor(() => {
+      expect(screen.getByText('Changes saved successfully')).toBeInTheDocument()
+    })
+  })
+  
+  it('handles errors gracefully', async () => {
+    server.use(
+      rest.put('/api/apps/:id/widgets', (req, res, ctx) => {
+        return res(ctx.status(500), ctx.json({ error: 'Save failed' }))
+      })
+    )
+    
+    const user = userEvent.setup()
+    render(<EditorFlow appId="test-app" />)
+    
+    await user.click(screen.getByRole('button', { name: /save/i }))
+    
+    await waitFor(() => {
+      expect(screen.getByText('Failed to save changes')).toBeInTheDocument()
+    })
+  })
+})</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="pattern-section">
+                            <h3>End-to-End Testing with Cypress</h3>
+                            <p>Comprehensive E2E tests covering critical user journeys.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-javascript">// cypress/e2e/page-builder.cy.js
+describe('Page Builder E2E', () => {
+  beforeEach(() => {
+    cy.login('test@example.com', 'password')
+    cy.visit('/dashboard')
+  })
+
+  it('creates a new page from scratch', () => {
+    // Create new app
+    cy.get('[data-testid="new-app-button"]').click()
+    cy.get('[data-testid="app-name-input"]').type('My Landing Page')
+    cy.get('[data-testid="create-app-button"]').click()
+    
+    // Navigate to editor
+    cy.get('[data-testid="open-editor-button"]').click()
+    
+    // Add components
+    cy.get('[data-testid="widget-text"]').dragTo('[data-testid="canvas"]')
+    cy.get('[data-testid="property-panel"]').within(() => {
+      cy.get('[data-testid="text-content"]').clear().type('Welcome to my page')
+      cy.get('[data-testid="font-size"]').clear().type('32')
+    })
+    
+    // Add image
+    cy.get('[data-testid="widget-image"]').dragTo('[data-testid="canvas"]')
+    cy.get('[data-testid="image-url"]').type('https://example.com/image.jpg')
+    
+    // Save and preview
+    cy.get('[data-testid="save-button"]').click()
+    cy.get('[data-testid="preview-button"]').click()
+    
+    // Verify preview
+    cy.get('[data-testid="preview-frame"]').within(() => {
+      cy.contains('Welcome to my page').should('be.visible')
+      cy.get('img').should('have.attr', 'src', 'https://example.com/image.jpg')
+    })
+  })
+
+  it('edits existing page', () => {
+    cy.get('[data-testid="app-card"]').first().click()
+    cy.get('[data-testid="open-editor-button"]').click()
+    
+    // Modify existing text
+    cy.get('[data-testid="canvas"]').within(() => {
+      cy.get('[data-testid="text-widget"]').first().click()
+    })
+    
+    cy.get('[data-testid="property-panel"]').within(() => {
+      cy.get('[data-testid="text-content"]').clear().type('Updated content')
+    })
+    
+    cy.get('[data-testid="save-button"]').click()
+    cy.get('[data-testid="success-message"]').should('contain', 'Changes saved')
+  })
+})</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="build-optimization">
+                    <h2>Build Optimization & Deployment</h2>
+                    
+                    <div class="optimization-strategies">
+                        <div class="strategy-section">
+                            <h3>Next.js Configuration</h3>
+                            <p>Optimized Next.js configuration for production builds.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-javascript">// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Enable React 18 features
+  reactStrictMode: true,
+  
+  // Optimize images
+  images: {
+    domains: ['localhost', 'webcraft-api.com'],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  
+  // Enable SWC minification
+  swcMinify: true,
+  
+  // Optimize production builds
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
+  // Experimental features
+  experimental: {
+    // Enable app directory
+    appDir: true,
+    
+    // Optimize server components
+    serverComponentsExternalPackages: ['prisma', '@prisma/client'],
+    
+    // Enable typed routes
+    typedRoutes: true,
+  },
+  
+  // Webpack configuration
+  webpack: (config, { dev, isServer }) => {
+    // Optimize bundle size
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          editor: {
+            test: /[\\/]components[\\/]editor[\\/]/,
+            name: 'editor',
+            chunks: 'all',
+            priority: 10,
+          },
+          widgets: {
+            test: /[\\/]components[\\/]widgets[\\/]/,
+            name: 'widgets',
+            chunks: 'all',
+            priority: 5,
+          },
+        },
+      }
+    }
+    
+    return config
+  },
+  
+  // Environment variables
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  
+  // Headers for security and performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
+          },
+        ],
+      },
+    ]
+  },
+}
+
+module.exports = nextConfig</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-section">
+                            <h3>Docker Configuration</h3>
+                            <p>Multi-stage Docker build for optimized production images.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-dockerfile"># Dockerfile
+# Stage 1: Dependencies
+FROM node:18-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
+  else echo "Warning: Lockfile not found. It is recommended to commit lockfiles to version control." && yarn install; \
+  fi
+
+# Stage 2: Builder
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Environment variables must be present at build time
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Build the application
+RUN yarn build
+
+# Stage 3: Runner
+FROM node:18-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start the application
+CMD ["node", "server.js"]</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-section">
+                            <h3>CI/CD Pipeline</h3>
+                            <p>GitHub Actions workflow for automated testing and deployment.</p>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-yaml"># .github/workflows/frontend-deploy.yml
+name: Frontend Deploy
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: webcraft/frontend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run linting
+        run: yarn lint
+      
+      - name: Run type checking
+        run: yarn type-check
+      
+      - name: Run unit tests
+        run: yarn test --coverage
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Build application
+        run: yarn build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.API_URL }}
+          NEXT_PUBLIC_ENVIRONMENT: production
+      
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment"
+          # Add your deployment commands here
+          # kubectl apply -f k8s/frontend-deployment.yaml
+          # helm upgrade --install webcraft-frontend ./helm/frontend
+      
+      - name: Run E2E tests
+        run: |
+          echo "Running end-to-end tests"
+          # yarn cypress:run
+      
+      - name: Deploy to production
+        if: success()
+        run: |
+          echo "Deploying to production environment"
+          # Add production deployment commands</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="next-steps">
                     <h2>Next Steps</h2>
                     <p>Now that you understand the frontend architecture, explore these detailed guides:</p>

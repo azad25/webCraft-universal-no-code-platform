@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface TypewriterEffectProps {
@@ -65,7 +65,7 @@ export function TypewriterEffect({
   return (
     <span className={cn('inline-block', className)}>
       {currentText}
-      <motion.span
+      <m.span
         className={cn(
           'inline-block w-0.5 h-6 ml-1',
           cursorClassName || 'bg-primary',

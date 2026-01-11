@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start Guide - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">Getting Started</li>
+                <li><a href="quick-start.html" class="active"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Quick Start Guide</h1>
+                <p>Get WebCraft up and running in minutes</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Prerequisites</h2>
+                    <p>Before you begin, ensure you have the following installed:</p>
+                    <ul>
+                        <li><strong>Docker & Docker Compose</strong> (Recommended) - Version 20.10+</li>
+                        <li><strong>Node.js</strong> 18+ (for local frontend development)</li>
+                        <li><strong>Python</strong> 3.11+ (for local backend development)</li>
+                        <li><strong>PostgreSQL</strong> 15+ (if running locally without Docker)</li>
+                        <li><strong>Redis</strong> 7+ (if running locally without Docker)</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Option 1: Automated Setup Script (Recommended)</h2>
+                    <p>WebCraft includes an automated setup script that handles everything for you. This is the fastest way to get started.</p>
+                    
+                    <h3>Using the Setup Script</h3>
+                    <pre><code class="language-bash"># Make the script executable
+chmod +x setup.sh
+
+# Run the setup script
+./setup.sh</code></pre>
+
+                    <p>The script will:</p>
+                    <ul>
+                        <li>Check system requirements (Docker, memory, disk space)</li>
+                        <li>Offer three setup modes:
+                            <ul>
+                                <li><strong>Quick Setup</strong> - Docker-based setup (recommended)</li>
+                                <li><strong>Web Setup Wizard</strong> - Start services and use web UI</li>
+                                <li><strong>Development Setup</strong> - For local development</li>
+                            </ul>
+                        </li>
+                        <li>Generate environment configuration</li>
+                        <li>Start all required services</li>
+                        <li>Guide you to the web setup wizard</li>
+                    </ul>
+
+                    <div class="alert alert-info">
+                        <strong>Tip:</strong> After running the script, you'll be directed to the web setup wizard at <code>http://localhost:3000/setup</code> to complete the configuration.
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Option 2: Web Setup Wizard</h2>
+                    <p>If you prefer a graphical interface, you can use the web-based setup wizard. This is automatically available after starting the services.</p>
+                    
+                    <h3>Accessing the Setup Wizard</h3>
+                    <ol>
+                        <li>Start the services using Docker Compose:
+                            <pre><code class="language-bash">docker compose up -d</code></pre>
+                        </li>
+                        <li>Wait for services to start (about 30 seconds)</li>
+                        <li>Open your browser and navigate to:
+                            <pre><code class="language-bash">http://localhost:3000/setup</code></pre>
+                        </li>
+                    </ol>
+
+                    <h3>Setup Wizard Steps</h3>
+                    <p>The wizard guides you through 7 steps:</p>
+                    <ol>
+                        <li><strong>Welcome</strong> - Introduction to WebCraft</li>
+                        <li><strong>System Check</strong> - Verifies Docker, memory, disk space, and ports</li>
+                        <li><strong>Database Configuration</strong> - Configure PostgreSQL (Docker or external)</li>
+                        <li><strong>Admin Account</strong> - Create your administrator account</li>
+                        <li><strong>Email Configuration</strong> - Optional SMTP setup for emails</li>
+                        <li><strong>Features</strong> - Enable analytics, AI features, and API keys</li>
+                        <li><strong>Installation</strong> - Automated setup process with progress tracking</li>
+                    </ol>
+
+                    <div class="alert alert-success">
+                        <strong>Note:</strong> The setup wizard automatically detects if you're running in Docker and adjusts the setup process accordingly.
+                    </div>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Option 3: Manual Docker Setup</h2>
+                    <p>For more control, you can manually set up using Docker Compose.</p>
+                    
+                    <h3>Step 1: Clone the Repository</h3>
+                    <pre><code class="language-bash">git clone https://github.com/azad25/webCraft-universal-no-code-platform.git
+cd webcraft-platform</code></pre>
+
+                    <h3>Step 2: Start All Services</h3>
+                    <pre><code class="language-bash">docker compose up -d</code></pre>
+                    <p>This will start:</p>
+                    <ul>
+                        <li>Frontend (Next.js) on <code>http://localhost:3000</code></li>
+                        <li>Backend API (FastAPI) on <code>http://localhost:8000</code></li>
+                        <li>PostgreSQL database on port <code>5434</code></li>
+                        <li>Redis cache on port <code>6381</code></li>
+                        <li>Kafka message broker on port <code>9092</code></li>
+                    </ul>
+
+                    <h3>Step 3: Access the Setup Wizard</h3>
+                    <p>On first launch, open your browser and navigate to:</p>
+                    <pre><code class="language-bash">http://localhost:3000/setup</code></pre>
+                    <p>The setup wizard will automatically detect your environment and guide you through the configuration process.</p>
+
+                    <h3>Step 4: Access the Application</h3>
+                    <p>After completing the setup wizard, you can access:</p>
+                    <ul>
+                        <li><strong>Dashboard:</strong> <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+                        <li><strong>API Documentation:</strong> <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a></li>
+                        <li><strong>API Health:</strong> <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a></li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Option 4: Local Development Setup</h2>
+                    <p>For development, you can run services locally without Docker.</p>
+
+                    <h3>Step 1: Start Infrastructure Services</h3>
+                    <pre><code class="language-bash"># Start only infrastructure (PostgreSQL, Redis, Kafka)
+docker compose up -d postgres redis kafka zookeeper</code></pre>
+
+                    <h3>Step 2: Setup Backend</h3>
+                    <pre><code class="language-bash">cd apps/api
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set environment variables
+export DATABASE_URL="postgresql://webcraft:password@localhost:5434/webcraft_db"
+export REDIS_URL="redis://localhost:6381"
+export JWT_SECRET_KEY="your-secret-key-here"
+export SECRET_KEY="your-secret-key-here"
+
+# Run database migrations
+alembic upgrade head
+
+# Start the API server
+uvicorn main:app --reload --host 0.0.0.0 --port 8000</code></pre>
+
+                    <h3>Step 3: Setup Frontend</h3>
+                    <pre><code class="language-bash">cd apps/web
+
+# Install dependencies
+npm install
+
+# Set environment variables
+export NEXT_PUBLIC_API_URL=http://localhost:8000
+export NEXT_PUBLIC_WS_URL=ws://localhost:8000
+
+# Start development server
+npm run dev</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Setup API Endpoints</h2>
+                    <p>The setup system provides several API endpoints for programmatic setup and monitoring:</p>
+                    
+                    <h3>Check Setup Status</h3>
+                    <pre><code class="language-bash">GET /api/v1/setup/status
+
+Response:
+{
+  "setup_required": true,
+  "current_step": 0,
+  "admin_created": false
+}</code></pre>
+
+                    <h3>Check System Requirements</h3>
+                    <pre><code class="language-bash">GET /api/v1/setup/requirements
+
+Response:
+{
+  "docker_installed": true,
+  "docker_running": true,
+  "docker_compose_installed": true,
+  "available_memory_gb": 8.5,
+  "available_disk_gb": 50.2,
+  "cpu_cores": 4,
+  "os_name": "Linux",
+  "os_version": "6.14.0",
+  "meets_requirements": true,
+  "issues": [],
+  "warnings": []
+}</code></pre>
+
+                    <h3>Initialize Setup</h3>
+                    <pre><code class="language-bash">POST /api/v1/setup/initialize
+Content-Type: application/json
+
+{
+  "admin_user": {
+    "email": "admin@example.com",
+    "username": "admin",
+    "password": "securepassword123",
+    "full_name": "Admin User",
+    "company_name": "My Company",
+    "send_welcome_email": true
+  },
+  "database": {
+    "host": "postgres",
+    "port": 5432,
+    "database": "webcraft_db",
+    "username": "webcraft",
+    "password": "password",
+    "use_docker": true
+  },
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 587,
+  "smtp_user": "your-email@gmail.com",
+  "smtp_password": "your-app-password",
+  "from_email": "noreply@yourdomain.com",
+  "openai_api_key": "sk-...",
+  "stripe_secret_key": "sk_...",
+  "enable_analytics": true,
+  "enable_ai_features": true
+}</code></pre>
+
+                    <h3>Get Setup Progress</h3>
+                    <pre><code class="language-bash">GET /api/v1/setup/progress
+
+Response:
+{
+  "current_step": 4,
+  "total_steps": 7,
+  "steps": [
+    {"id": 1, "name": "Generating configuration", "status": "completed"},
+    {"id": 2, "name": "Verifying Docker services", "status": "completed"},
+    {"id": 3, "name": "Checking service connectivity", "status": "completed"},
+    {"id": 4, "name": "Initializing database", "status": "in_progress"},
+    {"id": 5, "name": "Creating admin user", "status": "pending"},
+    {"id": 6, "name": "Sending welcome email", "status": "pending"},
+    {"id": 7, "name": "Setup complete", "status": "pending"}
+  ],
+  "completed": false,
+  "admin_created": false
+}</code></pre>
+
+                    <h3>Test Email Configuration</h3>
+                    <pre><code class="language-bash">POST /api/v1/setup/test-email
+Content-Type: application/json
+
+{
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 587,
+  "smtp_user": "your-email@gmail.com",
+  "smtp_password": "your-app-password",
+  "test_email": "test@example.com"
+}</code></pre>
+
+                    <h3>Test Database Connection</h3>
+                    <pre><code class="language-bash">POST /api/v1/setup/test-database
+Content-Type: application/json
+
+{
+  "host": "postgres",
+  "port": 5432,
+  "database": "webcraft_db",
+  "username": "webcraft",
+  "password": "password"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Verify Installation</h2>
+                    <p>Check that all services are running correctly:</p>
+
+                    <h3>Health Check</h3>
+                    <pre><code class="language-bash"># Check API health
+curl http://localhost:8000/health
+
+# Expected response:
+{
+  "status": "healthy",
+  "version": "2.0.0",
+  "services": {
+    "database": "connected",
+    "redis": "connected",
+    "kafka": "connected"
+  }
+}</code></pre>
+
+                    <h3>Database Connection</h3>
+                    <pre><code class="language-bash"># Connect to PostgreSQL
+docker exec -it webcraft-postgres-1 psql -U webcraft -d webcraft_db
+
+# Or using local PostgreSQL
+psql -h localhost -p 5434 -U webcraft -d webcraft_db</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Create Your First App</h2>
+                    <p>Once the setup is complete, create your first application:</p>
+
+                    <h3>Via Web Interface</h3>
+                    <ol>
+                        <li>Log in to the dashboard at <code>http://localhost:3000</code></li>
+                        <li>Click "Create New App"</li>
+                        <li>Choose a template or start from scratch</li>
+                        <li>Use the visual editor to build your app</li>
+                    </ol>
+
+                    <h3>Via API</h3>
+                    <pre><code class="language-bash"># Get authentication token
+TOKEN=$(curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"your-password"}' \
+  | jq -r '.access_token')
+
+# Create a new app
+curl -X POST http://localhost:8000/api/v1/apps \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My First App",
+    "app_type": "website",
+    "description": "A test application"
+  }'</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="installation.html">Detailed Installation Guide</a></li>
+                        <li><a href="environment-setup.html">Environment Configuration</a></li>
+                        <li><a href="project-structure.html">Understanding Project Structure</a></li>
+                        <li><a href="../tutorials/first-app.html">Build Your First App Tutorial</a></li>
+                        <li><a href="../architecture/system-overview.html">System Architecture Overview</a></li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Troubleshooting</h2>
+                    <h3>Port Already in Use</h3>
+                    <p>If ports 3000, 8000, 5434, or 6381 are already in use:</p>
+                    <pre><code class="language-bash"># Check what's using the port
+lsof -i :3000  # macOS/Linux
+netstat -ano | findstr :3000  # Windows
+
+# Change ports in docker-compose.yml</code></pre>
+
+                    <h3>Database Connection Issues</h3>
+                    <p>Ensure PostgreSQL is running and accessible:</p>
+                    <pre><code class="language-bash"># Check Docker container status
+docker compose ps
+
+# View logs
+docker compose logs postgres</code></pre>
+
+                    <h3>Frontend Build Errors</h3>
+                    <p>Clear Next.js cache and rebuild:</p>
+                    <pre><code class="language-bash">cd apps/web
+rm -rf .next node_modules
+npm install
+npm run dev</code></pre>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

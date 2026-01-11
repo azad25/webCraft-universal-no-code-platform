@@ -2,19 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Logo } from '@/components/brand/logo'
-import { 
-  Menu, 
-  X, 
-  ChevronDown, 
+import { AnimatedLogo } from '@/components/brand/animated-logo'
+import {
+  Menu,
+  X,
+  ChevronDown,
   Sparkles,
   Layers,
   ShoppingCart,
   BarChart3,
   Zap,
-  Globe
+  Globe,
+  Users,
+  Newspaper,
+  Building,
+  Mail
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -31,40 +35,48 @@ const navigation = [
     ]
   },
   { name: 'Templates', href: '/templates' },
+  { name: 'Showcase', href: '/showcase' },
   { name: 'Pricing', href: '/pricing' },
-  { name: 'Enterprise', href: '/enterprise' },
-  { name: 'Resources', href: '/resources' },
-  { name: 'Docs', href: '/docs/index.html', external: true },
+  {
+    name: 'Company',
+    href: '#',
+    children: [
+      { name: 'About Us', href: '/about', icon: Users, description: 'Our story & team' },
+      { name: 'Blog', href: '/blog', icon: Newspaper, description: 'Latest news & updates' },
+      { name: 'Careers', href: '/careers', icon: Building, description: 'Join our team' },
+      { name: 'Contact', href: '/contact', icon: Mail, description: 'Get in touch' },
+    ]
+  },
 ]
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const { scrollY } = useScroll()
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 50)
+  })
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        isScrolled 
-          ? 'bg-background/80 backdrop-blur-xl border-b shadow-sm' 
-          : 'bg-transparent'
-      )}
-    >
-      <nav className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 transition-all duration-300">
+      <m.header
+        layout
+        className={cn(
+          "w-full transition-all duration-500 ease-in-out border border-transparent",
+          isScrolled
+            ? "max-w-5xl bg-slate-900/80 backdrop-blur-xl rounded-full shadow-2xl border-white/10"
+            : "max-w-7xl bg-transparent"
+        )}
+      >
+        <nav className={cn(
+          "flex items-center justify-between transition-all duration-300",
+          isScrolled ? "px-6 py-2" : "px-0 py-4"
+        )}>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-8 w-8" />
-            <span className="font-bold text-xl">WebCraft</span>
+          <Link href="/" className="relative z-10 transition-transform hover:scale-105">
+            <AnimatedLogo showText={!isScrolled} />
           </Link>
 
           {/* Desktop Navigation */}
@@ -79,41 +91,40 @@ export function Header() {
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-                    'hover:bg-accent hover:text-accent-foreground'
+                    'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300',
+                    'text-white/80 hover:text-white hover:bg-white/10'
                   )}
-                  {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                 >
                   {item.name}
-                  {item.children && <ChevronDown className="w-4 h-4" />}
+                  {item.children && <ChevronDown className="w-4 h-4 opacity-50" />}
                 </Link>
 
                 {/* Dropdown */}
                 <AnimatePresence>
                   {item.children && activeDropdown === item.name && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
+                    <m.div
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 20, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 mt-2 w-72 bg-card rounded-xl border shadow-xl p-2"
+                      className="absolute top-full left-0 mt-4 w-72 bg-[#0a0f1e] rounded-2xl border border-white/10 shadow-2xl p-2 overflow-hidden ring-1 ring-white/5"
                     >
                       {item.children.map((child) => (
                         <Link
                           key={child.name}
                           href={child.href}
-                          className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                          className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <child.icon className="w-5 h-5 text-primary" />
+                          <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                            <child.icon className="w-5 h-5 text-slate-300 group-hover:text-blue-400" />
                           </div>
                           <div>
-                            <div className="font-medium text-sm">{child.name}</div>
-                            <div className="text-xs text-muted-foreground">{child.description}</div>
+                            <div className="font-medium text-sm text-white">{child.name}</div>
+                            <div className="text-xs text-slate-400 group-hover:text-slate-300">{child.description}</div>
                           </div>
                         </Link>
                       ))}
-                    </motion.div>
+                    </m.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -121,14 +132,14 @@ export function Header() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Button variant="ghost" asChild>
+          <div className="hidden lg:flex items-center gap-2">
+            <Button variant="ghost" asChild className="text-white hover:bg-white/10 rounded-full">
               <Link href="/login">Sign In</Link>
             </Button>
-            <Button asChild className="gap-2">
+            <Button asChild className="gap-2 rounded-full bg-white text-black hover:bg-slate-200">
               <Link href="/signup">
                 <Sparkles className="w-4 h-4" />
-                Start Free
+                Get Started
               </Link>
             </Button>
           </div>
@@ -137,41 +148,33 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden text-white hover:bg-white/10 rounded-full"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
-        </div>
+        </nav>
 
         {/* Mobile Menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
+            <m.div
+              initial={{ opacity: 0, height: 0, borderRadius: "0 0 2rem 2rem" }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t"
+              className="lg:hidden border-t border-white/10 bg-[#0a0f1e]/95 backdrop-blur-xl overflow-hidden rounded-b-3xl"
             >
-              <div className="py-4 space-y-2">
+              <div className="p-6 space-y-4">
                 {navigation.map((item) => (
                   <div key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="block px-4 py-2 text-sm font-medium hover:bg-accent rounded-lg"
-                      onClick={() => setMobileMenuOpen(false)}
-                      {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
-                    >
-                      {item.name}
-                    </Link>
+                    <div className="font-medium text-white mb-2 ml-2">{item.name}</div>
                     {item.children && (
-                      <div className="pl-4 space-y-1">
-                        {item.children.map((child) => (
+                      <div className="space-y-1 pl-4 border-l border-white/10 ml-2">
+                        {item.children.map(child => (
                           <Link
                             key={child.name}
                             href={child.href}
-                            className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
-                            onClick={() => setMobileMenuOpen(false)}
+                            className="block py-2 text-sm text-slate-400 hover:text-white"
                           >
                             {child.name}
                           </Link>
@@ -180,19 +183,19 @@ export function Header() {
                     )}
                   </div>
                 ))}
-                <div className="pt-4 px-4 space-y-2">
-                  <Button variant="outline" className="w-full" asChild>
+                <div className="pt-4 grid grid-cols-2 gap-4">
+                  <Button variant="outline" className="w-full rounded-xl border-white/10 text-white hover:bg-white/5" asChild>
                     <Link href="/login">Sign In</Link>
                   </Button>
-                  <Button className="w-full" asChild>
-                    <Link href="/signup">Start Free</Link>
+                  <Button className="w-full rounded-xl bg-blue-600 hover:bg-blue-500" asChild>
+                    <Link href="/signup">Get Started</Link>
                   </Button>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
-      </nav>
-    </header>
+      </m.header>
+    </div>
   )
 }

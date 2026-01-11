@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { m, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { ArrowRight, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,69 +11,58 @@ export function CTASection() {
   const isInView = useInView(ref, { once: true, amount: 0.2 })
 
   return (
-    <section ref={ref} className="relative overflow-hidden py-20 bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900 text-white">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+    <section ref={ref} className="relative overflow-hidden py-32 bg-[#0a0f1e] flex items-center justify-center">
+      {/* Massive Background Glow */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-[800px] h-[800px] bg-blue-600/20 rounded-full blur-[120px]" />
       </div>
-      
+
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 opacity-20 bg-[url('/grid-pattern.svg')] [mask-image:radial-gradient(ellipse_at_center,white,transparent_70%)]" />
+
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto"
+        <m.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-4xl mx-auto bg-slate-900/40 backdrop-blur-xl border border-white/10 p-12 md:p-20 rounded-[3rem] shadow-2xl"
         >
-          <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-6">
-            <Zap className="h-5 w-5 mr-2 text-yellow-300" />
-            <span className="text-sm font-medium">Ready to get started?</span>
+          <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-blue-500/10 text-blue-300 mb-8 border border-blue-500/20">
+            <Zap className="h-4 w-4 mr-2 text-blue-400 fill-blue-400" />
+            <span className="text-sm font-semibold tracking-wide uppercase">Ready to launch</span>
           </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Build Beautiful Pages <span className="text-yellow-300">Without Code</span>
+
+          <h2 className="text-5xl md:text-7xl font-bold mb-8 text-white tracking-tight">
+            Build your dream <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">without limits.</span>
           </h2>
-          
-          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-            Join thousands of creators and businesses who are already creating stunning pages with our intuitive drag-and-drop builder.
+
+          <p className="text-xl md:text-2xl text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Join thousands of creators who are building the future with WebCraft. No credit card required.
           </p>
-          
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-700 hover:bg-blue-50 font-semibold px-8 py-6 text-lg group"
+
+          <div className="flex flex-col sm:flex-row justify-center gap-6">
+            <Button
+              size="lg"
+              className="bg-white text-slate-950 hover:bg-slate-100 font-bold px-10 py-8 text-xl rounded-2xl shadow-xl shadow-white/5 transition-all hover:scale-105"
             >
               Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="ml-3 h-6 w-6" />
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="bg-transparent border-2 border-white/20 hover:bg-white/10 text-white font-semibold px-8 py-6 text-lg group"
+
+            <Button
+              variant="outline"
+              size="lg"
+              className="bg-transparent border-white/10 hover:bg-white/5 text-white font-semibold px-10 py-8 text-xl rounded-2xl transition-all"
             >
               Book a Demo
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>
-          
-          <div className="mt-8 text-sm text-blue-100/80">
-            <p>No credit card required • 14-day free trial • Cancel anytime</p>
+
+          <div className="mt-10 text-sm text-slate-500 font-medium">
+            <p>14-day free trial • Cancel anytime • No lock-in</p>
           </div>
-        </motion.div>
-      </div>
-      
-      {/* Bottom wave divider */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
-        <svg 
-          className="w-full h-16 md:h-24" 
-          viewBox="0 0 1200 120" 
-          preserveAspectRatio="none"
-        >
-          <path 
-            d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
-            className="fill-white dark:fill-gray-900"
-          ></path>
-        </svg>
+        </m.div>
       </div>
     </section>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { 
   Upload, 
   Image, 
@@ -267,7 +267,7 @@ export function MediaUpload({ open, onOpenChange, onSelect, accept = 'image/*', 
                 />
 
                 {uploading ? (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="text-center"
@@ -281,7 +281,7 @@ export function MediaUpload({ open, onOpenChange, onSelect, accept = 'image/*', 
                       />
                     </div>
                     <p className="text-sm text-muted-foreground">{uploadProgress}%</p>
-                  </motion.div>
+                  </m.div>
                 ) : (
                   <div className="text-center">
                     <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -351,7 +351,7 @@ export function MediaUpload({ open, onOpenChange, onSelect, accept = 'image/*', 
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-4 gap-4 p-1">
                   {filteredMedia.map((file) => (
-                    <motion.div
+                    <m.div
                       key={file.id}
                       layout
                       className="group relative aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary"
@@ -376,7 +376,7 @@ export function MediaUpload({ open, onOpenChange, onSelect, accept = 'image/*', 
                         <p className="text-white text-xs font-medium truncate">{file.name}</p>
                         <p className="text-white/70 text-xs">{formatFileSize(file.size)}</p>
                       </div>
-                    </motion.div>
+                    </m.div>
                   ))}
                 </div>
               ) : (
@@ -440,7 +440,7 @@ export function MediaUpload({ open, onOpenChange, onSelect, accept = 'image/*', 
             <ScrollArea className="flex-1">
               <div className="grid grid-cols-3 gap-4">
                 {unsplashImages.map((image) => (
-                  <motion.div
+                  <m.div
                     key={image.id}
                     className="group relative aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary"
                     onClick={() => onSelect(image.urls.regular)}
@@ -459,7 +459,7 @@ export function MediaUpload({ open, onOpenChange, onSelect, accept = 'image/*', 
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                       <p className="text-white text-xs">by {image.user.name}</p>
                     </div>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
             </ScrollArea>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apps API - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">API Reference</li>
+                <li><a href="authentication.html"><i class="fas fa-key"></i> Authentication</a></li>
+                <li><a href="apps.html" class="active"><i class="fas fa-th-large"></i> Apps API</a></li>
+                <li><a href="widgets.html"><i class="fas fa-cube"></i> Widgets API</a></li>
+                <li><a href="automation.html"><i class="fas fa-robot"></i> Automation API</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Apps API</h1>
+                <p>Complete API reference for app management</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>The Apps API provides endpoints for creating, managing, and deploying applications in WebCraft. All endpoints require authentication.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Base URL</h2>
+                    <pre><code class="language-bash">http://localhost:8000/api/v1/apps</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>List Apps</h2>
+                    <p>Get a paginated list of apps for the current user.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">GET /api/v1/apps
+Authorization: Bearer {token}
+
+Query Parameters:
+- page: int (default: 1) - Page number
+- per_page: int (default: 20, max: 100) - Items per page
+- app_type: string (optional) - Filter by app type
+- search: string (optional) - Search in names and descriptions</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "apps": [
+    {
+      "id": "uuid",
+      "name": "My App",
+      "slug": "my-app",
+      "description": "App description",
+      "app_type": "website",
+      "is_published": false,
+      "custom_domain": null,
+      "subdomain": null,
+      "config": {},
+      "theme_config": {},
+      "seo_config": {},
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00"
+    }
+  ],
+  "total": 10,
+  "page": 1,
+  "per_page": 20
+}</code></pre>
+
+                    <h3>Example</h3>
+                    <pre><code class="language-bash">curl -X GET "http://localhost:8000/api/v1/apps?page=1&per_page=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Create App</h2>
+                    <p>Create a new application.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">POST /api/v1/apps
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "name": "My New App",
+  "description": "App description",
+  "app_type": "website",
+  "template_id": "uuid" (optional),
+  "config": {} (optional),
+  "theme_config": {} (optional)
+}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "name": "My New App",
+  "slug": "my-new-app",
+  "description": "App description",
+  "app_type": "website",
+  "is_published": false,
+  "config": {},
+  "theme_config": {},
+  "seo_config": {},
+  "created_at": "2024-01-01T00:00:00",
+  "updated_at": "2024-01-01T00:00:00"
+}</code></pre>
+
+                    <h3>Example</h3>
+                    <pre><code class="language-bash">curl -X POST "http://localhost:8000/api/v1/apps" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My New App",
+    "app_type": "website",
+    "description": "A test application"
+  }'</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Get App</h2>
+                    <p>Get detailed information about a specific app.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">GET /api/v1/apps/{app_id}
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "name": "My App",
+  "slug": "my-app",
+  "description": "App description",
+  "app_type": "website",
+  "is_published": false,
+  "custom_domain": null,
+  "subdomain": null,
+  "config": {
+    "theme": "light",
+    "features": ["feature1", "feature2"]
+  },
+  "theme_config": {
+    "colors": {
+      "primary": "#3b82f6",
+      "secondary": "#6b7280"
+    }
+  },
+  "seo_config": {
+    "meta_title": "My App",
+    "meta_description": "App description"
+  },
+  "created_at": "2024-01-01T00:00:00",
+  "updated_at": "2024-01-01T00:00:00"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Update App</h2>
+                    <p>Update an existing app. Only provided fields will be updated.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">PUT /api/v1/apps/{app_id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "name": "Updated Name" (optional),
+  "description": "Updated description" (optional),
+  "config": {} (optional),
+  "theme_config": {} (optional),
+  "seo_config": {} (optional)
+}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "name": "Updated Name",
+  "slug": "my-app",
+  "updated_at": "2024-01-01T00:00:00",
+  ...
+}</code></pre>
+
+                    <h3>Example</h3>
+                    <pre><code class="language-bash">curl -X PUT "http://localhost:8000/api/v1/apps/{app_id}" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Name",
+    "config": {
+      "new_setting": "value"
+    }
+  }'</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Delete App</h2>
+                    <p>Delete an app. This is a soft delete (sets is_active to false).</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">DELETE /api/v1/apps/{app_id}
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "message": "App deleted successfully"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Publish App</h2>
+                    <p>Publish an app to make it live.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">POST /api/v1/apps/{app_id}/publish
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "custom_domain": "example.com" (optional),
+  "subdomain": "my-app" (optional)
+}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "message": "App published successfully",
+  "url": "https://my-app.webcraft.dev",
+  "custom_domain": null,
+  "subdomain": "my-app"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Generate Preview</h2>
+                    <p>Generate a shareable preview link for an app.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">POST /api/v1/apps/{app_id}/preview
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "preview_token": "abc123...",
+  "preview_url": "http://localhost:3000/preview/abc123...",
+  "expires_at": "2024-01-02T00:00:00"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Error Responses</h2>
+                    <p>All endpoints may return these error responses:</p>
+                    
+                    <h3>401 Unauthorized</h3>
+                    <pre><code class="language-json">{
+  "detail": "Could not validate credentials"
+}</code></pre>
+
+                    <h3>404 Not Found</h3>
+                    <pre><code class="language-json">{
+  "detail": "App not found"
+}</code></pre>
+
+                    <h3>400 Bad Request</h3>
+                    <pre><code class="language-json">{
+  "detail": "Validation error message"
+}</code></pre>
+
+                    <h3>500 Internal Server Error</h3>
+                    <pre><code class="language-json">{
+  "detail": "An unexpected error occurred"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>TypeScript Client Example</h2>
+                    <pre><code class="language-typescript">import { apiClient } from '@/lib/api-client'
+
+// List apps
+const getApps = async (page = 1, perPage = 20) => {
+  const response = await apiClient.get('/api/apps', {
+    params: { page, per_page: perPage }
+  })
+  return response.data
+}
+
+// Create app
+const createApp = async (appData: {
+  name: string
+  app_type: string
+  description?: string
+}) => {
+  const response = await apiClient.post('/api/apps', appData)
+  return response.data
+}
+
+// Update app
+const updateApp = async (appId: string, updates: Partial<App>) => {
+  const response = await apiClient.put(`/api/apps/${appId}`, updates)
+  return response.data
+}
+
+// Delete app
+const deleteApp = async (appId: string) => {
+  const response = await apiClient.delete(`/api/apps/${appId}`)
+  return response.data
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="widgets.html">Widgets API</a> - Widget management endpoints</li>
+                        <li><a href="../backend/api-routers.html">API Routers</a> - Backend implementation</li>
+                        <li><a href="../tutorials/first-app.html">Build Your First App</a> - Tutorial</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

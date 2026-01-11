@@ -11,7 +11,7 @@ from enum import Enum
 import uuid
 import mimetypes
 
-router = APIRouter(prefix="/media", tags=["Media"])
+router = APIRouter(prefix="/apps/{app_id}/media", tags=["Media"])
 
 
 class MediaType(str, Enum):
@@ -135,8 +135,8 @@ def extract_embed_info(url: str) -> Dict[str, Any]:
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_media(
+    app_id: str,
     file: UploadFile = File(...),
-    app_id: str = Form(...),
     folder_id: Optional[str] = Form(None),
     alt_text: Optional[str] = Form(None),
     tags: Optional[str] = Form(None)  # Comma-separated
@@ -181,8 +181,8 @@ async def upload_media(
 
 @router.post("/upload/batch", response_model=List[UploadResponse])
 async def upload_batch(
+    app_id: str,
     files: List[UploadFile] = File(...),
-    app_id: str = Form(...),
     folder_id: Optional[str] = Form(None)
 ):
     """Upload multiple files at once"""
@@ -279,7 +279,7 @@ async def add_code_snippet(request: CodeSnippetRequest):
         return UploadResponse(success=False, error=str(e))
 
 
-@router.get("/list/{app_id}", response_model=List[MediaItem])
+@router.get("", response_model=List[MediaItem])
 async def list_media(
     app_id: str,
     type: Optional[MediaType] = None,
@@ -387,7 +387,7 @@ async def create_folder(
     return folder
 
 
-@router.get("/folders/{app_id}", response_model=List[MediaFolder])
+@router.get("/folders", response_model=List[MediaFolder])
 async def list_folders(app_id: str, parent_id: Optional[str] = None):
     """List folders"""
     folders = [f for f in folder_store.values() if f.app_id == app_id]

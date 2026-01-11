@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Editing Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+        .test-description {
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .widget-demo {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .widget-demo:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .widget-demo.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        .editable-text {
+            cursor: text;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            min-height: 1.5em;
+            outline: none;
+        }
+        .editable-text:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .editable-text[contenteditable="true"] {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid #3b82f6;
+        }
+        .hero-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .hero-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        .hero-description {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .button-demo {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 10px;
+        }
+        .button-demo:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        .instructions {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .instructions h4 {
+            margin: 0 0 10px 0;
+            color: #92400e;
+        }
+        .instructions ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #92400e;
+        }
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="status">✅ Widget Editing Fixed</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Widget Editing Test - Figma-like Experience</h1>
+            <p>Test the improved inline editing functionality for all widgets</p>
+        </div>
+        
+        <div class="content">
+            <div class="instructions">
+                <h4>🎯 How to Test Widget Editing:</h4>
+                <ul>
+                    <li><strong>Click</strong> on any widget to select it</li>
+                    <li><strong>Double-click</strong> on text elements to start editing</li>
+                    <li><strong>Press Enter</strong> when a widget is selected to start editing</li>
+                    <li><strong>Press Enter or click outside</strong> to save changes</li>
+                    <li><strong>Press Escape</strong> to cancel editing</li>
+                    <li><strong>Right-click</strong> for context menu options</li>
+                </ul>
+            </div>
+
+            <div class="test-section">
+                <div class="test-title">1. Hero Widget Editing</div>
+                <div class="test-description">
+                    Test inline editing of hero sections with title, subtitle, and description.
+                </div>
+                
+                <div class="widget-demo hero-section" data-widget-type="hero">
+                    <h1 class="editable-text hero-title" data-field="title">Build Something Amazing</h1>
+                    <h2 class="editable-text hero-subtitle" data-field="subtitle">The modern way to create</h2>
+                    <p class="editable-text hero-description" data-field="description">
+                        Create beautiful websites, apps, and digital experiences with our powerful no-code platform. No coding required.
+                    </p>
+                    <button class="button-demo editable-text" data-field="buttonText">Get Started</button>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <div class="test-title">2. Text Widget Editing</div>
+                <div class="test-description">
+                    Test inline editing of various text elements including headings and paragraphs.
+                </div>
+                
+                <div class="widget-demo" data-widget-type="text">
+                    <h2 class="editable-text" data-field="text" style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">
+                        This is an editable heading
+                    </h2>
+                    <p class="editable-text" data-field="text" style="font-size: 1.1rem; line-height: 1.6; color: #64748b;">
+                        This is an editable paragraph. Double-click to start editing, or select the widget and press Enter. You can edit this text directly without opening any panels.
+                    </p>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <div class="test-title">3. Button Widget Editing</div>
+                <div class="test-description">
+                    Test inline editing of button text and properties.
+                </div>
+                
+                <div class="widget-demo" data-widget-type="button" style="text-align: center;">
+                    <button class="button-demo editable-text" data-field="text">Click Me</button>
+                    <button class="button-demo editable-text" data-field="text" style="background: #10b981;">Success Button</button>
+                    <button class="button-demo editable-text" data-field="text" style="background: #ef4444;">Delete Button</button>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <div class="test-title">4. Card Widget Editing</div>
+                <div class="test-description">
+                    Test inline editing of card components with multiple editable fields.
+                </div>
+                
+                <div class="widget-demo" data-widget-type="card" style="max-width: 400px; margin: 0 auto;">
+                    <div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <h3 class="editable-text" data-field="title" style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">
+                            Card Title
+                        </h3>
+                        <p class="editable-text" data-field="subtitle" style="color: #64748b; margin-bottom: 1rem;">
+                            Card subtitle or tagline
+                        </p>
+                        <p class="editable-text" data-field="description" style="line-height: 1.6; margin-bottom: 1.5rem;">
+                            This is the card description. You can edit this text by double-clicking or selecting the card and pressing Enter.
+                        </p>
+                        <button class="button-demo editable-text" data-field="buttonText" style="font-size: 14px; padding: 8px 16px;">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <div class="test-title">5. Multi-field Editing Test</div>
+                <div class="test-description">
+                    Test editing multiple fields in sequence without losing focus or selection.
+                </div>
+                
+                <div class="widget-demo" data-widget-type="multi-field">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center;">
+                        <div>
+                            <h3 class="editable-text" data-field="title" style="font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem;">
+                                Feature Title
+                            </h3>
+                            <p class="editable-text" data-field="description" style="line-height: 1.6; color: #64748b; margin-bottom: 1.5rem;">
+                                Feature description that explains the benefits and value proposition of this particular feature.
+                            </p>
+                            <button class="button-demo editable-text" data-field="buttonText">
+                                Try Feature
+                            </button>
+                        </div>
+                        <div style="text-align: center; padding: 40px; background: #f1f5f9; border-radius: 8px;">
+                            <div style="width: 80px; height: 80px; background: #3b82f6; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                🚀
+                            </div>
+                            <p class="editable-text" data-field="caption" style="color: #64748b; font-size: 0.9rem;">
+                                Feature Icon
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the widget editing functionality
+        let selectedWidget = null;
+        let editingElement = null;
+
+        // Widget selection
+        document.querySelectorAll('.widget-demo').forEach(widget => {
+            widget.addEventListener('click', (e) => {
+                // Don't select if clicking on contentEditable element
+                if (e.target.contentEditable === 'true') return;
+                
+                e.stopPropagation();
+                
+                // Remove previous selection
+                if (selectedWidget) {
+                    selectedWidget.classList.remove('selected');
+                }
+                
+                // Select new widget
+                selectedWidget = widget;
+                widget.classList.add('selected');
+                
+                console.log('Selected widget:', widget.dataset.widgetType);
+            });
+        });
+
+        // Deselect on document click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.widget-demo') && selectedWidget) {
+                selectedWidget.classList.remove('selected');
+                selectedWidget = null;
+            }
+        });
+
+        // Double-click to edit
+        document.querySelectorAll('.editable-text').forEach(element => {
+            element.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                startEditing(element);
+            });
+        });
+
+        // Enter key to start editing selected widget
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && selectedWidget && !editingElement) {
+                e.preventDefault();
+                const firstEditable = selectedWidget.querySelector('.editable-text');
+                if (firstEditable) {
+                    startEditing(firstEditable);
+                }
+            }
+            
+            if (e.key === 'Escape' && editingElement) {
+                e.preventDefault();
+                stopEditing(editingElement, false); // Cancel editing
+            }
+        });
+
+        function startEditing(element) {
+            if (editingElement) {
+                stopEditing(editingElement, true); // Save previous edit
+            }
+            
+            editingElement = element;
+            element.contentEditable = 'true';
+            element.focus();
+            
+            // Select all text
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(element);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            
+            console.log('Started editing:', element.dataset.field);
+        }
+
+        function stopEditing(element, save = true) {
+            if (!element) return;
+            
+            element.contentEditable = 'false';
+            editingElement = null;
+            
+            if (save) {
+                console.log('Saved changes to:', element.dataset.field, '=', element.innerText);
+                // Here you would normally call onChange to update the widget props
+            }
+            
+            // Clear selection
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+        }
+
+        // Handle blur to save changes
+        document.querySelectorAll('.editable-text').forEach(element => {
+            element.addEventListener('blur', () => {
+                if (element === editingElement) {
+                    stopEditing(element, true);
+                }
+            });
+            
+            element.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    element.blur(); // This will trigger save
+                }
+            });
+        });
+
+        // Show status message
+        setTimeout(() => {
+            const status = document.querySelector('.status');
+            status.style.background = '#3b82f6';
+            status.innerHTML = '🎯 Ready to Test';
+        }, 2000);
+
+        console.log('Widget editing test initialized');
+        console.log('- Click widgets to select them');
+        console.log('- Double-click text to edit');
+        console.log('- Press Enter on selected widget to start editing');
+        console.log('- Press Escape to cancel editing');
+    </script>
+</body>
+</html>

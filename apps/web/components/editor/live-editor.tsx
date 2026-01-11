@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { getAuthToken } from '@/lib/dev-auth'
 
 import { EditorSidebar } from './editor-sidebar'
@@ -112,12 +112,16 @@ function EditorContent({ appId }: { appId: string }) {
   const handleElementResize = useCallback((elementId: string, newSize: { width: number; height: number }) => {
     updateElement(elementId, { size: newSize })
   }, [updateElement])
-  // Handle adding elements from sidebar - Enhanced for grid positioning
+  // Handle adding elements from sidebar - Fixed for absolute positioning
   const handleAddElement = useCallback((elementData: any) => {
     if (!currentPageId) {
       alert('Please select a page before adding elements')
       return
     }
+    
+    // Calculate a random position to avoid overlapping
+    const randomX = Math.floor(Math.random() * 300) + 50
+    const randomY = Math.floor(Math.random() * 200) + 50
     
     // Handle different data structures from sidebar
     let elementConfig
@@ -125,19 +129,17 @@ function EditorContent({ appId }: { appId: string }) {
       // From Elements tab (complex structure)
       elementConfig = {
         type: elementData.element.type,
-        position: { x: 0, y: 0 }, // Start at top-left for grid positioning
+        position: { x: randomX, y: randomY }, // Random position to avoid overlap
         size: { 
-          width: elementData.element.defaultWidth || 400, // Smaller default for grid
-          height: elementData.element.defaultHeight || 200 
+          width: elementData.element.defaultWidth || 300, 
+          height: elementData.element.defaultHeight || 150 
         },
         props: elementData.element.props || {},
         style: {
           ...elementData.element.style,
-          // Add grid positioning styles
-          position: 'relative',
-          display: 'block',
-          margin: '0',
-          padding: '16px'
+          // Force absolute positioning for Figma-like behavior
+          position: 'absolute',
+          zIndex: 1
         },
         children: [],
         // Enhanced capabilities for Figma-like editing
@@ -148,25 +150,25 @@ function EditorContent({ appId }: { appId: string }) {
           deletable: true,
           duplicatable: true,
           styleable: true
-        }
+        },
+        // Force position mode for new elements
+        dragMode: 'position'
       }
     } else {
       // From direct call or simple structure
       elementConfig = {
         type: elementData.type,
-        position: { x: 0, y: 0 }, // Grid positioning
+        position: { x: randomX, y: randomY }, // Random position
         size: { 
-          width: elementData.defaultWidth || 400, // Grid-friendly size
-          height: elementData.defaultHeight || 200 
+          width: elementData.defaultWidth || 300, 
+          height: elementData.defaultHeight || 150 
         },
         props: elementData.props || {},
         style: {
           ...elementData.style,
-          // Grid positioning styles
-          position: 'relative',
-          display: 'block',
-          margin: '0',
-          padding: '16px'
+          // Force absolute positioning for Figma-like behavior
+          position: 'absolute',
+          zIndex: 1
         },
         children: [],
         // Enhanced capabilities
@@ -177,7 +179,9 @@ function EditorContent({ appId }: { appId: string }) {
           deletable: true,
           duplicatable: true,
           styleable: true
-        }
+        },
+        // Force position mode for new elements
+        dragMode: 'position'
       }
     }
     
@@ -480,7 +484,7 @@ function EditorContent({ appId }: { appId: string }) {
         {/* Left Sidebar - Enhanced Builder Panel */}
         <AnimatePresence mode="wait">
           {leftSidebarOpen && (
-            <motion.div
+            <m.div
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: 320, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
@@ -493,7 +497,7 @@ function EditorContent({ appId }: { appId: string }) {
                 currentPageId={currentPageId}
                 selectedElement={selectedElement}
               />
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
@@ -537,7 +541,7 @@ function EditorContent({ appId }: { appId: string }) {
         {/* Right Panel */}
         <AnimatePresence mode="wait">
           {rightSidebarOpen && (
-            <motion.div
+            <m.div
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: 320, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
@@ -581,14 +585,14 @@ function EditorContent({ appId }: { appId: string }) {
                   <PageManager appId={appId} />
                 </TabsContent>
               </Tabs>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
         {/* AI Assistant Panel */}
         <AnimatePresence>
           {showAI && (
-            <motion.div
+            <m.div
               initial={{ x: '100%', opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '100%', opacity: 0 }}
@@ -596,7 +600,7 @@ function EditorContent({ appId }: { appId: string }) {
               className="absolute right-0 top-0 bottom-0 w-96 border-l bg-background shadow-2xl z-50"
             >
               <AIAssistant app={null} onClose={() => setShowAI(false)} />
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
@@ -634,21 +638,21 @@ function EditorContent({ appId }: { appId: string }) {
         </AnimatePresence>
 
         {/* Resize Handles - Enhanced for Figma-like experience */}
-        {selectedElement && resizingElement === selectedElement.id && !showPreview && (
-          <div className="fixed inset-0 pointer-events-none z-[9998]">
-            <ResizeHandles
-              element={selectedElement}
-              isSelected={true}
-              onResize={(newSize) => handleElementResize(selectedElement.id, newSize)}
-              onResizeEnd={() => setResizingElement(null)}
-              minWidth={20}
-              minHeight={20}
-              showGrid={showGrid}
-              snapToGrid={true}
-              gridSize={8}
-              aspectRatio={selectedElement.type === 'image' ? null : null} // Maintain aspect ratio for images
-            />
-          </div>
+        {selectedElement && !showPreview && (
+          <ResizeHandles
+            element={selectedElement}
+            isSelected={true}
+            onResize={(newSize) => handleElementResize(selectedElement.id, newSize)}
+            onPositionChange={(newPosition) => updateElement(selectedElement.id, { position: newPosition })}
+            onResizeEnd={() => setResizingElement(null)}
+            minWidth={20}
+            minHeight={20}
+            showGrid={showGrid}
+            snapToGrid={true}
+            gridSize={8}
+            zoom={100}
+            aspectRatio={selectedElement.type === 'image' ? null : null}
+          />
         )}
       </div>
     </div>

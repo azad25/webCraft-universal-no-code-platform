@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Models - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">Backend Development</li>
+                <li><a href="fastapi-setup.html"><i class="fab fa-python"></i> FastAPI Setup</a></li>
+                <li><a href="database-models.html" class="active"><i class="fas fa-database"></i> Database Models</a></li>
+                <li><a href="api-routers.html"><i class="fas fa-route"></i> API Routers</a></li>
+                <li><a href="services.html"><i class="fas fa-cogs"></i> Services Layer</a></li>
+                <li><a href="authentication.html"><i class="fas fa-lock"></i> Authentication</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Database Models</h1>
+                <p>Understanding WebCraft's database schema and models</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>WebCraft uses SQLAlchemy ORM with PostgreSQL and JSONB for flexible data storage. The database follows a multi-tenant architecture with clear separation between users, organizations, and applications.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Base Model</h2>
+                    <p>All models inherit from <code>BaseModel</code> which provides common fields:</p>
+                    
+                    <pre><code class="language-python">class BaseModel(Base):
+    __abstract__ = True
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = Column(Boolean, default=True)</code></pre>
+
+                    <p>This provides:</p>
+                    <ul>
+                        <li><strong>id</strong> - UUID primary key</li>
+                        <li><strong>created_at</strong> - Timestamp when record was created</li>
+                        <li><strong>updated_at</strong> - Timestamp when record was last updated</li>
+                        <li><strong>is_active</strong> - Soft delete flag</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Core Models</h2>
+                    
+                    <h3>User Model</h3>
+                    <pre><code class="language-python">class User(BaseModel):
+    __tablename__ = "users"
+    
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    full_name = Column(String(255))
+    hashed_password = Column(String(255))
+    is_verified = Column(Boolean, default=False)
+    is_premium = Column(Boolean, default=False)
+    avatar_url = Column(String(500))
+    
+    # OAuth fields
+    google_id = Column(String(100), unique=True, nullable=True)
+    github_id = Column(String(100), unique=True, nullable=True)
+    microsoft_id = Column(String(100), unique=True, nullable=True)
+    
+    # Subscription
+    subscription_tier = Column(String(50), default="free")
+    subscription_expires = Column(DateTime, nullable=True)
+    
+    # Relationships
+    organizations = relationship("Organization", back_populates="owner")
+    apps = relationship("App", back_populates="owner")
+    api_keys = relationship("APIKey", back_populates="user")</code></pre>
+
+                    <h3>Organization Model</h3>
+                    <pre><code class="language-python">class Organization(BaseModel):
+    __tablename__ = "organizations"
+    
+    name = Column(String(255), nullable=False)
+    slug = Column(String(100), unique=True, index=True, nullable=False)
+    description = Column(Text)
+    logo_url = Column(String(500))
+    website = Column(String(500))
+    
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    owner = relationship("User", back_populates="organizations")
+    
+    settings = Column(JSONB, default={})
+    
+    # Relationships
+    apps = relationship("App", back_populates="organization")
+    members = relationship("OrganizationMember", back_populates="organization")</code></pre>
+
+                    <h3>App Model</h3>
+                    <pre><code class="language-python">class App(BaseModel):
+    __tablename__ = "apps"
+    
+    name = Column(String(255), nullable=False)
+    slug = Column(String(100), index=True, nullable=False)
+    description = Column(Text)
+    app_type = Column(String(100), nullable=False)  # website, ecommerce, crm, etc.
+    
+    # Ownership
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
+    
+    # Configuration (JSONB for flexibility)
+    config = Column(JSONB, default={})
+    theme_config = Column(JSONB, default={})
+    seo_config = Column(JSONB, default={})
+    
+    # Deployment
+    is_published = Column(Boolean, default=False)
+    custom_domain = Column(String(255), nullable=True)
+    subdomain = Column(String(100), unique=True, nullable=True)
+    
+    # Template
+    template_id = Column(UUID(as_uuid=True), ForeignKey("templates.id"), nullable=True)
+    
+    # Relationships
+    owner = relationship("User", back_populates="apps")
+    organization = relationship("Organization", back_populates="apps")
+    pages = relationship("Page", back_populates="app")
+    widgets = relationship("AppWidget", back_populates="app")
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_app_owner_slug', 'owner_id', 'slug'),
+        Index('idx_app_subdomain', 'subdomain'),
+    )</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Page and Widget Models</h2>
+                    
+                    <h3>Page Model</h3>
+                    <pre><code class="language-python">class Page(BaseModel):
+    __tablename__ = "pages"
+    
+    title = Column(String(255), nullable=False)
+    slug = Column(String(100), nullable=False)
+    content = Column(JSONB, default={})  # Page structure and widgets
+    
+    # SEO
+    meta_title = Column(String(255))
+    meta_description = Column(Text)
+    meta_keywords = Column(String(500))
+    og_image = Column(String(500))
+    
+    # Settings
+    is_homepage = Column(Boolean, default=False)
+    is_published = Column(Boolean, default=True)
+    password_protected = Column(Boolean, default=False)
+    password_hash = Column(String(255), nullable=True)
+    
+    # Relationships
+    app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    app = relationship("App", back_populates="pages")</code></pre>
+
+                    <h3>Widget Models</h3>
+                    <pre><code class="language-python">class Widget(BaseModel):
+    __tablename__ = "widgets"
+    
+    name = Column(String(255), nullable=False)
+    slug = Column(String(100), unique=True, index=True, nullable=False)
+    description = Column(Text)
+    category = Column(String(100), nullable=False)
+    
+    # Configuration schema
+    config_schema = Column(JSONB, default={})
+    default_config = Column(JSONB, default={})
+    component_code = Column(Text)
+    
+    # Metadata
+    is_premium = Column(Boolean, default=False)
+    price = Column(Integer, default=0)
+    downloads = Column(Integer, default=0)
+    rating = Column(Integer, default=0)
+    
+    creator_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    creator = relationship("User")
+    
+    app_widgets = relationship("AppWidget", back_populates="widget")
+
+class AppWidget(BaseModel):
+    __tablename__ = "app_widgets"
+    
+    # Widget instance configuration
+    config = Column(JSONB, default={})
+    position = Column(JSONB, default={})  # x, y, width, height
+    
+    # Relationships
+    app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    widget_id = Column(UUID(as_uuid=True), ForeignKey("widgets.id"), nullable=False)
+    page_id = Column(UUID(as_uuid=True), ForeignKey("pages.id"), nullable=True)
+    
+    app = relationship("App", back_populates="widgets")
+    widget = relationship("Widget", back_populates="app_widgets")
+    page = relationship("Page")</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Working with Models</h2>
+                    
+                    <h3>Creating Records</h3>
+                    <pre><code class="language-python">from core.database import get_db, App, User
+
+# Get database session
+db = next(get_db())
+
+# Create a new app
+app = App(
+    name="My App",
+    slug="my-app",
+    description="A test application",
+    app_type="website",
+    owner_id=user.id,
+    config={"theme": "light"},
+    theme_config={"primary_color": "#3b82f6"}
+)
+
+db.add(app)
+db.commit()
+db.refresh(app)</code></pre>
+
+                    <h3>Querying Records</h3>
+                    <pre><code class="language-python"># Get all apps for a user
+apps = db.query(App).filter(
+    App.owner_id == user.id,
+    App.is_active == True
+).all()
+
+# Get app by ID
+app = db.query(App).filter(App.id == app_id).first()
+
+# Get app with relationships
+app = db.query(App).options(
+    joinedload(App.pages),
+    joinedload(App.widgets)
+).filter(App.id == app_id).first()</code></pre>
+
+                    <h3>Updating Records</h3>
+                    <pre><code class="language-python"># Update app
+app = db.query(App).filter(App.id == app_id).first()
+app.name = "Updated Name"
+app.config = {**app.config, "new_setting": "value"}
+db.commit()
+
+# Update JSONB field
+from sqlalchemy import func
+app = db.query(App).filter(App.id == app_id).first()
+app.config = func.jsonb_set(
+    app.config,
+    '{new_key}',
+    '"new_value"'
+)
+db.commit()</code></pre>
+
+                    <h3>Deleting Records</h3>
+                    <pre><code class="language-python"># Soft delete (recommended)
+app = db.query(App).filter(App.id == app_id).first()
+app.is_active = False
+db.commit()
+
+# Hard delete
+app = db.query(App).filter(App.id == app_id).first()
+db.delete(app)
+db.commit()</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>JSONB Fields</h2>
+                    <p>WebCraft uses JSONB for flexible configuration storage:</p>
+                    
+                    <h3>Accessing JSONB Data</h3>
+                    <pre><code class="language-python"># Get JSONB field
+app = db.query(App).filter(App.id == app_id).first()
+config = app.config  # Returns dict
+
+# Update JSONB field
+app.config = {
+    "theme": "dark",
+    "settings": {
+        "feature_enabled": True
+    }
+}
+db.commit()
+
+# Query JSONB fields
+from sqlalchemy import func
+
+# Find apps with specific config value
+apps = db.query(App).filter(
+    App.config['theme'].astext == 'dark'
+).all()
+
+# Find apps with nested JSONB value
+apps = db.query(App).filter(
+    App.config['settings']['feature_enabled'].astext == 'true'
+).all()</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Relationships</h2>
+                    <p>Models use SQLAlchemy relationships for easy navigation:</p>
+                    
+                    <h3>One-to-Many</h3>
+                    <pre><code class="language-python"># User has many apps
+user = db.query(User).filter(User.id == user_id).first()
+user_apps = user.apps  # List of App objects
+
+# App has many pages
+app = db.query(App).filter(App.id == app_id).first()
+app_pages = app.pages  # List of Page objects</code></pre>
+
+                    <h3>Many-to-Many</h3>
+                    <pre><code class="language-python"># Organization members (through OrganizationMember)
+organization = db.query(Organization).filter(
+    Organization.id == org_id
+).first()
+members = organization.members  # List of OrganizationMember objects
+
+for member in members:
+    user = member.user  # Access related user
+    role = member.role  # Access join table data</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Indexes and Performance</h2>
+                    <p>Models include indexes for common query patterns:</p>
+                    
+                    <pre><code class="language-python"># App model indexes
+__table_args__ = (
+    Index('idx_app_owner_slug', 'owner_id', 'slug'),
+    Index('idx_app_subdomain', 'subdomain'),
+    Index('idx_app_custom_domain', 'custom_domain'),
+)
+
+# Query using index
+apps = db.query(App).filter(
+    App.owner_id == user_id,
+    App.slug == 'my-app'
+).all()  # Uses idx_app_owner_slug</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Multi-Tenant Queries</h2>
+                    <p>Always filter by owner_id or organization_id for multi-tenant isolation:</p>
+                    
+                    <pre><code class="language-python"># ✅ Correct - Filter by owner
+apps = db.query(App).filter(
+    App.owner_id == current_user.id,
+    App.is_active == True
+).all()
+
+# ❌ Wrong - Missing owner filter
+apps = db.query(App).filter(
+    App.is_active == True
+).all()  # Returns all apps from all users!</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Database Session Management</h2>
+                    <p>Use dependency injection for database sessions:</p>
+                    
+                    <pre><code class="language-python">from fastapi import Depends
+from core.database import get_db
+from sqlalchemy.orm import Session
+
+@router.get("/apps")
+async def list_apps(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    apps = db.query(App).filter(
+        App.owner_id == current_user.id
+    ).all()
+    return apps</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="../database/schema-design.html">Schema Design</a> - Database design patterns</li>
+                        <li><a href="../database/migrations.html">Migrations</a> - Database migrations with Alembic</li>
+                        <li><a href="../database/querying.html">Querying</a> - Advanced query patterns</li>
+                        <li><a href="api-routers.html">API Routers</a> - Using models in API endpoints</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

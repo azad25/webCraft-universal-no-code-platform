@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Editor Save</title>
+</head>
+<body>
+    <h1>Test Editor Save Functionality</h1>
+    <p>Open the browser console and run this test:</p>
+    
+    <script>
+        // Test the editor save functionality
+        async function testEditorSave() {
+            const appId = '3c74739c-83ea-454c-8ebe-26821f3886d1';
+            const pageId = '87a74cb3-ff5d-4444-a8b7-a62755bb1427';
+            
+            // Test data
+            const testElements = [
+                {
+                    id: 'test-element-' + Date.now(),
+                    type: 'text',
+                    position: { x: 0, y: 0 },
+                    size: { width: 400, height: 100 },
+                    props: { content: 'Test element created at ' + new Date().toISOString() },
+                    style: { color: '#333' }
+                }
+            ];
+            
+            try {
+                console.log('🧪 Testing editor save...');
+                
+                // Save to page content
+                const response = await fetch(`/api/apps/${appId}/pages/${pageId}/content`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer admin-test-token'
+                    },
+                    body: JSON.stringify({
+                        elements: testElements,
+                        lastModified: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Save successful:', result);
+                    
+                    // Verify by loading the page
+                    const verifyResponse = await fetch(`/api/apps/${appId}/pages/${pageId}`, {
+                        headers: {
+                            'Authorization': 'Bearer admin-test-token'
+                        }
+                    });
+                    
+                    if (verifyResponse.ok) {
+                        const pageData = await verifyResponse.json();
+                        console.log('📄 Page content after save:', pageData.content);
+                        
+                        if (pageData.content.elements && pageData.content.elements.length > 0) {
+                            console.log('✅ Elements saved successfully!');
+                        } else {
+                            console.log('❌ No elements found in saved page');
+                        }
+                    }
+                } else {
+                    console.error('❌ Save failed:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+            }
+        }
+        
+        // Run the test
+        testEditorSave();
+    </script>
+</body>
+</html>

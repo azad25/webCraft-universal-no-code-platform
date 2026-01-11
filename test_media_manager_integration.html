@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Manager Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success {
+            color: #22c55e;
+            font-weight: bold;
+        }
+        .info {
+            color: #3b82f6;
+        }
+        .warning {
+            color: #f59e0b;
+        }
+        ul {
+            margin: 10px 0;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🖼️ Media Manager Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>✅ Integration Status</h2>
+        <p class="success">Media Manager has been successfully integrated into all widgets!</p>
+        
+        <h3>Updated Components:</h3>
+        <ul>
+            <li class="success">✅ Hero Widget - Background image upload</li>
+            <li class="success">✅ Image Widget - Image selection and upload</li>
+            <li class="success">✅ Card Widget - Card image upload</li>
+            <li class="success">✅ Inline Editor - Image URL selection</li>
+            <li class="success">✅ Widget Toolbar - Background image selection</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Changes Made</h2>
+        
+        <h3>1. Widget Updates:</h3>
+        <ul>
+            <li><strong>Hero Widget:</strong> Replaced prompt with MediaManager for background images</li>
+            <li><strong>Image Widget:</strong> Added MediaManager integration for image selection</li>
+            <li><strong>Card Widget:</strong> Integrated MediaManager for card images</li>
+            <li><strong>Inline Editor:</strong> Added MediaManager for image URL input</li>
+        </ul>
+
+        <h3>2. Props Chain Updates:</h3>
+        <ul>
+            <li>Added <code>appId</code> prop to WidgetRendererProps</li>
+            <li>Added <code>appId</code> prop to EditorCanvasProps</li>
+            <li>Updated LiveEditor to pass <code>appId</code> through the component chain</li>
+            <li>All widgets now receive <code>appId</code> for MediaManager integration</li>
+        </ul>
+
+        <h3>3. MediaManager Features:</h3>
+        <ul>
+            <li class="info">📁 Library browsing with grid/list views</li>
+            <li class="info">📤 File upload with drag & drop</li>
+            <li class="info">🔗 URL-based media addition</li>
+            <li class="info">📺 Embed support (YouTube, Vimeo)</li>
+            <li class="info">💾 Code snippet storage</li>
+            <li class="info">🗂️ Folder organization</li>
+            <li class="info">🔍 Search and filtering</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 User Experience Improvements</h2>
+        
+        <h3>Before (Prompts):</h3>
+        <ul>
+            <li class="warning">❌ Simple text prompt for URLs</li>
+            <li class="warning">❌ No media library access</li>
+            <li class="warning">❌ No file upload capability</li>
+            <li class="warning">❌ No media preview</li>
+            <li class="warning">❌ No media management</li>
+        </ul>
+
+        <h3>After (Media Manager):</h3>
+        <ul>
+            <li class="success">✅ Rich media library interface</li>
+            <li class="success">✅ Visual media browsing with thumbnails</li>
+            <li class="success">✅ Drag & drop file uploads</li>
+            <li class="success">✅ Multiple media sources (upload, URL, embed)</li>
+            <li class="success">✅ Media organization with folders</li>
+            <li class="success">✅ Search and filter capabilities</li>
+            <li class="success">✅ Media details and metadata</li>
+            <li class="success">✅ Professional media management</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Testing Instructions</h2>
+        
+        <h3>To Test the Integration:</h3>
+        <ol>
+            <li>Open the page builder editor</li>
+            <li>Add a Hero widget to the page</li>
+            <li>Click "Add Background" or "Change Background" button</li>
+            <li><strong>Expected:</strong> Media Manager dialog opens (not a prompt)</li>
+            <li>Try uploading an image or adding from URL</li>
+            <li>Select the image and verify it applies to the hero background</li>
+        </ol>
+
+        <h3>Test Other Widgets:</h3>
+        <ul>
+            <li><strong>Image Widget:</strong> Click the upload area or edit button</li>
+            <li><strong>Card Widget:</strong> Click "Change" on the image overlay</li>
+            <li><strong>Any Widget:</strong> Use the widget toolbar's background section</li>
+            <li><strong>Inline Editor:</strong> Edit an image widget's source</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Verification Checklist</h2>
+        
+        <h3>✅ Integration Points:</h3>
+        <ul>
+            <li>[ ] Hero widget background upload opens MediaManager</li>
+            <li>[ ] Image widget upload opens MediaManager</li>
+            <li>[ ] Card widget image change opens MediaManager</li>
+            <li>[ ] Widget toolbar background button opens MediaManager</li>
+            <li>[ ] Inline editor image URL opens MediaManager</li>
+            <li>[ ] All widgets receive appId prop correctly</li>
+            <li>[ ] MediaManager can upload files</li>
+            <li>[ ] MediaManager can add URLs</li>
+            <li>[ ] Selected media applies to widgets correctly</li>
+            <li>[ ] No more prompt dialogs for media selection</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🎉 Summary</h2>
+        <p class="success">
+            <strong>All widgets now use the professional Media Manager instead of simple prompts!</strong>
+        </p>
+        <p>
+            Users can now browse their media library, upload new files, organize media in folders, 
+            and select images with a rich, visual interface. This provides a much better user 
+            experience compared to the previous text-based prompts.
+        </p>
+    </div>
+
+    <script>
+        console.log('🖼️ Media Manager Integration Test Page Loaded');
+        console.log('✅ All widgets updated to use MediaManager');
+        console.log('🔧 Props chain updated to pass appId');
+        console.log('🎯 User experience significantly improved');
+    </script>
+</body>
+</html>

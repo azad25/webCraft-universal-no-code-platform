@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widgets API - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">API Reference</li>
+                <li><a href="apps.html"><i class="fas fa-th-large"></i> Apps API</a></li>
+                <li><a href="widgets.html" class="active"><i class="fas fa-cube"></i> Widgets API</a></li>
+                <li><a href="rest-endpoints.html"><i class="fas fa-plug"></i> REST Endpoints</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Widgets API</h1>
+                <p>Complete API reference for widget management and marketplace</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>The Widgets API provides endpoints for managing reusable components, widgets marketplace, and widget configurations. Widgets are the building blocks of WebCraft applications.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Base URL</h2>
+                    <pre><code class="language-bash">http://localhost:8000/api/v1/widgets</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Built-in Widget Categories</h2>
+                    <p>WebCraft includes 60+ built-in widgets organized into categories:</p>
+                    
+                    <h3>Layout Widgets</h3>
+                    <ul>
+                        <li><strong>container</strong> - Flexible container for organizing content</li>
+                        <li><strong>section</strong> - Full-width section with background options</li>
+                        <li><strong>columns</strong> - Multi-column layout system</li>
+                        <li><strong>grid</strong> - CSS Grid layout container</li>
+                        <li><strong>spacer</strong> - Add spacing between elements</li>
+                    </ul>
+
+                    <h3>Content Widgets</h3>
+                    <ul>
+                        <li><strong>heading</strong> - H1-H6 headings with styling</li>
+                        <li><strong>text</strong> - Rich text with formatting</li>
+                        <li><strong>paragraph</strong> - Paragraph text block</li>
+                        <li><strong>list</strong> - Ordered and unordered lists</li>
+                        <li><strong>quote</strong> - Blockquote with styling</li>
+                    </ul>
+
+                    <h3>Media Widgets</h3>
+                    <ul>
+                        <li><strong>image</strong> - Responsive images with effects</li>
+                        <li><strong>gallery</strong> - Image gallery with lightbox</li>
+                        <li><strong>video</strong> - Video player with controls</li>
+                        <li><strong>icon</strong> - Icon with customizable styling</li>
+                    </ul>
+
+                    <h3>Interactive Widgets</h3>
+                    <ul>
+                        <li><strong>button</strong> - Interactive button with actions</li>
+                        <li><strong>form</strong> - Contact and data collection forms</li>
+                        <li><strong>input</strong> - Form input field</li>
+                        <li><strong>select</strong> - Dropdown selection</li>
+                    </ul>
+
+                    <h3>Business Widgets</h3>
+                    <ul>
+                        <li><strong>chart</strong> - Data visualization charts</li>
+                        <li><strong>table</strong> - Data tables with sorting</li>
+                        <li><strong>pricing</strong> - Pricing table widget</li>
+                        <li><strong>testimonial</strong> - Customer testimonials</li>
+                    </ul>
+
+                    <h3>E-commerce Widgets</h3>
+                    <ul>
+                        <li><strong>product</strong> - Product showcase card</li>
+                        <li><strong>cart</strong> - Shopping cart widget</li>
+                        <li><strong>checkout</strong> - Checkout form</li>
+                    </ul>
+
+                    <h3>Advanced Widgets</h3>
+                    <ul>
+                        <li><strong>map</strong> - Interactive maps</li>
+                        <li><strong>calendar</strong> - Event calendar</li>
+                        <li><strong>social</strong> - Social media integration</li>
+                        <li><strong>custom</strong> - Custom HTML/CSS/JS</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>List Widgets</h2>
+                    <p>Get a paginated list of available widgets.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">GET /api/v1/widgets
+Authorization: Bearer {token}
+
+Query Parameters:
+- page: int (default: 1) - Page number
+- per_page: int (default: 20, max: 100) - Items per page
+- category: string (optional) - Filter by category
+- search: string (optional) - Search in names and descriptions
+- is_premium: bool (optional) - Filter premium widgets</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "widgets": [
+    {
+      "id": "uuid",
+      "name": "Text Widget",
+      "slug": "text",
+      "description": "Rich text with formatting",
+      "category": "content",
+      "config_schema": {
+        "text": {"type": "string"},
+        "fontSize": {"type": "string"},
+        "color": {"type": "string"}
+      },
+      "default_config": {
+        "text": "Enter text here",
+        "fontSize": "16px"
+      },
+      "is_premium": false,
+      "price": 0,
+      "downloads": 1250,
+      "rating": 4.5,
+      "created_at": "2024-01-01T00:00:00"
+    }
+  ],
+  "total": 60,
+  "page": 1,
+  "per_page": 20
+}</code></pre>
+
+                    <h3>Example</h3>
+                    <pre><code class="language-bash">curl -X GET "http://localhost:8000/api/v1/widgets?category=content&page=1" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Get Widget</h2>
+                    <p>Get detailed information about a specific widget.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">GET /api/v1/widgets/{widget_id}
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "name": "Text Widget",
+  "slug": "text",
+  "description": "Rich text with formatting options",
+  "category": "content",
+  "config_schema": {
+    "text": {
+      "type": "string",
+      "default": "Enter text here",
+      "label": "Text Content"
+    },
+    "tag": {
+      "type": "string",
+      "enum": ["h1", "h2", "h3", "h4", "h5", "h6", "p", "span"],
+      "default": "p",
+      "label": "HTML Tag"
+    },
+    "fontSize": {
+      "type": "string",
+      "default": "16px",
+      "label": "Font Size"
+    },
+    "color": {
+      "type": "string",
+      "format": "color",
+      "default": "#000000",
+      "label": "Text Color"
+    },
+    "textAlign": {
+      "type": "string",
+      "enum": ["left", "center", "right", "justify"],
+      "default": "left",
+      "label": "Text Alignment"
+    }
+  },
+  "default_config": {
+    "text": "Enter text here",
+    "tag": "p",
+    "fontSize": "16px",
+    "color": "#000000",
+    "textAlign": "left"
+  },
+  "is_premium": false,
+  "price": 0,
+  "downloads": 1250,
+  "rating": 4.5,
+  "created_at": "2024-01-01T00:00:00"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Create Custom Widget</h2>
+                    <p>Create a new custom widget for your organization.</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">POST /api/v1/widgets
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "name": "Custom Button",
+  "slug": "custom-button",
+  "description": "Custom styled button widget",
+  "category": "interactive",
+  "config_schema": {
+    "text": {"type": "string", "label": "Button Text"},
+    "variant": {
+      "type": "string",
+      "enum": ["primary", "secondary", "outline"],
+      "default": "primary"
+    },
+    "size": {
+      "type": "string",
+      "enum": ["sm", "md", "lg"],
+      "default": "md"
+    }
+  },
+  "default_config": {
+    "text": "Click Me",
+    "variant": "primary",
+    "size": "md"
+  },
+  "component_code": "export function CustomButton({ text, variant, size }) { ... }",
+  "is_premium": false,
+  "price": 0
+}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "id": "uuid",
+  "name": "Custom Button",
+  "slug": "custom-button",
+  "description": "Custom styled button widget",
+  "category": "interactive",
+  "config_schema": {...},
+  "default_config": {...},
+  "is_premium": false,
+  "price": 0,
+  "downloads": 0,
+  "rating": 0,
+  "created_at": "2024-01-01T00:00:00"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Update Widget</h2>
+                    <p>Update an existing widget (only for widgets you own).</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">PUT /api/v1/widgets/{widget_id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "name": "Updated Widget Name",
+  "description": "Updated description",
+  "config_schema": {...},
+  "default_config": {...}
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Delete Widget</h2>
+                    <p>Delete a widget (only for widgets you own).</p>
+                    
+                    <h3>Request</h3>
+                    <pre><code class="language-bash">DELETE /api/v1/widgets/{widget_id}
+Authorization: Bearer {token}</code></pre>
+
+                    <h3>Response</h3>
+                    <pre><code class="language-json">{
+  "message": "Widget deleted successfully"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Widget Configuration Schema</h2>
+                    <p>Widgets use JSON Schema for configuration. Here's an example:</p>
+                    
+                    <pre><code class="language-json">{
+  "config_schema": {
+    "text": {
+      "type": "string",
+      "default": "Enter text here",
+      "label": "Text Content",
+      "description": "The text content to display"
+    },
+    "fontSize": {
+      "type": "string",
+      "default": "16px",
+      "label": "Font Size",
+      "description": "CSS font size value"
+    },
+    "color": {
+      "type": "string",
+      "format": "color",
+      "default": "#000000",
+      "label": "Text Color"
+    },
+    "textAlign": {
+      "type": "string",
+      "enum": ["left", "center", "right", "justify"],
+      "default": "left",
+      "label": "Text Alignment"
+    },
+    "linkConfig": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["page", "section", "data", "custom", "external", "action"]
+        },
+        "target": {"type": "string"},
+        "openInNewTab": {"type": "boolean"}
+      }
+    }
+  }
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>TypeScript Client Example</h2>
+                    <pre><code class="language-typescript">import { apiClient } from '@/lib/api-client'
+
+// List widgets
+const getWidgets = async (category?: string, page = 1) => {
+  const response = await apiClient.get('/api/widgets', {
+    params: { category, page, per_page: 20 }
+  })
+  return response.data
+}
+
+// Get widget details
+const getWidget = async (widgetId: string) => {
+  const response = await apiClient.get(`/api/widgets/${widgetId}`)
+  return response.data
+}
+
+// Create custom widget
+const createWidget = async (widgetData: {
+  name: string
+  slug: string
+  category: string
+  config_schema: Record<string, any>
+  default_config: Record<string, any>
+}) => {
+  const response = await apiClient.post('/api/widgets', widgetData)
+  return response.data
+}
+
+// Update widget
+const updateWidget = async (widgetId: string, updates: Partial<Widget>) => {
+  const response = await apiClient.put(`/api/widgets/${widgetId}`, updates)
+  return response.data
+}
+
+// Delete widget
+const deleteWidget = async (widgetId: string) => {
+  const response = await apiClient.delete(`/api/widgets/${widgetId}`)
+  return response.data
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Widget Component Structure</h2>
+                    <p>Widgets in the frontend follow this structure:</p>
+                    
+                    <pre><code class="language-typescript">interface WidgetProps {
+  // Widget-specific props from config
+  [key: string]: any
+  
+  // Editor props
+  isEditing?: boolean
+  isPreview?: boolean
+  isSelected?: boolean
+  isHovered?: boolean
+  elementId?: string
+  
+  // Callbacks
+  onChange?: (props: any) => void
+  onStyleChange?: (style: any) => void
+}
+
+export function TextWidget({
+  text = 'Enter your text here...',
+  tag = 'p',
+  fontSize,
+  fontWeight,
+  color,
+  textAlign = 'left',
+  isEditing,
+  isPreview,
+  isSelected,
+  onChange,
+  onStyleChange
+}: WidgetProps) {
+  // Widget implementation
+  return (
+    <Component
+      style={{ fontSize, fontWeight, color, textAlign }}
+      contentEditable={isEditing}
+      onInput={handleInput}
+    >
+      {text}
+    </Component>
+  )
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Error Responses</h2>
+                    <p>All endpoints may return these error responses:</p>
+                    
+                    <h3>401 Unauthorized</h3>
+                    <pre><code class="language-json">{
+  "detail": "Could not validate credentials"
+}</code></pre>
+
+                    <h3>404 Not Found</h3>
+                    <pre><code class="language-json">{
+  "detail": "Widget not found"
+}</code></pre>
+
+                    <h3>400 Bad Request</h3>
+                    <pre><code class="language-json">{
+  "detail": "Validation error message"
+}</code></pre>
+
+                    <h3>403 Forbidden</h3>
+                    <pre><code class="language-json">{
+  "detail": "You don't have permission to modify this widget"
+}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="../frontend/widget-development.html">Widget Development Guide</a> - Create custom widgets</li>
+                        <li><a href="../tutorials/create-custom-widget.html">Create Custom Widget Tutorial</a> - Step-by-step guide</li>
+                        <li><a href="apps.html">Apps API</a> - App management endpoints</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from \'framer-motion\'
 import {
   Plus,
   Database,
@@ -111,7 +111,7 @@ export default function CollectionsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {STATS.map((stat, i) => (
-          <motion.div
+          <m.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -130,7 +130,7 @@ export default function CollectionsPage() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </m.div>
         ))}
       </div>
 
@@ -158,7 +158,7 @@ export default function CollectionsPage() {
         {COLLECTIONS.map((collection, index) => {
           const Icon = collection.icon
           return (
-            <motion.div
+            <m.div
               key={collection.id}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -229,7 +229,7 @@ export default function CollectionsPage() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </m.div>
           )
         })}
       </div>

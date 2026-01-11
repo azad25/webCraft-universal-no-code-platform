@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from \'framer-motion\'
 import {
   Plug, Search, Plus, Check, X, Settings, Trash2, RefreshCw,
   ExternalLink, Key, Shield, Zap, CreditCard, Mail, MessageSquare,
@@ -213,7 +213,7 @@ export default function IntegrationsPage() {
             {connectedIntegrations.map((integration, i) => {
               const Icon = getIcon(integration.category)
               return (
-                <motion.div
+                <m.div
                   key={integration.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -281,7 +281,7 @@ export default function IntegrationsPage() {
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </m.div>
               )
             })}
           </div>
@@ -320,7 +320,7 @@ export default function IntegrationsPage() {
               {filteredAvailable.map((integration, i) => {
                 const Icon = getIcon(integration.category)
                 return (
-                  <motion.div
+                  <m.div
                     key={integration.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -360,7 +360,7 @@ export default function IntegrationsPage() {
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </m.div>
                 )
               })}
             </div>

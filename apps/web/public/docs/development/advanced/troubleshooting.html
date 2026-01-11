@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooting & FAQ - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                
+                <li class="nav-section">Getting Started</li>
+                <li><a href="../getting-started/quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="../getting-started/installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="../getting-started/environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="../getting-started/project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="../architecture/system-overview.html"><i class="fas fa-sitemap"></i> System Overview</a></li>
+                <li><a href="../architecture/backend-architecture.html"><i class="fas fa-server"></i> Backend Architecture</a></li>
+                <li><a href="../architecture/frontend-architecture.html"><i class="fas fa-desktop"></i> Frontend Architecture</a></li>
+                <li><a href="../architecture/module-system.html"><i class="fas fa-puzzle-piece"></i> Module System</a></li>
+                <li><a href="../architecture/data-flow.html"><i class="fas fa-exchange-alt"></i> Data Flow</a></li>
+                <li><a href="../architecture/design-patterns.html"><i class="fas fa-code-branch"></i> Design Patterns</a></li>
+                
+                <li class="nav-section">Database</li>
+                <li><a href="../database/database-design.html"><i class="fas fa-database"></i> Database Design</a></li>
+                <li><a href="../database/migrations.html"><i class="fas fa-code-branch"></i> Migrations</a></li>
+                <li><a href="../database/performance.html"><i class="fas fa-tachometer-alt"></i> Performance</a></li>
+                <li><a href="../database/backup-restore.html"><i class="fas fa-shield-alt"></i> Backup & Restore</a></li>
+                
+                <li class="nav-section">API Development</li>
+                <li><a href="../api/rest-endpoints.html"><i class="fas fa-plug"></i> REST Endpoints</a></li>
+                <li><a href="../api/authentication.html"><i class="fas fa-key"></i> Authentication</a></li>
+                <li><a href="../api/rate-limiting.html"><i class="fas fa-gauge"></i> Rate Limiting</a></li>
+                <li><a href="../api/webhooks.html"><i class="fas fa-bell"></i> Webhooks</a></li>
+                
+                <li class="nav-section">Advanced Guides</li>
+                <li><a href="testing.html"><i class="fas fa-vial"></i> Testing Strategies</a></li>
+                <li><a href="deployment.html"><i class="fas fa-rocket"></i> Deployment & DevOps</a></li>
+                <li><a href="troubleshooting.html" class="active"><i class="fas fa-tools"></i> Troubleshooting & FAQ</a></li>
+                <li><a href="performance.html"><i class="fas fa-tachometer-alt"></i> Performance</a></li>
+                <li><a href="monitoring.html"><i class="fas fa-chart-line"></i> Monitoring</a></li>
+                <li><a href="security.html"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="scaling.html"><i class="fas fa-expand-arrows-alt"></i> Scaling</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <header>
+                <h1>Troubleshooting & FAQ</h1>
+                <div class="search-box">
+                    <input type="text" placeholder="Search documentation..." id="searchInput">
+                    <button onclick="searchDocs()"><i class="fas fa-search"></i></button>
+                </div>
+            </header>
+            
+            <div class="doc-content">
+                <div class="breadcrumb">
+                    <a href="../index.html">Home</a> / <a href="index.html">Advanced Guides</a> / Troubleshooting & FAQ
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Quick Diagnostics</h2>
+                    <p>Use these commands for rapid troubleshooting of common issues:</p>
+                    
+                    <div class="code-block">
+                        <pre><code class="language-bash"># System Health Check
+#!/bin/bash
+echo "=== WebCraft Health Check ==="
+
+# Check if services are running
+echo "Checking service status..."
+docker-compose ps
+
+# Check backend health
+echo "Checking backend health..."
+curl -f http://localhost:8000/health || echo "❌ Backend unhealthy"
+
+# Check frontend
+echo "Checking frontend..."
+curl -f http://localhost:3000 || echo "❌ Frontend unavailable"
+
+# Check database connection
+echo "Checking database..."
+docker-compose exec postgres pg_isready -U webcraft || echo "❌ Database connection failed"
+
+# Check Redis
+echo "Checking Redis..."
+docker-compose exec redis redis-cli ping || echo "❌ Redis connection failed"
+
+# Check disk space
+echo "Checking disk space..."
+df -h | grep -E "(Filesystem|/dev/)"
+
+# Check memory usage
+echo "Checking memory usage..."
+free -h
+
+# Check for recent errors
+echo "Checking recent errors..."
+docker-compose logs --tail=50 --timestamps backend | grep -i error || echo "No recent backend errors"
+docker-compose logs --tail=50 --timestamps frontend | grep -i error || echo "No recent frontend errors"
+
+echo "=== Health check complete ==="</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Common Issues</h2>
+                    
+                    <div class="troubleshooting-item">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Database Connection Issues</h3>
+                        <div class="symptoms">
+                            <strong>Symptoms:</strong>
+                            <ul>
+                                <li>Backend returns 500 errors</li>
+                                <li>"Connection refused" errors in logs</li>
+                                <li>"Database does not exist" errors</li>
+                                <li>Timeout errors during startup</li>
+                            </ul>
+                        </div>
+                        <div class="diagnosis">
+                            <strong>Diagnosis:</strong>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Check if PostgreSQL is running
+docker-compose ps postgres
+
+# Check PostgreSQL logs
+docker-compose logs postgres
+
+# Test connection manually
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "SELECT 1;"
+
+# Check network connectivity
+docker-compose exec backend nc -zv postgres 5432
+
+# Check environment variables
+docker-compose exec backend env | grep DATABASE</code></pre>
+                            </div>
+                        </div>
+                        <div class="solution">
+                            <strong>Solutions:</strong>
+                            <ol>
+                                <li><strong>PostgreSQL not running:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Restart PostgreSQL
+docker-compose restart postgres
+
+# Check if port is already in use
+netstat -tulpn | grep 5432
+
+# Check PostgreSQL configuration
+cat docker-compose.yml | grep postgres</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Database doesn't exist:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Create database manually
+docker-compose exec postgres createdb -U webcraft webcraft_dev
+
+# Run migrations
+alembic upgrade head
+
+# Or use Docker Compose
+docker-compose exec backend python -m alembic upgrade head</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Authentication failed:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check PostgreSQL users
+docker-compose exec postgres psql -U postgres -c "\du"
+
+# Reset PostgreSQL password
+docker-compose exec postgres psql -U postgres -c "ALTER USER webcraft PASSWORD 'new_password';"
+
+# Update connection string in .env file</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Network issues:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check Docker network
+docker network ls
+docker network inspect webcraft_default
+
+# Recreate network
+docker-compose down
+docker network prune
+docker-compose up -d</code></pre>
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="troubleshooting-item">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Redis Connection Issues</h3>
+                        <div class="symptoms">
+                            <strong>Symptoms:</strong>
+                            <ul>
+                                <li>Cache operations fail</li>
+                                <li>Session management issues</li>
+                                <li>"Connection refused" errors</li>
+                                <li>High latency on cached operations</li>
+                            </ul>
+                        </div>
+                        <div class="diagnosis">
+                            <strong>Diagnosis:</strong>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Check Redis status
+docker-compose ps redis
+
+# Check Redis logs
+docker-compose logs redis
+
+# Test Redis connection
+docker-compose exec redis redis-cli ping
+
+# Check Redis memory usage
+docker-compose exec redis redis-cli info memory
+
+# Check Redis configuration
+docker-compose exec redis redis-cli config get maxmemory</code></pre>
+                            </div>
+                        </div>
+                        <div class="solution">
+                            <strong>Solutions:</strong>
+                            <ol>
+                                <li><strong>Redis not responding:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Restart Redis
+docker-compose restart redis
+
+# Check Redis configuration
+cat docker-compose.yml | grep redis
+
+# Monitor Redis logs in real-time
+docker-compose logs -f redis</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Memory issues:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check memory usage
+docker-compose exec redis redis-cli info memory
+
+# Clear all cache (use with caution)
+docker-compose exec redis redis-cli FLUSHALL
+
+# Set memory limit
+docker-compose exec redis redis-cli config set maxmemory 256mb
+docker-compose exec redis redis-cli config set maxmemory-policy allkeys-lru</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Connection pool exhaustion:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check connected clients
+docker-compose exec redis redis-cli info clients
+
+# Check connection limits
+docker-compose exec redis redis-cli config get maxclients
+
+# Monitor active connections
+docker-compose exec redis redis-cli client list</code></pre>
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="troubleshooting-item">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Frontend Build Issues</h3>
+                        <div class="symptoms">
+                            <strong>Symptoms:</strong>
+                            <ul>
+                                <li>Build fails with module resolution errors</li>
+                                <li>TypeScript compilation errors</li>
+                                <li>Webpack bundling issues</li>
+                                <li>Missing dependencies</li>
+                            </ul>
+                        </div>
+                        <div class="diagnosis">
+                            <strong>Diagnosis:</strong>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Check Node.js version
+node --version
+
+# Check package.json
+cat apps/frontend/package.json | grep -E "(node|npm)"
+
+# Check for missing dependencies
+npm ls
+
+# Check TypeScript errors
+npm run type-check
+
+# Check linting errors
+npm run lint
+
+# Clear npm cache
+npm cache clean --force</code></pre>
+                            </div>
+                        </div>
+                        <div class="solution">
+                            <strong>Solutions:</strong>
+                            <ol>
+                                <li><strong>Node.js version mismatch:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Use correct Node.js version (check .nvmrc)
+cd apps/frontend
+nvm use
+
+# Or install correct version
+nvm install 18.17.0
+nvm use 18.17.0</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Missing dependencies:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Clean install
+cd apps/frontend
+rm -rf node_modules package-lock.json
+npm install
+
+# Check for peer dependency warnings
+npm install 2>&1 | grep -i peer</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>TypeScript errors:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check TypeScript configuration
+cat apps/frontend/tsconfig.json
+
+# Run TypeScript compiler directly
+npx tsc --noEmit
+
+# Skip type checking during build (temporary)
+NEXT_BUILD_IGNORE_TYPE_CHECK=true npm run build</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Memory issues during build:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Increase Node.js memory limit
+export NODE_OPTIONS="--max-old-space-size=4096"
+npm run build
+
+# Build with verbose output
+npm run build --verbose</code></pre>
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="troubleshooting-item">
+                        <h3><i class="fas fa-exclamation-triangle"></i> API Authentication Issues</h3>
+                        <div class="symptoms">
+                            <strong>Symptoms:</strong>
+                            <ul>
+                                <li>401 Unauthorized errors</li>
+                                <li>JWT token validation failures</li>
+                                <li>Session management problems</li>
+                                <li>CORS errors during authentication</li>
+                            </ul>
+                        </div>
+                        <div class="diagnosis">
+                            <strong>Diagnosis:</strong>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Check JWT configuration
+docker-compose exec backend env | grep JWT
+
+# Check authentication logs
+docker-compose logs backend | grep -i auth
+
+# Test authentication endpoint
+curl -X POST http://localhost:8000/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password"}'
+
+# Check CORS configuration
+docker-compose exec backend env | grep CORS</code></pre>
+                            </div>
+                        </div>
+                        <div class="solution">
+                            <strong>Solutions:</strong>
+                            <ol>
+                                <li><strong>JWT secret mismatch:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check JWT secret in environment
+docker-compose exec backend env | grep JWT_SECRET
+
+# Verify JWT secret consistency across services
+cat docker-compose.yml | grep JWT_SECRET
+
+# Regenerate JWT secret (if needed)
+openssl rand -hex 32</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>CORS configuration issues:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check CORS origins
+docker-compose exec backend env | grep CORS
+
+# Test with curl including origin
+curl -X POST http://localhost:8000/v1/auth/login \
+  -H "Origin: http://localhost:3000" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password"}'</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Token expiration issues:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check token expiration settings
+docker-compose exec backend env | grep JWT_EXPIRATION
+
+# Test token validation
+curl -X GET http://localhost:8000/v1/user/me \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code></pre>
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="troubleshooting-item">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Performance Issues</h3>
+                        <div class="symptoms">
+                            <strong>Symptoms:</strong>
+                            <ul>
+                                <li>High response times</li>
+                                <li>Database query timeouts</li>
+                                <li>Memory usage spikes</li>
+                                <li>CPU usage at 100%</li>
+                            </ul>
+                        </div>
+                        <div class="diagnosis">
+                            <strong>Diagnosis:</strong>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Check system resources
+docker stats --no-stream
+
+# Check slow queries in PostgreSQL
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT query, calls, total_time, mean_time 
+FROM pg_stat_statements 
+ORDER BY total_time DESC 
+LIMIT 10;"
+
+# Check Redis performance
+docker-compose exec redis redis-cli info stats | grep keyspace
+
+# Check application logs for slow requests
+docker-compose logs backend | grep -E "(slow|timeout|took)"
+
+# Monitor real-time logs
+docker-compose logs -f backend | grep -E "(GET|POST|PUT|DELETE)"</code></pre>
+                            </div>
+                        </div>
+                        <div class="solution">
+                            <strong>Solutions:</strong>
+                            <ol>
+                                <li><strong>Database performance:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check for missing indexes
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT schemaname, tablename, attname, n_distinct, correlation 
+FROM pg_stats 
+WHERE schemaname = 'public' AND n_distinct > 100 
+ORDER BY n_distinct DESC;"
+
+# Check table sizes
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT schemaname, tablename, 
+       pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
+FROM pg_tables 
+WHERE schemaname = 'public' 
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;"
+
+# Update table statistics
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "VACUUM ANALYZE;"</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Application performance:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check for memory leaks
+docker stats --no-stream | grep webcraft
+
+# Monitor garbage collection (if Python)
+docker-compose exec backend python -c "import gc; print(gc.get_stats())"
+
+# Check for connection leaks
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT count(*), state 
+FROM pg_stat_activity 
+GROUP BY state;"
+
+# Enable query logging temporarily
+docker-compose exec postgres psql -U postgres -c "
+ALTER SYSTEM SET log_min_duration_statement = 1000;
+SELECT pg_reload_conf();"</code></pre>
+                                    </div>
+                                </li>
+                                <li><strong>Redis performance:</strong>
+                                    <div class="code-block">
+                                        <pre><code class="language-bash"># Check Redis memory usage
+docker-compose exec redis redis-cli info memory
+
+# Check for large keys
+docker-compose exec redis redis-cli --bigkeys
+
+# Monitor Redis commands
+docker-compose exec redis redis-cli monitor</code></pre>
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>FAQ - Frequently Asked Questions</h2>
+                    
+                    <div class="faq-section">
+                        <h3>Installation & Setup</h3>
+                        
+                        <div class="faq-item">
+                            <h4>Q: I'm getting "command not found" errors during installation. What should I do?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> This usually means required tools aren't installed or not in your PATH.</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Check if required tools are installed
+which docker docker-compose node npm python3 pip3
+
+# Install missing tools
+# Ubuntu/Debian:
+sudo apt update
+sudo apt install docker.io docker-compose nodejs npm python3 python3-pip
+
+# macOS:
+brew install docker docker-compose node python3
+
+# Add user to docker group (Linux)
+sudo usermod -aG docker $USER
+newgrp docker</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Q: Docker containers keep restarting. How do I fix this?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Check container logs to identify the cause of the restart.</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Check container status
+docker-compose ps
+
+# View logs for failing containers
+docker-compose logs --tail=100 backend
+docker-compose logs --tail=100 frontend
+docker-compose logs --tail=100 postgres
+docker-compose logs --tail=100 redis
+
+# Common fixes:
+# 1. Check port conflicts
+netstat -tulpn | grep -E ":(3000|8000|5432|6379)"
+
+# 2. Check disk space
+df -h
+
+# 3. Check memory usage
+free -h
+
+# 4. Restart all services
+docker-compose down
+docker-compose up -d</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How do I reset my development environment completely?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Follow these steps for a complete reset:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Stop all services
+docker-compose down
+
+# Remove all containers and volumes
+docker-compose down --volumes --remove-orphans
+
+# Remove all images (optional)
+docker-compose down --rmi all
+
+# Clean up Docker system
+docker system prune -a
+
+# Remove node_modules (frontend)
+rm -rf apps/frontend/node_modules
+
+# Rebuild and start
+docker-compose up --build -d
+
+# Run migrations
+alembic upgrade head
+
+# Or using Docker
+docker-compose exec backend alembic upgrade head</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-section">
+                        <h3>Development & Debugging</h3>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How do I enable debug mode for better error messages?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Set the appropriate environment variables for your services.</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Backend debug mode
+export ENVIRONMENT=development
+export LOG_LEVEL=debug
+
+# Frontend debug mode
+export NODE_ENV=development
+export NEXT_PUBLIC_DEBUG=true
+
+# Update docker-compose.yml
+# Add to backend service environment:
+ENVIRONMENT: development
+LOG_LEVEL: debug
+
+# Add to frontend service environment:
+NODE_ENV: development
+NEXT_PUBLIC_DEBUG: "true"
+
+# Restart services
+docker-compose restart backend frontend</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How can I debug API requests and responses?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Use these tools and techniques for API debugging:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Enable request logging in backend
+docker-compose logs -f backend | grep -E "(POST|GET|PUT|DELETE|PATCH)"
+
+# Use curl for manual testing
+curl -X POST http://localhost:8000/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password"}' \
+  -v
+
+# Use httpie (alternative to curl)
+http POST localhost:8000/v1/auth/login email=test@example.com password=password
+
+# Monitor real-time requests
+docker-compose exec backend tail -f /app/logs/api.log
+
+# Use browser developer tools
+# Network tab shows all requests/responses
+# Console shows JavaScript errors
+
+# Postman collection for API testing
+# Import the collection from docs/postman/webcraft-api.json</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Q: My code changes aren't being reflected. What's wrong?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> This is usually due to caching or hot reload issues.</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Backend (Python)
+# Ensure you're using development mode
+export ENVIRONMENT=development
+
+# Check if auto-reload is working
+docker-compose logs backend | grep -i reload
+
+# Manual restart if needed
+docker-compose restart backend
+
+# Frontend (Next.js)
+# Clear Next.js cache
+rm -rf apps/frontend/.next
+
+# Clear browser cache
+# Hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
+
+# Check if hot reload is working
+# Look for "Fast Refresh" messages in browser console
+
+# Restart frontend service
+docker-compose restart frontend
+
+# Check file permissions
+ls -la apps/frontend/
+
+# Ensure files are being watched
+docker-compose exec backend ls -la /app</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-section">
+                        <h3>Production Issues</h3>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How do I check if my production deployment is healthy?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Use these commands to verify production health:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Check service status
+kubectl get pods -n webcraft
+kubectl get services -n webcraft
+kubectl get ingress -n webcraft
+
+# Check logs
+kubectl logs -f deployment/webcraft-backend -n webcraft
+kubectl logs -f deployment/webcraft-frontend -n webcraft
+
+# Check resource usage
+kubectl top pods -n webcraft
+kubectl top nodes
+
+# Test health endpoints
+curl -f https://api.yourdomain.com/health
+curl -f https://app.yourdomain.com/health
+
+# Check SSL certificate
+openssl s_client -connect yourdomain.com:443 -servername yourdomain.com < /dev/null
+
+# Monitor real-time metrics
+kubectl port-forward -n monitoring service/prometheus 9090:9090
+# Open http://localhost:9090 in browser
+
+# Check database connectivity
+kubectl exec -it deployment/webcraft-backend -n webcraft -- \
+  python -c "import psycopg2; psycopg2.connect('postgresql://user:pass@postgres:5432/webcraft')"</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How do I scale my application in production?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Use Kubernetes scaling features:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Manual scaling
+kubectl scale deployment webcraft-backend --replicas=5 -n webcraft
+kubectl scale deployment webcraft-frontend --replicas=3 -n webcraft
+
+# Check current scaling
+kubectl get hpa -n webcraft
+
+# Edit HPA settings
+kubectl edit hpa webcraft-backend-hpa -n webcraft
+
+# Scale database (if using managed service)
+# AWS RDS: Modify instance class in AWS Console or using AWS CLI
+aws rds modify-db-instance \
+  --db-instance-identifier webcraft-postgres \
+  --db-instance-class db.t3.large \
+  --apply-immediately
+
+# Scale Redis (if using managed service)
+# AWS ElastiCache: Modify node type in AWS Console
+
+# Check resource quotas
+kubectl describe quota -n webcraft
+
+# Monitor scaling events
+kubectl get events -n webcraft --sort-by='.lastTimestamp'</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How do I perform a zero-downtime deployment?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Follow these steps for zero-downtime deployments:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># 1. Use rolling updates (configured in deployment.yaml)
+kubectl apply -f k8s/backend-deployment.yaml
+
+# 2. Monitor rollout status
+kubectl rollout status deployment/webcraft-backend -n webcraft
+
+# 3. Test new version before full rollout
+kubectl set image deployment/webcraft-backend \
+  backend=webcraft/backend:new-version \
+  --record -n webcraft
+
+# 4. If issues occur, rollback immediately
+kubectl rollout undo deployment/webcraft-backend -n webcraft
+
+# 5. Use readiness probes to ensure pods are ready
+kubectl describe pod <pod-name> -n webcraft | grep -A 5 "Readiness"
+
+# 6. Gradual rollout with canary deployment
+# Use Flagger or similar tool for advanced canary deployments
+
+# 7. Blue-green deployment (alternative approach)
+# Deploy to new environment, test, then switch traffic
+
+# 8. Monitor during deployment
+kubectl logs -f deployment/webcraft-backend -n webcraft | grep -E "(error|Error)"
+
+# 9. Verify health after deployment
+curl -f https://api.yourdomain.com/health</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-section">
+                        <h3>Database Issues</h3>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How do I handle database migration failures?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Follow these steps to recover from migration failures:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Check current migration status
+alembic current
+alembic history --verbose
+
+# Check failed migrations
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT * FROM alembic_version;"
+
+# If migration is stuck, check locks
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT * FROM pg_locks WHERE NOT granted;"
+
+# Kill blocking connections if necessary
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT pg_terminate_backend(pid) 
+FROM pg_stat_activity 
+WHERE pid <> pg_backend_pid() 
+AND state = 'idle in transaction';"
+
+# Rollback to previous migration
+alembic downgrade -1
+
+# Or rollback to specific revision
+alembic downgrade base
+
+# Fix migration script and retry
+# Edit the migration file in alembic/versions/
+alembic upgrade head
+
+# If all else fails, manual intervention
+# Backup database first
+docker-compose exec postgres pg_dump -U webcraft webcraft_dev > backup.sql
+
+# Manually fix database state
+# Then mark migration as applied
+alembic stamp head</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Q: How do I optimize slow database queries?</h4>
+                            <div class="answer">
+                                <p><strong>A:</strong> Use these techniques to identify and optimize slow queries:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-bash"># Enable query logging
+docker-compose exec postgres psql -U postgres -c "
+ALTER SYSTEM SET log_min_duration_statement = 1000;
+SELECT pg_reload_conf();"
+
+# Find slow queries
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT query, calls, total_time, mean_time, rows 
+FROM pg_stat_statements 
+ORDER BY total_time DESC 
+LIMIT 10;"
+
+# Analyze query execution plan
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';"
+
+# Check for missing indexes
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT schemaname, tablename, attname, n_distinct 
+FROM pg_stats 
+WHERE schemaname = 'public' AND n_distinct > 100 
+ORDER BY n_distinct DESC;"
+
+# Create appropriate indexes
+CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
+CREATE INDEX CONCURRENTLY idx_workspaces_user_id ON workspaces(user_id);
+
+# Update table statistics
+VACUUM ANALYZE users;
+
+# Monitor query performance after optimization
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT query, calls, total_time, mean_time 
+FROM pg_stat_statements 
+WHERE query LIKE '%users%' 
+ORDER BY mean_time DESC;"</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Diagnostic Tools</h2>
+                    
+                    <div class="tools-grid">
+                        <div class="tool-card">
+                            <h3><i class="fas fa-heartbeat"></i> Health Check Script</h3>
+                            <p>Comprehensive system health monitoring</p>
+                            <div class="code-block">
+                                <pre><code class="language-bash">#!/bin/bash
+# health-check.sh
+
+echo "=== WebCraft System Health Check ==="
+echo "Timestamp: $(date)"
+
+# System resources
+echo "--- System Resources ---"
+echo "CPU Usage: $(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1)%"
+echo "Memory Usage: $(free | grep Mem | awk '{printf "%.2f%%", $3/$2 * 100.0}')"
+echo "Disk Usage: $(df -h / | awk 'NR==2{print $5}')"
+
+# Docker services
+echo -e "\n--- Docker Services ---"
+docker-compose ps
+
+# Database health
+echo -e "\n--- Database Health ---"
+docker-compose exec -T postgres pg_isready -U webcraft && echo "✅ Database ready" || echo "❌ Database not ready"
+
+# Redis health
+echo -e "\n--- Redis Health ---"
+docker-compose exec -T redis redis-cli ping && echo "✅ Redis ready" || echo "❌ Redis not ready"
+
+# API health
+echo -e "\n--- API Health ---"
+curl -s -f http://localhost:8000/health > /dev/null && echo "✅ API healthy" || echo "❌ API not healthy"
+
+# Frontend health
+echo -e "\n--- Frontend Health ---"
+curl -s -f http://localhost:3000 > /dev/null && echo "✅ Frontend healthy" || echo "❌ Frontend not healthy"
+
+echo -e "\n=== Health Check Complete ==="</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="tool-card">
+                            <h3><i class="fas fa-search"></i> Log Analysis</h3>
+                            <p>Advanced log filtering and analysis</p>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Find all errors in last hour
+docker-compose logs --since=1h | grep -i error
+
+# Count errors by type
+docker-compose logs --since=1h | grep -i error | awk '{print $5}' | sort | uniq -c
+
+# Find slow requests (>1s)
+docker-compose logs backend | grep -E "took [0-9]{4,}ms"
+
+# Monitor specific endpoints
+docker-compose logs -f backend | grep -E "(POST|GET).*\/v1\/workspaces"
+
+# Find database connection issues
+docker-compose logs | grep -E "(connection|Connection|psycopg2)"
+
+# Export logs for analysis
+docker-compose logs --timestamps --since=24h > webcraft-logs-$(date +%Y%m%d).txt
+
+# Real-time error monitoring
+docker-compose logs -f backend | grep --line-buffered -i error | while read line; do
+    echo "$(date): $line"
+    # Add notification here (email, slack, etc.)
+done</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="tool-card">
+                            <h3><i class="fas fa-chart-line"></i> Performance Monitoring</h3>
+                            <p>Real-time performance metrics</p>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Monitor container resource usage
+watch -n 2 'docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"'
+
+# Monitor database performance
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT 
+    schemaname,
+    tablename, 
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
+    n_live_tup as rows
+FROM pg_tables 
+WHERE schemaname = 'public' 
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;"
+
+# Monitor Redis performance
+docker-compose exec redis redis-cli info stats | grep -E "(keyspace_hits|keyspace_misses|expired_keys)"
+
+# Monitor API response times
+docker-compose logs backend | grep -E "(POST|GET|PUT|DELETE)" | tail -20 | awk '{print $1, $2, $6, $7, $(NF-1), $NF}'
+
+# Check for memory leaks
+docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}" | sort -k3 -nr</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="tool-card">
+                            <h3><i class="fas fa-network-wired"></i> Network Diagnostics</h3>
+                            <p>Network connectivity and DNS troubleshooting</p>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># Test container connectivity
+docker-compose exec backend nc -zv postgres 5432
+docker-compose exec backend nc -zv redis 6379
+
+# Check DNS resolution
+docker-compose exec backend nslookup postgres
+docker-compose exec backend nslookup redis
+
+# Test external connectivity
+docker-compose exec backend curl -I https://google.com
+
+# Check network configuration
+docker network ls
+docker network inspect webcraft_default
+
+# Monitor network traffic
+docker-compose exec backend netstat -tulpn
+docker-compose exec backend ss -tulpn
+
+# Test API connectivity from frontend container
+docker-compose exec frontend curl -f http://backend:8000/health</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Emergency Procedures</h2>
+                    
+                    <div class="emergency-procedures">
+                        <div class="procedure-card critical">
+                            <h3><i class="fas fa-fire"></i> Complete System Outage</h3>
+                            <div class="steps">
+                                <ol>
+                                    <li><strong>Assess the scope:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Check all services
+docker-compose ps
+kubectl get pods -A
+
+# Check system resources
+top
+free -h
+df -h</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Check logs for critical errors:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Recent errors across all services
+docker-compose logs --since=10m | grep -i error
+kubectl logs --all-containers=true --since=10m | grep -i error</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Restart services in order:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Development environment
+docker-compose restart postgres redis
+docker-compose restart backend
+docker-compose restart frontend
+
+# Production environment
+kubectl rollout restart deployment/webcraft-backend -n webcraft
+kubectl rollout restart deployment/webcraft-frontend -n webcraft</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Verify recovery:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Test health endpoints
+curl -f http://localhost:8000/health
+curl -f http://localhost:3000
+
+# Check service status
+docker-compose ps
+kubectl get pods -n webcraft</code></pre>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="procedure-card high">
+                            <h3><i class="fas fa-database"></i> Database Recovery</h3>
+                            <div class="steps">
+                                <ol>
+                                    <li><strong>Check database status:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Check if PostgreSQL is running
+docker-compose ps postgres
+kubectl get pods -n webcraft | grep postgres
+
+# Check database logs
+docker-compose logs postgres | tail -50
+kubectl logs -f deployment/postgres -n webcraft</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Test database connectivity:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Test connection
+docker-compose exec postgres pg_isready -U webcraft
+kubectl exec -it deployment/postgres -n webcraft -- pg_isready -U webcraft
+
+# Check database exists
+docker-compose exec postgres psql -U webcraft -l
+kubectl exec -it deployment/postgres -n webcraft -- psql -U webcraft -l</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Recover from backup (if needed):</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Restore from latest backup
+# Development
+pg_restore -h localhost -U webcraft -d webcraft_dev latest_backup.dump
+
+# Production (from S3)
+aws s3 cp s3://webcraft-backups/database/latest_backup.dump /tmp/backup.dump
+kubectl exec -it deployment/postgres -n webcraft -- \
+  pg_restore -U webcraft -d webcraft /tmp/backup.dump</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Verify data integrity:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Check critical tables
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT COUNT(*) FROM users;
+SELECT COUNT(*) FROM workspaces;
+SELECT COUNT(*) FROM pages;"
+
+# Run data validation queries
+# (Add your specific validation queries here)</code></pre>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="procedure-card medium">
+                            <h3><i class="fas fa-shield-alt"></i> Security Incident Response</h3>
+                            <div class="steps">
+                                <ol>
+                                    <li><strong>Identify the threat:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Check for suspicious activity
+docker-compose logs | grep -E "(failed|unauthorized|invalid)"
+kubectl logs --all-containers=true | grep -E "(failed|unauthorized|invalid)"
+
+# Check for unusual traffic
+kubectl logs deployment/webcraft-backend -n webcraft | grep -E "(rate.limit|too.many.requests)"
+
+# Monitor authentication attempts
+docker-compose logs backend | grep -E "(login.failed|invalid.credentials)"</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Isolate affected services:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Scale down affected services
+kubectl scale deployment webcraft-backend --replicas=0 -n webcraft
+
+# Block suspicious IPs
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-blocked-ips
+  namespace: ingress-nginx
+data:
+  blocked-ips: |
+    192.168.1.100
+    10.0.0.50
+EOF</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Rotate compromised credentials:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Generate new JWT secret
+openssl rand -hex 32
+
+# Update Kubernetes secrets
+kubectl create secret generic webcraft-secrets \
+  --from-literal=jwt-secret="$(openssl rand -hex 32)" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Rotate database passwords
+# (Follow your cloud provider's password rotation process)
+
+# Restart services to pick up new secrets
+kubectl rollout restart deployment/webcraft-backend -n webcraft</code></pre>
+                                        </div>
+                                    </li>
+                                    <li><strong>Document and report:</strong>
+                                        <div class="code-block">
+                                            <pre><code class="language-bash"># Collect evidence
+docker-compose logs --since=1h > incident-logs-$(date +%Y%m%d-%H%M).txt
+kubectl logs --all-containers=true --since=1h > incident-logs-k8s-$(date +%Y%m%d-%H%M).txt
+
+# Check for data breaches
+docker-compose exec postgres psql -U webcraft -d webcraft_dev -c "
+SELECT COUNT(*) FROM audit_logs 
+WHERE created_at > NOW() - INTERVAL '1 hour' 
+AND action_type = 'unauthorized_access';"
+
+# Create incident report
+echo "Incident Report - $(date)" > incident-report.md
+echo "Affected services: ..." >> incident-report.md
+echo "Timeline: ..." >> incident-report.md</code></pre>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Getting Help</h2>
+                    
+                    <div class="help-resources">
+                        <div class="resource-card">
+                            <h3><i class="fab fa-github"></i> GitHub Issues</h3>
+                            <p>Report bugs and request features</p>
+                            <a href="https://github.com/webcraft/webcraft/issues" class="btn secondary">Open Issue</a>
+                        </div>
+                        
+                        <div class="resource-card">
+                            <h3><i class="fab fa-discord"></i> Discord Community</h3>
+                            <p>Get help from the community</p>
+                            <a href="https://discord.gg/webcraft" class="btn secondary">Join Discord</a>
+                        </div>
+                        
+                        <div class="resource-card">
+                            <h3><i class="fas fa-envelope"></i> Email Support</h3>
+                            <p>Contact our support team</p>
+                            <a href="mailto:support@webcraft.app" class="btn secondary">Email Support</a>
+                        </div>
+                        
+                        <div class="resource-card">
+                            <h3><i class="fas fa-book"></i> Documentation</h3>
+                            <p>Browse comprehensive guides</p>
+                            <a href="../index.html" class="btn secondary">View Docs</a>
+                        </div>
+                    </div>
+                    
+                    <div class="support-info">
+                        <h3>When Requesting Help</h3>
+                        <p>Please provide the following information to help us assist you faster:</p>
+                        <ul>
+                            <li><strong>Environment:</strong> Development, staging, or production</li>
+                            <li><strong>Error messages:</strong> Complete error logs and stack traces</li>
+                            <li><strong>Steps to reproduce:</strong> Detailed steps that lead to the issue</li>
+                            <li><strong>System information:</strong> OS, Docker version, browser (if applicable)</li>
+                            <li><strong>Recent changes:</strong> Any recent code or configuration changes</li>
+                            <li><strong>Health check output:</strong> Results from the health check script</li>
+                        </ul>
+                        
+                        <div class="code-block">
+                            <pre><code class="language-bash"># Generate system report
+#!/bin/bash
+echo "=== WebCraft System Report ==="
+echo "Date: $(date)"
+echo "User: $(whoami)"
+echo "OS: $(uname -a)"
+echo "Docker: $(docker --version)"
+echo "Docker Compose: $(docker-compose --version)"
+echo ""
+echo "=== Service Status ==="
+docker-compose ps
+kubectl version --short 2>/dev/null || echo "Kubernetes not available"
+echo ""
+echo "=== Recent Logs ==="
+docker-compose logs --tail=20 --timestamps backend 2>/dev/null | tail -10
+echo ""
+echo "=== Environment ==="
+env | grep -E "(WEBCRAFT|DATABASE|REDIS)" | sort</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Next Steps</h2>
+                    <p>Now that you're equipped with troubleshooting knowledge, here are the next topics to explore:</p>
+                    
+                    <div class="next-steps">
+                        <a href="performance.html" class="btn primary">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Performance Optimization
+                        </a>
+                        <a href="monitoring.html" class="btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            Monitoring & Observability
+                        </a>
+                        <a href="security.html" class="btn primary">
+                            <i class="fas fa-shield-alt"></i>
+                            Security Hardening
+                        </a>
+                        <a href="scaling.html" class="btn primary">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                            Auto-scaling Strategies
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <footer>
+                <div class="footer-content">
+                    <p>&copy; 2024 WebCraft. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="https://github.com/webcraft"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="https://discord.gg/webcraft"><i class="fab fa-discord"></i> Discord</a>
+                        <a href="mailto:support@webcraft.app"><i class="fas fa-envelope"></i> Support</a>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

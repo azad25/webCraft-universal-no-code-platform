@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from \'framer-motion\'
 import { ArrowLeft, ArrowRight, Globe, ShoppingCart, Users, FileText, Calendar, Briefcase, Sparkles, Loader2, Layout } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -196,7 +196,7 @@ export default function NewAppForm() {
 
                 {/* Step 1: Choose Type */}
                 {step === 1 && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
@@ -209,7 +209,7 @@ export default function NewAppForm() {
                             {appTypes.map((type) => {
                                 const IconComponent = iconMap[type.icon as keyof typeof iconMap] || Globe
                                 return (
-                                    <motion.button
+                                    <m.button
                                         key={type.id}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
@@ -231,7 +231,7 @@ export default function NewAppForm() {
                                                 {type.templates.length} template{type.templates.length !== 1 ? 's' : ''}
                                             </Badge>
                                         )}
-                                    </motion.button>
+                                    </m.button>
                                 )
                             })}
                         </div>
@@ -242,12 +242,12 @@ export default function NewAppForm() {
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
 
                 {/* Step 2: Choose Template */}
                 {step === 2 && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
@@ -258,7 +258,7 @@ export default function NewAppForm() {
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                             {/* Blank Template */}
-                            <motion.button
+                            <m.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setSelectedTemplate('blank')}
@@ -274,11 +274,11 @@ export default function NewAppForm() {
                                 </div>
                                 <h3 className="font-semibold mb-1">Start from Scratch</h3>
                                 <p className="text-sm text-muted-foreground">Begin with a blank canvas</p>
-                            </motion.button>
+                            </m.button>
 
                             {/* Available Templates */}
                             {availableTemplates.map((template) => (
-                                <motion.button
+                                <m.button
                                     key={template.id}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
@@ -307,7 +307,7 @@ export default function NewAppForm() {
                                         <span>•</span>
                                         <span>{template.downloads} downloads</span>
                                     </div>
-                                </motion.button>
+                                </m.button>
                             ))}
                         </div>
 
@@ -328,12 +328,12 @@ export default function NewAppForm() {
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
 
                 {/* Step 3: App Details */}
                 {step === 3 && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
@@ -375,12 +375,12 @@ export default function NewAppForm() {
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
 
                 {/* Step 4: Choose Starting Method */}
                 {step === 4 && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
@@ -390,7 +390,7 @@ export default function NewAppForm() {
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-8">
-                            <motion.button
+                            <m.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setUseAI(false)}
@@ -402,9 +402,9 @@ export default function NewAppForm() {
                                 <Layout className="w-10 h-10 text-primary mb-4" />
                                 <h3 className="text-xl font-semibold mb-2">Visual Editor</h3>
                                 <p className="text-muted-foreground">Use our drag-and-drop editor to build your app visually</p>
-                            </motion.button>
+                            </m.button>
 
-                            <motion.button
+                            <m.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setUseAI(true)}
@@ -416,7 +416,7 @@ export default function NewAppForm() {
                                 <Sparkles className="w-10 h-10 text-purple-500 mb-4" />
                                 <h3 className="text-xl font-semibold mb-2">Generate with AI</h3>
                                 <p className="text-muted-foreground">Let AI create content based on your description</p>
-                            </motion.button>
+                            </m.button>
                         </div>
 
                         <div className="flex justify-between">
@@ -438,7 +438,7 @@ export default function NewAppForm() {
                                 )}
                             </Button>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </main>
         </div>

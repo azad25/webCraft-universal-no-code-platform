@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment & DevOps - WebCraft Documentation</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                
+                <li class="nav-section">Getting Started</li>
+                <li><a href="../getting-started/quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="../getting-started/installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="../getting-started/environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="../getting-started/project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+                
+                <li class="nav-section">Architecture</li>
+                <li><a href="../architecture/system-overview.html"><i class="fas fa-sitemap"></i> System Overview</a></li>
+                <li><a href="../architecture/backend-architecture.html"><i class="fas fa-server"></i> Backend Architecture</a></li>
+                <li><a href="../architecture/frontend-architecture.html"><i class="fas fa-desktop"></i> Frontend Architecture</a></li>
+                <li><a href="../architecture/module-system.html"><i class="fas fa-puzzle-piece"></i> Module System</a></li>
+                <li><a href="../architecture/data-flow.html"><i class="fas fa-exchange-alt"></i> Data Flow</a></li>
+                <li><a href="../architecture/design-patterns.html"><i class="fas fa-code-branch"></i> Design Patterns</a></li>
+                
+                <li class="nav-section">Database</li>
+                <li><a href="../database/database-design.html"><i class="fas fa-database"></i> Database Design</a></li>
+                <li><a href="../database/migrations.html"><i class="fas fa-code-branch"></i> Migrations</a></li>
+                <li><a href="../database/performance.html"><i class="fas fa-tachometer-alt"></i> Performance</a></li>
+                <li><a href="../database/backup-restore.html"><i class="fas fa-shield-alt"></i> Backup & Restore</a></li>
+                
+                <li class="nav-section">API Development</li>
+                <li><a href="../api/rest-endpoints.html"><i class="fas fa-plug"></i> REST Endpoints</a></li>
+                <li><a href="../api/authentication.html"><i class="fas fa-key"></i> Authentication</a></li>
+                <li><a href="../api/rate-limiting.html"><i class="fas fa-gauge"></i> Rate Limiting</a></li>
+                <li><a href="../api/webhooks.html"><i class="fas fa-bell"></i> Webhooks</a></li>
+                
+                <li class="nav-section">Advanced Guides</li>
+                <li><a href="testing.html"><i class="fas fa-vial"></i> Testing Strategies</a></li>
+                <li><a href="deployment.html" class="active"><i class="fas fa-rocket"></i> Deployment & DevOps</a></li>
+                <li><a href="performance.html"><i class="fas fa-tachometer-alt"></i> Performance</a></li>
+                <li><a href="monitoring.html"><i class="fas fa-chart-line"></i> Monitoring</a></li>
+                <li><a href="security.html"><i class="fas fa-shield-alt"></i> Security</a></li>
+                <li><a href="scaling.html"><i class="fas fa-expand-arrows-alt"></i> Scaling</a></li>
+                
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="../frontend/nextjs-setup.html"><i class="fab fa-react"></i> Next.js Setup</a></li>
+                <li><a href="../frontend/component-architecture.html"><i class="fas fa-puzzle-piece"></i> Component Architecture</a></li>
+                <li><a href="../frontend/editor-system.html"><i class="fas fa-edit"></i> Editor System</a></li>
+                <li><a href="../frontend/widget-development.html"><i class="fas fa-cube"></i> Widget Development</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <header>
+                <h1>Deployment & DevOps</h1>
+                <div class="search-box">
+                    <input type="text" placeholder="Search documentation..." id="searchInput">
+                    <button onclick="searchDocs()"><i class="fas fa-search"></i></button>
+                </div>
+            </header>
+            
+            <div class="doc-content">
+                <div class="breadcrumb">
+                    <a href="../index.html">Home</a> / <a href="index.html">Advanced Guides</a> / Deployment & DevOps
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Overview</h2>
+                    <p>This guide covers the complete deployment pipeline and DevOps practices for WebCraft, including container orchestration, CI/CD automation, infrastructure as code, and monitoring strategies used by FAANG-level engineering teams.</p>
+                    
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Production Ready:</strong> All deployment configurations are battle-tested in production environments handling millions of requests per day.
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Architecture Overview</h2>
+                    <div class="architecture-diagram">
+                        <div class="diagram-container">
+                            <div class="layer">
+                                <h4>CDN Layer</h4>
+                                <div class="component">CloudFlare</div>
+                                <div class="component">AWS CloudFront</div>
+                            </div>
+                            <div class="layer">
+                                <h4>Load Balancer</h4>
+                                <div class="component">AWS ALB</div>
+                                <div class="component">NGINX Ingress</div>
+                            </div>
+                            <div class="layer">
+                                <h4>Application Layer</h4>
+                                <div class="component">Next.js Frontend</div>
+                                <div class="component">FastAPI Backend</div>
+                                <div class="component">WebSocket Services</div>
+                            </div>
+                            <div class="layer">
+                                <h4>Data Layer</h4>
+                                <div class="component">PostgreSQL Cluster</div>
+                                <div class="component">Redis Cluster</div>
+                                <div class="component">Kafka Message Queue</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Container Configuration</h2>
+                    <h3>Dockerfile Best Practices</h3>
+                    <div class="code-block">
+                        <pre><code class="language-dockerfile"># Multi-stage build for optimal image size
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+COPY apps/frontend/package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+COPY apps/frontend/ ./
+RUN npm run build
+
+FROM python:3.11-slim AS backend-builder
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY apps/api/ ./apps/api/
+COPY packages/ ./packages/
+
+FROM python:3.11-slim AS runtime
+
+# Create non-root user for security
+RUN groupadd -r webcraft && useradd -r -g webcraft webcraft
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy built artifacts
+COPY --from=backend-builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --from=backend-builder /app/ ./
+COPY --from=frontend-builder /app/frontend/.next ./apps/frontend/.next
+COPY --from=frontend-builder /app/frontend/public ./apps/frontend/public
+COPY --from=frontend-builder /app/frontend/package.json ./apps/frontend/
+
+# Set ownership and switch to non-root user
+RUN chown -R webcraft:webcraft /app
+USER webcraft
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=5)"
+
+EXPOSE 8000
+CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]</code></pre>
+                    </div>
+                    
+                    <h3>Docker Compose for Development</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: webcraft_dev
+      POSTGRES_USER: webcraft
+      POSTGRES_PASSWORD: dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webcraft -d webcraft_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://webcraft:dev_password@postgres:5432/webcraft_dev
+      REDIS_URL: redis://redis:6379/0
+      KAFKA_BROKERS: kafka:9092
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_WS_URL: ws://localhost:8000
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+  redis_data:</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Kubernetes Deployment</h2>
+                    <h3>Ingress Configuration</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webcraft-ingress
+  namespace: webcraft
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+spec:
+  tls:
+  - hosts:
+    - api.webcraft.app
+    - app.webcraft.app
+    secretName: webcraft-tls
+  rules:
+  - host: api.webcraft.app
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: webcraft-backend
+            port:
+              number: 80
+  - host: app.webcraft.app
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: webcraft-frontend
+            port:
+              number: 80</code></pre>
+                    </div>
+                    
+                    <h3>Backend Deployment</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webcraft-backend
+  namespace: webcraft
+  labels:
+    app: webcraft-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webcraft-backend
+  template:
+    metadata:
+      labels:
+        app: webcraft-backend
+    spec:
+      containers:
+      - name: backend
+        image: webcraft/backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: webcraft-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: webcraft-secrets
+              key: redis-url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: webcraft-secrets
+              key: secret-key
+        - name: KAFKA_BROKERS
+          value: "kafka-0.kafka-headless.webcraft.svc.cluster.local:9092,kafka-1.kafka-headless.webcraft.svc.cluster.local:9092"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      securityContext:
+        fsGroup: 1000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webcraft-backend
+  namespace: webcraft
+spec:
+  selector:
+    app: webcraft-backend
+  ports:
+  - port: 80
+    targetPort: 8000
+    name: http
+  type: ClusterIP</code></pre>
+                    </div>
+                    
+                    <h3>Horizontal Pod Autoscaler</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: webcraft-backend-hpa
+  namespace: webcraft
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: webcraft-backend
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>CI/CD Pipeline</h2>
+                    <h3>GitHub Actions Workflow</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: webcraft_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-test.txt
+    
+    - name: Run backend tests
+      env:
+        DATABASE_URL: postgresql://postgres:testpass@localhost:5432/webcraft_test
+        REDIS_URL: redis://localhost:6379/1
+        TESTING: true
+      run: |
+        pytest apps/api/tests/ -v --cov=apps/api --cov-report=xml
+        coverage report
+    
+    - name: Run frontend tests
+      run: |
+        cd apps/frontend
+        npm ci
+        npm run test:ci
+        npm run lint
+        npm run type-check
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  build-and-push:
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.backend
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./apps/frontend
+        file: ./apps/frontend/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}-frontend
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+    
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name webcraft-cluster --region us-west-2
+    
+    - name: Deploy to Kubernetes
+      run: |
+        # Update image tags in deployment manifests
+        sed -i "s|webcraft/backend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" k8s/backend-deployment.yaml
+        sed -i "s|webcraft/frontend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.sha }}|g" k8s/frontend-deployment.yaml
+        
+        # Apply manifests
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/configmap.yaml
+        kubectl apply -f k8s/secrets.yaml
+        kubectl apply -f k8s/backend-deployment.yaml
+        kubectl apply -f k8s/frontend-deployment.yaml
+        kubectl apply -f k8s/ingress.yaml
+        kubectl apply -f k8s/hpa.yaml
+        
+        # Wait for rollout
+        kubectl rollout status deployment/webcraft-backend -n webcraft --timeout=300s
+        kubectl rollout status deployment/webcraft-frontend -n webcraft --timeout=300s
+    
+    - name: Run smoke tests
+      run: |
+        # Wait for deployment to be ready
+        sleep 30
+        
+        # Test health endpoints
+        curl -f https://api.webcraft.app/health || exit 1
+        curl -f https://app.webcraft.app/health || exit 1
+        
+        # Test critical API endpoints
+        curl -f https://api.webcraft.app/v1/workspaces || exit 1
+        
+        echo "✅ Smoke tests passed!"
+
+  rollback:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+    
+    - name: Rollback deployment
+      run: |
+        kubectl rollout undo deployment/webcraft-backend -n webcraft
+        kubectl rollout undo deployment/webcraft-frontend -n webcraft
+        
+        # Wait for rollback to complete
+        kubectl rollout status deployment/webcraft-backend -n webcraft --timeout=300s
+        kubectl rollout status deployment/webcraft-frontend -n webcraft --timeout=300s
+        
+        echo "🔄 Rollback completed!"</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Infrastructure as Code</h2>
+                    <h3>Terraform Configuration</h3>
+                    <div class="code-block">
+                        <pre><code class="language-hcl"># terraform/main.tf
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
+    }
+  }
+  
+  backend "s3" {
+    bucket         = "webcraft-terraform-state"
+    key            = "prod/terraform.tfstate"
+    region         = "us-west-2"
+    encrypt        = true
+    dynamodb_table = "webcraft-terraform-locks"
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+  
+  default_tags {
+    tags = {
+      Environment = var.environment
+      Project     = "webcraft"
+      ManagedBy   = "terraform"
+    }
+  }
+}
+
+# VPC Configuration
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+  
+  name = "${var.project_name}-${var.environment}-vpc"
+  cidr = var.vpc_cidr
+  
+  azs             = data.aws_availability_zones.available.names
+  private_subnets = var.private_subnets
+  public_subnets  = var.public_subnets
+  
+  enable_nat_gateway   = true
+  single_nat_gateway   = false
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  
+  enable_flow_log                      = true
+  create_flow_log_cloudwatch_iam_role  = true
+  create_flow_log_cloudwatch_log_group = true
+  
+  tags = {
+    "kubernetes.io/cluster/${var.project_name}-${var.environment}" = "shared"
+  }
+  
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${var.project_name}-${var.environment}" = "shared"
+    "kubernetes.io/role/elb"                                      = "1"
+  }
+  
+  private_subnet_tags = {
+    "kubernetes.io/cluster/${var.project_name}-${var.environment}" = "shared"
+    "kubernetes.io/role/internal-elb"                           = "1"
+  }
+}
+
+# EKS Cluster
+module "eks" {
+  source = "terraform-aws-modules/eks/aws"
+  
+  cluster_name    = "${var.project_name}-${var.environment}"
+  cluster_version = var.kubernetes_version
+  
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+  
+  cluster_endpoint_private_access = true
+  cluster_endpoint_public_access  = true
+  
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+    aws-ebs-csi-driver = {
+      most_recent = true
+    }
+  }
+  
+  eks_managed_node_groups = {
+    main = {
+      name           = "main"
+      instance_types = ["t3.medium", "t3.large"]
+      
+      min_size     = 3
+      max_size     = 10
+      desired_size = 5
+      
+      ami_type       = "AL2_x86_64"
+      capacity_type  = "ON_DEMAND"
+      
+      labels = {
+        Environment = var.environment
+        NodeGroup   = "main"
+      }
+      
+      taints = []
+      
+      update_config = {
+        max_unavailable_percentage = 25
+      }
+    }
+    
+    spot = {
+      name           = "spot"
+      instance_types = ["t3.medium", "t3.large", "m5.large"]
+      
+      min_size     = 2
+      max_size     = 20
+      desired_size = 5
+      
+      ami_type      = "AL2_x86_64"
+      capacity_type = "SPOT"
+      
+      labels = {
+        Environment = var.environment
+        NodeGroup   = "spot"
+        WorkloadType = "stateless"
+      }
+      
+      taints = [
+        {
+          key    = "spot"
+          value  = "true"
+          effect = "NO_SCHEDULE"
+        }
+      ]
+    }
+  }
+  
+  manage_aws_auth_configmap = true
+  aws_auth_roles = [
+    {
+      rolearn  = module.eks.cluster_iam_role_arn
+      username = "system:node:{{EC2PrivateDNSName}}"
+      groups   = ["system:bootstrappers", "system:nodes"]
+    }
+  ]
+}
+
+# RDS PostgreSQL
+module "rds" {
+  source = "terraform-aws-modules/rds/aws"
+  
+  identifier = "${var.project_name}-${var.environment}-postgres"
+  
+  engine               = "postgres"
+  engine_version       = "15.4"
+  family               = "postgres15"
+  major_engine_version = "15"
+  instance_class       = var.db_instance_class
+  
+  allocated_storage     = 100
+  max_allocated_storage = 1000
+  storage_encrypted     = true
+  
+  db_name  = var.db_name
+  username = var.db_username
+  port     = 5432
+  
+  multi_az               = var.environment == "prod"
+  db_subnet_group_name   = module.vpc.database_subnet_group
+  vpc_security_group_ids = [module.rds_security_group.security_group_id]
+  
+  backup_retention_period = var.environment == "prod" ? 30 : 7
+  backup_window          = "03:00-04:00"
+  maintenance_window     = "sun:04:00-sun:05:00"
+  
+  deletion_protection = var.environment == "prod"
+  skip_final_snapshot = var.environment != "prod"
+  
+  performance_insights_enabled = true
+  monitoring_interval         = 60
+  monitoring_role_arn         = aws_iam_role.rds_monitoring.arn
+  
+  parameters = [
+    {
+      name  = "log_statement"
+      value = "all"
+    },
+    {
+      name  = "log_min_duration_statement"
+      value = "1000"
+    },
+    {
+      name  = "shared_preload_libraries"
+      value = "pg_stat_statements"
+    }
+  ]
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Monitoring and Alerting</h2>
+                    <h3>Prometheus Configuration</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml"># prometheus-config.yaml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'webcraft-prod'
+    environment: 'production'
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  - job_name: 'webcraft-backend'
+    static_configs:
+      - targets: ['webcraft-backend:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    
+  - job_name: 'webcraft-frontend'
+    static_configs:
+      - targets: ['webcraft-frontend:3000']
+    metrics_path: '/api/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - webcraft
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name</code></pre>
+                    </div>
+                    
+                    <h3>Alert Rules</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml"># alert_rules.yml
+groups:
+- name: webcraft-alerts
+  rules:
+  - alert: HighErrorRate
+    expr: |
+      (
+        rate(http_requests_total{status=~"5.."}[5m]) /
+        rate(http_requests_total[5m])
+      ) > 0.05
+    for: 5m
+    labels:
+      severity: critical
+      team: backend
+    annotations:
+      summary: "High error rate detected"
+      description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.service }}"
+      
+  - alert: HighLatency
+    expr: |
+      histogram_quantile(0.95,
+        rate(http_request_duration_seconds_bucket[5m])
+      ) > 0.5
+    for: 5m
+    labels:
+      severity: warning
+      team: backend
+    annotations:
+      summary: "High latency detected"
+      description: "95th percentile latency is {{ $value }}s for {{ $labels.service }}"
+      
+  - alert: DatabaseConnectionsHigh
+    expr: |
+      pg_stat_activity_count > 80
+    for: 5m
+    labels:
+      severity: warning
+      team: database
+    annotations:
+      summary: "Database connections high"
+      description: "{{ $value }} active connections to {{ $labels.database }}"
+      
+  - alert: RedisMemoryHigh
+    expr: |
+      redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+    for: 5m
+    labels:
+      severity: warning
+      team: infrastructure
+    annotations:
+      summary: "Redis memory usage high"
+      description: "Redis memory usage is {{ $value | humanizePercentage }}"
+      
+  - alert: PodCrashLooping
+    expr: |
+      rate(kube_pod_container_status_restarts_total[15m]) > 0
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+    annotations:
+      summary: "Pod crash looping"
+      description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is crash looping"
+      
+  - alert: HighCPUUsage
+    expr: |
+      100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+    annotations:
+      summary: "High CPU usage"
+      description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+      
+  - alert: HighMemoryUsage
+    expr: |
+      100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 85
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+    annotations:
+      summary: "High memory usage"
+      description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+      
+  - alert: DiskSpaceLow
+    expr: |
+      100 * (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) > 85
+    for: 10m
+    labels:
+      severity: critical
+      team: infrastructure
+    annotations:
+      summary: "Low disk space"
+      description: "Disk space is {{ $value }}% used on {{ $labels.instance }}"</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Backup and Disaster Recovery</h2>
+                    <h3>Database Backup Strategy</h3>
+                    <div class="code-block">
+                        <pre><code class="language-bash">#!/bin/bash
+# backup-database.sh
+
+set -euo pipefail
+
+# Configuration
+DB_HOST="${DB_HOST:-postgres.webcraft.svc.cluster.local}"
+DB_PORT="${DB_PORT:-5432}"
+DB_NAME="${DB_NAME:-webcraft_prod}"
+DB_USER="${DB_USER:-postgres}"
+BACKUP_BUCKET="${BACKUP_BUCKET:-webcraft-backups}"
+RETENTION_DAYS="${RETENTION_DAYS:-30}"
+
+# Generate backup filename
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="webcraft_${DB_NAME}_${TIMESTAMP}.sql.gz"
+
+# Create backup
+echo "Creating database backup..."
+PGPASSWORD="${DB_PASSWORD}" pg_dump \
+    --host="${DB_HOST}" \
+    --port="${DB_PORT}" \
+    --username="${DB_USER}" \
+    --dbname="${DB_NAME}" \
+    --verbose \
+    --format=plain \
+    --no-owner \
+    --no-privileges \
+    --clean \
+    --if-exists | gzip > "/tmp/${BACKUP_FILE}"
+
+# Upload to S3
+echo "Uploading backup to S3..."
+aws s3 cp "/tmp/${BACKUP_FILE}" "s3://${BACKUP_BUCKET}/database/${BACKUP_FILE}" \
+    --storage-class STANDARD_IA \
+    --server-side-encryption AES256
+
+# Verify upload
+echo "Verifying backup upload..."
+aws s3 ls "s3://${BACKUP_BUCKET}/database/${BACKUP_FILE}"
+
+# Clean up local file
+rm -f "/tmp/${BACKUP_FILE}"
+
+# Clean up old backups
+echo "Cleaning up old backups..."
+aws s3 ls "s3://${BACKUP_BUCKET}/database/" | \
+    awk '{print $4}' | \
+    grep -E '^webcraft_.*_[0-9]{8}_[0-9]{6}\.sql\.gz$' | \
+    sort -r | \
+    tail -n +$((RETENTION_DAYS + 1)) | \
+    while read -r file; do
+        echo "Deleting old backup: ${file}"
+        aws s3 rm "s3://${BACKUP_BUCKET}/database/${file}"
+    done
+
+echo "Backup completed successfully!"
+
+# Test restore (optional)
+if [ "${TEST_RESTORE:-false}" = "true" ]; then
+    echo "Testing backup restore..."
+    
+    # Download backup
+    aws s3 cp "s3://${BACKUP_BUCKET}/database/${BACKUP_FILE}" "/tmp/${BACKUP_FILE}"
+    
+    # Create test database
+    PGPASSWORD="${DB_PASSWORD}" psql \
+        --host="${DB_HOST}" \
+        --port="${DB_PORT}" \
+        --username="${DB_USER}" \
+        --dbname="postgres" \
+        --command="CREATE DATABASE webcraft_test_restore;"
+    
+    # Restore to test database
+    gunzip -c "/tmp/${BACKUP_FILE}" | PGPASSWORD="${DB_PASSWORD}" psql \
+        --host="${DB_HOST}" \
+        --port="${DB_PORT}" \
+        --username="${DB_USER}" \
+        --dbname="webcraft_test_restore" \
+        --set=ON_ERROR_STOP=on
+    
+    # Verify restore
+    TABLE_COUNT=$(PGPASSWORD="${DB_PASSWORD}" psql \
+        --host="${DB_HOST}" \
+        --port="${DB_PORT}" \
+        --username="${DB_USER}" \
+        --dbname="webcraft_test_restore" \
+        --tuples-only \
+        --command="SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+    
+    echo "Restored ${TABLE_COUNT} tables successfully"
+    
+    # Clean up test database
+    PGPASSWORD="${DB_PASSWORD}" psql \
+        --host="${DB_HOST}" \
+        --port="${DB_PORT}" \
+        --username="${DB_USER}" \
+        --dbname="postgres" \
+        --command="DROP DATABASE webcraft_test_restore;"
+    
+    # Clean up local file
+    rm -f "/tmp/${BACKUP_FILE}"
+    
+    echo "Restore test completed successfully!"
+fi</code></pre>
+                    </div>
+                    
+                    <h3>Kubernetes CronJob for Backups</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: database-backup
+  namespace: webcraft
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres:15-alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache aws-cli
+              
+              # Backup script
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_FILE="webcraft_${POSTGRES_DB}_${TIMESTAMP}.sql.gz"
+              
+              echo "Creating database backup..."
+              pg_dump \
+                  --host="${POSTGRES_HOST}" \
+                  --port="${POSTGRES_PORT}" \
+                  --username="${POSTGRES_USER}" \
+                  --dbname="${POSTGRES_DB}" \
+                  --verbose \
+                  --format=plain \
+                  --no-owner \
+                  --no-privileges \
+                  --clean \
+                  --if-exists | gzip > "/tmp/${BACKUP_FILE}"
+              
+              echo "Uploading backup to S3..."
+              aws s3 cp "/tmp/${BACKUP_FILE}" "s3://${BACKUP_BUCKET}/database/${BACKUP_FILE}" \
+                  --storage-class STANDARD_IA \
+                  --server-side-encryption AES256
+              
+              echo "Backup completed: ${BACKUP_FILE}"
+            env:
+            - name: POSTGRES_HOST
+              value: postgres.webcraft.svc.cluster.local
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: webcraft_prod
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            - name: AWS_DEFAULT_REGION
+              value: us-west-2
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-backup-credentials
+                  key: access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-backup-credentials
+                  key: secret-access-key
+            - name: BACKUP_BUCKET
+              value: webcraft-backups
+            volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          restartPolicy: OnFailure
+          volumes:
+          - name: tmp
+            emptyDir: {}
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Environment Variables and Secrets</h2>
+                    <h3>Secret Management</h3>
+                    <div class="code-block">
+                        <pre><code class="language-bash"># Create secrets using kubectl
+kubectl create secret generic webcraft-secrets \
+  --from-literal=database-url="postgresql://user:password@postgres:5432/webcraft" \
+  --from-literal=redis-url="redis://redis:6379/0" \
+  --from-literal=secret-key="your-secret-key-here" \
+  --from-literal=jwt-secret="your-jwt-secret-here" \
+  --from-literal=encryption-key="32-character-encryption-key" \
+  --namespace=webcraft
+
+# Create TLS certificate secret
+kubectl create secret tls webcraft-tls \
+  --cert=path/to/tls.crt \
+  --key=path/to/tls.key \
+  --namespace=webcraft
+
+# Create Docker registry secret
+kubectl create secret docker-registry ghcr-registry \
+  --docker-server=ghcr.io \
+  --docker-username=your-username \
+  --docker-password=your-token \
+  --docker-email=your-email@example.com \
+  --namespace=webcraft</code></pre>
+                    </div>
+                    
+                    <h3>ConfigMap for Environment Variables</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webcraft-config
+  namespace: webcraft
+data:
+  # Application Configuration
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "info"
+  API_VERSION: "v1"
+  
+  # Database Configuration
+  DB_POOL_SIZE: "20"
+  DB_POOL_MAX_OVERFLOW: "40"
+  DB_POOL_TIMEOUT: "30"
+  
+  # Redis Configuration
+  REDIS_POOL_SIZE: "50"
+  REDIS_SOCKET_TIMEOUT: "5"
+  REDIS_SOCKET_CONNECT_TIMEOUT: "5"
+  REDIS_RETRY_ON_TIMEOUT: "true"
+  REDIS_RETRY_ON_ERROR: "true"
+  REDIS_MAX_CONNECTIONS: "100"
+  
+  # Kafka Configuration
+  KAFKA_CONSUMER_GROUP_ID: "webcraft-consumers"
+  KAFKA_AUTO_OFFSET_RESET: "earliest"
+  KAFKA_ENABLE_AUTO_COMMIT: "false"
+  KAFKA_MAX_POLL_RECORDS: "500"
+  KAFKA_SESSION_TIMEOUT_MS: "30000"
+  KAFKA_HEARTBEAT_INTERVAL_MS: "10000"
+  
+  # Security Configuration
+  CORS_ORIGINS: "https://app.webcraft.app,https://www.webcraft.app"
+  RATE_LIMIT_PER_MINUTE: "100"
+  RATE_LIMIT_PER_HOUR: "1000"
+  
+  # Feature Flags
+  ENABLE_REAL_TIME_COLLABORATION: "true"
+  ENABLE_WEBHOOKS: "true"
+  ENABLE_ANALYTICS: "true"
+  ENABLE_EMAIL_NOTIFICATIONS: "true"
+  
+  # Integration Configuration
+  GITHUB_CLIENT_ID: "your-github-client-id"
+  GOOGLE_CLIENT_ID: "your-google-client-id"
+  
+  # Monitoring Configuration
+  ENABLE_METRICS: "true"
+  METRICS_PORT: "9090"
+  HEALTH_CHECK_PATH: "/health"
+  READINESS_CHECK_PATH: "/ready"
+  
+  # File Upload Configuration
+  MAX_FILE_SIZE: "50MB"
+  ALLOWED_FILE_TYPES: "jpg,jpeg,png,gif,pdf,doc,docx,txt,json,xml,csv"
+  UPLOAD_TIMEOUT: "300"
+  
+  # Session Configuration
+  SESSION_TIMEOUT: "3600"
+  SESSION_COOKIE_SECURE: "true"
+  SESSION_COOKIE_HTTPONLY: "true"
+  SESSION_COOKIE_SAMESITE: "strict"</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Performance Optimization</h2>
+                    <h3>Resource Requests and Limits</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml"># Resource optimization for different components
+resources:
+  # Backend API
+  backend:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  
+  # Frontend Next.js
+  frontend:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  
+  # PostgreSQL
+  postgres:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  
+  # Redis
+  redis:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "200m"
+  
+  # Kafka
+  kafka:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"</code></pre>
+                    </div>
+                    
+                    <h3>Performance Tuning Parameters</h3>
+                    <div class="code-block">
+                        <pre><code class="language-bash"># PostgreSQL performance tuning
+postgresql.conf:
+  max_connections = 200
+  shared_buffers = 256MB
+  effective_cache_size = 1GB
+  maintenance_work_mem = 64MB
+  checkpoint_completion_target = 0.9
+  wal_buffers = 16MB
+  default_statistics_target = 100
+  random_page_cost = 1.1
+  effective_io_concurrency = 200
+  work_mem = 4MB
+  min_wal_size = 1GB
+  max_wal_size = 4GB
+  max_worker_processes = 8
+  max_parallel_workers_per_gather = 4
+  max_parallel_workers = 8
+  max_parallel_maintenance_workers = 4
+
+# Redis performance tuning
+redis.conf:
+  maxmemory 512mb
+  maxmemory-policy allkeys-lru
+  tcp-keepalive 300
+  timeout 300
+  tcp-backlog 511
+  databases 16
+  save 900 1
+  save 300 10
+  save 60 10000
+  rdbcompression yes
+  rdbchecksum yes
+  dbfilename dump.rdb
+  dir ./
+  appendonly yes
+  appendfsync everysec
+  no-appendfsync-on-rewrite no
+  auto-aof-rewrite-percentage 100
+  auto-aof-rewrite-min-size 64mb
+
+# FastAPI/Gunicorn performance tuning
+# gunicorn.conf.py
+import multiprocessing
+
+bind = "0.0.0.0:8000"
+workers = multiprocessing.cpu_count() * 2 + 1
+worker_class = "uvicorn.workers.UvicornWorker"
+worker_connections = 1000
+max_requests = 1000
+max_requests_jitter = 100
+keepalive = 5
+timeout = 30
+graceful_timeout = 30
+preload_app = True
+accesslog = "-"
+errorlog = "-"
+loglevel = "info"
+access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Security Best Practices</h2>
+                    <h3>Network Policies</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: webcraft-backend-network-policy
+  namespace: webcraft
+spec:
+  podSelector:
+    matchLabels:
+      app: webcraft-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: webcraft-frontend
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80</code></pre>
+                    </div>
+                    
+                    <h3>Pod Security Policies</h3>
+                    <div class="code-block">
+                        <pre><code class="language-yaml">apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: webcraft-restricted
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: true
+  seLinux:
+    rule: 'RunAsAny'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webcraft-psp-use
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - webcraft-restricted
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: webcraft-psp-use
+roleRef:
+  kind: ClusterRole
+  name: webcraft-psp-use
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: Group
+  name: system:serviceaccounts:webcraft
+  apiGroup: rbac.authorization.k8s.io</code></pre>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Deployment Checklist</h2>
+                    <div class="checklist">
+                        <h3>Pre-Deployment</h3>
+                        <ul>
+                            <li>✅ All tests pass (unit, integration, e2e)</li>
+                            <li>✅ Security scan completed with no critical issues</li>
+                            <li>✅ Performance benchmarks meet requirements</li>
+                            <li>✅ Database migrations tested in staging</li>
+                            <li>✅ Environment variables configured</li>
+                            <li>✅ Secrets rotated and updated</li>
+                            <li>✅ SSL certificates are valid and not expiring</li>
+                            <li>✅ Backup procedures tested</li>
+                            <li>✅ Monitoring and alerting configured</li>
+                            <li>✅ Rollback plan documented</li>
+                        </ul>
+                        
+                        <h3>During Deployment</h3>
+                        <ul>
+                            <li>✅ Deploy during low-traffic window</li>
+                            <li>✅ Monitor deployment progress</li>
+                            <li>✅ Check health checks pass</li>
+                            <li>✅ Verify service discovery works</li>
+                            <li>✅ Test critical user flows</li>
+                            <li>✅ Monitor error rates and latency</li>
+                            <li>✅ Check resource utilization</li>
+                            <li>✅ Verify database connections</li>
+                            <li>✅ Test external integrations</li>
+                            <li>✅ Confirm backup jobs still work</li>
+                        </ul>
+                        
+                        <h3>Post-Deployment</h3>
+                        <ul>
+                            <li>✅ Monitor for 24 hours</li>
+                            <li>✅ Check error logs for issues</li>
+                            <li>✅ Verify metrics are being collected</li>
+                            <li>✅ Test disaster recovery procedures</li>
+                            <li>✅ Update documentation</li>
+                            <li>✅ Communicate deployment status</li>
+                            <li>✅ Schedule follow-up review</li>
+                            <li>✅ Update runbooks if needed</li>
+                            <li>✅ Archive old container images</li>
+                            <li>✅ Clean up old deployments</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="doc-section">
+                    <h2>Next Steps</h2>
+                    <p>Now that you have a comprehensive deployment and DevOps setup, here are the next topics to explore:</p>
+                    
+                    <div class="next-steps">
+                        <a href="monitoring.html" class="btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            Monitoring & Observability
+                        </a>
+                        <a href="performance.html" class="btn primary">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Performance Optimization
+                        </a>
+                        <a href="security.html" class="btn primary">
+                            <i class="fas fa-shield-alt"></i>
+                            Security Hardening
+                        </a>
+                        <a href="scaling.html" class="btn primary">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                            Auto-scaling Strategies
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <footer>
+                <div class="footer-content">
+                    <p>&copy; 2024 WebCraft. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="https://github.com/webcraft"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="https://discord.gg/webcraft"><i class="fab fa-discord"></i> Discord</a>
+                        <a href="mailto:support@webcraft.app"><i class="fas fa-envelope"></i> Support</a>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

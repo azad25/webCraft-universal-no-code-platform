@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API v2 Reference - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li class="nav-section">API Reference</li>
+                <li><a href="authentication.html"><i class="fas fa-key"></i> Authentication</a></li>
+                <li><a href="apps.html"><i class="fas fa-th-large"></i> Apps API</a></li>
+                <li><a href="v2-api-reference.html" class="active"><i class="fas fa-code"></i> V2 API Reference</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <header>
+                <h1>WebCraft API v2 Reference</h1>
+                <p>Complete API documentation for the domain-driven v2 architecture</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="api-overview">
+                    <h2>API Overview</h2>
+                    <p>The WebCraft API v2 uses a domain-driven architecture with 34 specialized domains covering all platform functionality.</p>
+                    
+                    <div class="info-box">
+                        <h4>Base URL</h4>
+                        <code>https://api.webcraft.dev/api/v2</code>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4>Authentication</h4>
+                        <p>All API requests require authentication via JWT Bearer token or API key.</p>
+                        <code>Authorization: Bearer &lt;your-token&gt;</code>
+                    </div>
+                </section>
+
+                <section class="api-domains">
+                    <h2>API Domains</h2>
+                    
+                    <div class="domain-grid">
+                        <div class="domain-card">
+                            <h3><i class="fas fa-key"></i> Authentication</h3>
+                            <p>User authentication, registration, OAuth, and API key management.</p>
+                            <ul>
+                                <li><code>POST /auth/login</code> - User login</li>
+                                <li><code>POST /auth/register</code> - User registration</li>
+                                <li><code>POST /auth/refresh</code> - Refresh token</li>
+                                <li><code>GET /auth/me</code> - Get current user</li>
+                                <li><code>POST /auth/api-keys</code> - Create API key</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-th-large"></i> Apps</h3>
+                            <p>Application CRUD, publishing, deployment, and settings.</p>
+                            <ul>
+                                <li><code>GET /apps</code> - List apps</li>
+                                <li><code>POST /apps</code> - Create app</li>
+                                <li><code>GET /apps/{id}</code> - Get app</li>
+                                <li><code>PUT /apps/{id}</code> - Update app</li>
+                                <li><code>POST /apps/{id}/publish</code> - Publish app</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-file-alt"></i> Pages</h3>
+                            <p>Page management, content, and SEO settings.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/pages</code> - List pages</li>
+                                <li><code>POST /apps/{id}/pages</code> - Create page</li>
+                                <li><code>PUT /apps/{id}/pages/{pageId}</code> - Update page</li>
+                                <li><code>DELETE /apps/{id}/pages/{pageId}</code> - Delete page</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-cube"></i> Widgets</h3>
+                            <p>Widget marketplace, CRUD, and configuration.</p>
+                            <ul>
+                                <li><code>GET /widgets</code> - List widgets</li>
+                                <li><code>GET /widgets/categories</code> - Get categories</li>
+                                <li><code>GET /apps/{id}/widgets</code> - App widgets</li>
+                                <li><code>POST /apps/{id}/widgets</code> - Add widget</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-layer-group"></i> Widget Layers</h3>
+                            <p>Widget decomposition and sub-element management.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/widget-layers/{elementId}/decompose</code> - Decompose widget</li>
+                                <li><code>PUT /apps/{id}/widget-layers/{elementId}/sub-element/{path}</code> - Update sub-element</li>
+                                <li><code>GET /apps/{id}/widget-layers/supported-widgets</code> - Supported widgets</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-image"></i> Media</h3>
+                            <p>File uploads, CDN, and media optimization.</p>
+                            <ul>
+                                <li><code>POST /apps/{id}/media/upload</code> - Upload file</li>
+                                <li><code>GET /apps/{id}/media</code> - List media</li>
+                                <li><code>DELETE /apps/{id}/media/{mediaId}</code> - Delete media</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-robot"></i> AI</h3>
+                            <p>AI content generation, chat, and analysis.</p>
+                            <ul>
+                                <li><code>POST /ai/generate-content</code> - Generate content</li>
+                                <li><code>POST /ai/chat</code> - AI chat</li>
+                                <li><code>POST /ai/analyze-design</code> - Analyze design</li>
+                                <li><code>POST /ai/suggest-improvements</code> - Get suggestions</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-cogs"></i> Automation</h3>
+                            <p>Workflows, triggers, and scheduling.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/automations</code> - List automations</li>
+                                <li><code>POST /apps/{id}/automations</code> - Create automation</li>
+                                <li><code>POST /apps/{id}/automations/{autoId}/execute</code> - Execute</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-database"></i> Collections</h3>
+                            <p>User databases and CRUD operations.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/collections</code> - List collections</li>
+                                <li><code>POST /apps/{id}/collections</code> - Create collection</li>
+                                <li><code>GET /apps/{id}/collections/{colId}/records</code> - Get records</li>
+                                <li><code>POST /apps/{id}/collections/{colId}/records</code> - Create record</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-users"></i> CRM</h3>
+                            <p>Contact management, deals, pipeline, and activities.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/crm/stats</code> - CRM statistics</li>
+                                <li><code>GET /apps/{id}/crm/contacts</code> - List contacts</li>
+                                <li><code>POST /apps/{id}/crm/contacts</code> - Create contact</li>
+                                <li><code>GET /apps/{id}/crm/deals</code> - List deals</li>
+                                <li><code>GET /apps/{id}/crm/pipeline</code> - Pipeline view</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-shopping-cart"></i> E-commerce</h3>
+                            <p>Products, orders, and inventory management.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/ecommerce/products</code> - List products</li>
+                                <li><code>POST /apps/{id}/ecommerce/products</code> - Create product</li>
+                                <li><code>GET /apps/{id}/ecommerce/orders</code> - List orders</li>
+                                <li><code>GET /apps/{id}/ecommerce/inventory</code> - Inventory</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-credit-card"></i> Payment</h3>
+                            <p>Subscriptions, billing, and Stripe integration.</p>
+                            <ul>
+                                <li><code>GET /payment/plans</code> - List plans</li>
+                                <li><code>POST /payment/subscribe</code> - Subscribe</li>
+                                <li><code>GET /payment/subscription</code> - Get subscription</li>
+                                <li><code>POST /payment/cancel</code> - Cancel subscription</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-chart-line"></i> Analytics</h3>
+                            <p>Traffic, conversions, and performance metrics.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/analytics/overview</code> - Overview</li>
+                                <li><code>GET /apps/{id}/analytics/traffic</code> - Traffic data</li>
+                                <li><code>GET /apps/{id}/analytics/conversions</code> - Conversions</li>
+                                <li><code>GET /apps/{id}/analytics/performance</code> - Performance</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-search"></i> SEO</h3>
+                            <p>Meta tags, sitemaps, and optimization.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/seo/analysis</code> - SEO analysis</li>
+                                <li><code>PUT /apps/{id}/seo/meta</code> - Update meta</li>
+                                <li><code>GET /apps/{id}/seo/sitemap</code> - Generate sitemap</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-plug"></i> Integrations</h3>
+                            <p>14+ third-party service integrations.</p>
+                            <ul>
+                                <li><code>GET /integrations</code> - List integrations</li>
+                                <li><code>POST /apps/{id}/integrations/{type}/connect</code> - Connect</li>
+                                <li><code>DELETE /apps/{id}/integrations/{type}</code> - Disconnect</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-bell"></i> Notifications</h3>
+                            <p>Email, SMS, push, and in-app notifications.</p>
+                            <ul>
+                                <li><code>POST /notifications/send</code> - Send notification</li>
+                                <li><code>GET /notifications</code> - List notifications</li>
+                                <li><code>PUT /notifications/settings</code> - Update settings</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-webhook"></i> Webhooks</h3>
+                            <p>Incoming and outgoing webhooks.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/webhooks</code> - List webhooks</li>
+                                <li><code>POST /apps/{id}/webhooks</code> - Create webhook</li>
+                                <li><code>POST /apps/{id}/webhooks/{whId}/test</code> - Test webhook</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-mobile-alt"></i> Mobile</h3>
+                            <p>Mobile SDK and push notifications.</p>
+                            <ul>
+                                <li><code>GET /mobile/apps/{id}/config</code> - App config</li>
+                                <li><code>POST /mobile/apps/{id}/push</code> - Send push</li>
+                                <li><code>GET /mobile/sdk/{platform}</code> - Download SDK</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-spider"></i> Scrapers</h3>
+                            <p>Web scraping and data extraction.</p>
+                            <ul>
+                                <li><code>GET /apps/{id}/scrapers</code> - List scrapers</li>
+                                <li><code>POST /apps/{id}/scrapers</code> - Create scraper</li>
+                                <li><code>POST /apps/{id}/scrapers/{scId}/run</code> - Run scraper</li>
+                                <li><code>GET /apps/{id}/scrapers/{scId}/data</code> - Get data</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-code"></i> SDK</h3>
+                            <p>Multi-language SDK generation.</p>
+                            <ul>
+                                <li><code>GET /sdk/languages</code> - Supported languages</li>
+                                <li><code>POST /sdk/apps/{id}/generate</code> - Generate SDK</li>
+                                <li><code>GET /sdk/apps/{id}/download/{lang}</code> - Download SDK</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-project-diagram"></i> GraphQL</h3>
+                            <p>GraphQL API interface.</p>
+                            <ul>
+                                <li><code>POST /graphql</code> - Execute query</li>
+                                <li><code>GET /graphql</code> - GraphQL Playground</li>
+                                <li><code>GET /graphql/schema</code> - Get schema</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-file-export"></i> Export</h3>
+                            <p>Static export to GitHub, Netlify, Vercel.</p>
+                            <ul>
+                                <li><code>POST /apps/{id}/export/static</code> - Export static</li>
+                                <li><code>POST /apps/{id}/export/github</code> - Export to GitHub</li>
+                                <li><code>POST /apps/{id}/export/netlify</code> - Deploy to Netlify</li>
+                                <li><code>POST /apps/{id}/export/vercel</code> - Deploy to Vercel</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="domain-card">
+                            <h3><i class="fas fa-cog"></i> Setup</h3>
+                            <p>Platform setup and installation wizard.</p>
+                            <ul>
+                                <li><code>GET /setup/status</code> - Setup status</li>
+                                <li><code>GET /setup/requirements</code> - System requirements</li>
+                                <li><code>POST /setup/initialize</code> - Initialize platform</li>
+                                <li><code>GET /setup/progress</code> - Setup progress</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="api-examples">
+                    <h2>Code Examples</h2>
+                    
+                    <h3>JavaScript/TypeScript</h3>
+                    <pre><code class="language-javascript">// Initialize SDK
+const webcraft = new WebCraftSDK('your-api-key');
+
+// Create an app
+const app = await webcraft.apps.create({
+  name: 'My App',
+  appType: 'website',
+  description: 'My awesome website'
+});
+
+// Add a page
+const page = await webcraft.pages.create(app.id, {
+  title: 'Home',
+  slug: 'home',
+  isHomepage: true
+});
+
+// Generate AI content
+const content = await webcraft.ai.generateContent({
+  prompt: 'Write a hero section for a SaaS landing page',
+  type: 'hero'
+});</code></pre>
+
+                    <h3>Python</h3>
+                    <pre><code class="language-python">from webcraft import WebCraftSDK
+
+# Initialize SDK
+sdk = WebCraftSDK('your-api-key')
+
+# Create an app
+app = sdk.apps.create(
+    name='My App',
+    app_type='website',
+    description='My awesome website'
+)
+
+# List collections
+collections = sdk.collections.list(app.id)
+
+# Create a record
+record = sdk.collections.create_record(
+    app.id,
+    collection_id='contacts',
+    data={'name': 'John Doe', 'email': 'john@example.com'}
+)</code></pre>
+
+                    <h3>cURL</h3>
+                    <pre><code class="language-bash"># Get apps
+curl -X GET "https://api.webcraft.dev/api/v2/apps" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Create app
+curl -X POST "https://api.webcraft.dev/api/v2/apps" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My App", "appType": "website"}'
+
+# Generate AI content
+curl -X POST "https://api.webcraft.dev/api/v2/ai/generate-content" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Write a hero section", "type": "hero"}'</code></pre>
+                </section>
+
+                <section class="rate-limits">
+                    <h2>Rate Limits</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>Requests/Hour</th>
+                                <th>Requests/Day</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Free</td>
+                                <td>1,000</td>
+                                <td>10,000</td>
+                            </tr>
+                            <tr>
+                                <td>Pro</td>
+                                <td>10,000</td>
+                                <td>100,000</td>
+                            </tr>
+                            <tr>
+                                <td>Enterprise</td>
+                                <td>Unlimited</td>
+                                <td>Unlimited</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+            
+            <footer>
+                <p>&copy; 2024 WebCraft Developer Documentation</p>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="../../js/main.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { m, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Star, Quote } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -31,66 +31,75 @@ type TestimonialCardProps = {
   index: number
 }
 
+// Duplicate for infinite scroll
+const allTestimonials = [...testimonials, ...testimonials, ...testimonials, ...testimonials]
+
 function TestimonialCard({ testimonial, index }: TestimonialCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex flex-col h-full"
+    <div
+      className="w-[350px] md:w-[450px] bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-2xl flex-shrink-0 mx-4 hover:border-blue-500/20 transition-colors"
     >
-      <div className="flex items-center mb-4">
+      <div className="flex items-center mb-6">
         <div className="flex-1">
-          <h4 className="font-semibold text-lg">{testimonial.name}</h4>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</p>
+          <h4 className="font-bold text-lg text-white">{testimonial.name}</h4>
+          <p className="text-sm text-blue-400">{testimonial.role}</p>
         </div>
-        <Quote className="h-6 w-6 text-gray-300 dark:text-gray-600" />
+        <Quote className="h-8 w-8 text-white/10" />
       </div>
-      
-      <p className="text-gray-700 dark:text-gray-300 mb-4 flex-1">"{testimonial.content}"</p>
-      
-      <div className="flex items-center">
+
+      <p className="text-slate-300 mb-6 italic leading-relaxed text-lg">"{testimonial.content}"</p>
+
+      <div className="flex items-center gap-1">
         {[...Array(5)].map((_, i) => (
           <Star
             key={i}
             className={cn(
-              'h-5 w-5',
-              i < testimonial.rating 
-                ? 'text-yellow-400 fill-yellow-400' 
-                : 'text-gray-300 dark:text-gray-600'
+              'h-4 w-4',
+              i < testimonial.rating
+                ? 'text-yellow-500 fill-yellow-500'
+                : 'text-slate-700'
             )}
           />
         ))}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
 export function TestimonialsSection() {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
 
   return (
-    <section ref={ref} className="py-20 bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold mb-4">Loved by Developers & Designers</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Join thousands of satisfied users who have transformed their workflow with our page builder
-          </p>
-        </motion.div>
+    <section ref={ref} className="py-32 bg-[#0a0f1e] overflow-hidden relative">
+      {/* Side Fades for Marquee */}
+      <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0a0f1e] to-transparent z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0a0f1e] to-transparent z-10" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
+      <div className="container mx-auto px-4 mb-20">
+        <div className="text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">Loved by Developers & Designers</h2>
+          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+            Join thousands of satisfied users who have transformed their workflow with our platform.
+          </p>
+        </div>
+      </div>
+
+      {/* Marquee Container */}
+      <div className="flex overflow-hidden">
+        <m.div
+          className="flex"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{
+            duration: 60,
+            repeat: Infinity,
+            ease: "linear",
+            repeatType: "loop"
+          }}
+        >
+          {allTestimonials.map((testimonial, index) => (
             <TestimonialCard key={index} testimonial={testimonial} index={index} />
           ))}
-        </div>
+        </m.div>
       </div>
     </section>
   )

@@ -3,121 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Next.js Setup - WebCraft Developer Docs</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <title>Next.js Setup - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 </head>
 <body>
-    <div class="docs-container">
-        <!-- Sidebar -->
+    <div class="container">
         <nav class="sidebar">
-            <div class="sidebar-header">
-                <h2>WebCraft Developer Docs</h2>
-                <p>Build applications without code</p>
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
             </div>
-            
-            <ul class="sidebar-menu">
-                <li class="menu-item">
-                    <a href="../index.html" class="menu-link">Getting Started</a>
-                </li>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
                 
-                <li class="menu-item has-submenu active">
-                    <a href="#" class="menu-link">Architecture</a>
-                    <ul class="submenu">
-                        <li><a href="../architecture/system-overview.html" class="submenu-link">System Overview</a></li>
-                        <li><a href="../architecture/frontend-architecture.html" class="submenu-link">Frontend Architecture</a></li>
-                        <li><a href="../architecture/backend-architecture.html" class="submenu-link">Backend Architecture</a></li>
-                        <li><a href="../architecture/database-design.html" class="submenu-link">Database Design</a></li>
-                        <li><a href="../architecture/api-design.html" class="submenu-link">API Design</a></li>
-                    </ul>
-                </li>
+                <li class="nav-section">Getting Started</li>
+                <li><a href="../getting-started/quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="../getting-started/installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="../getting-started/environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="../getting-started/project-structure.html"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
                 
-                <li class="menu-item has-submenu active">
-                    <a href="#" class="menu-link">Frontend Development</a>
-                    <ul class="submenu">
-                        <li><a href="nextjs-setup.html" class="submenu-link active">Next.js Setup</a></li>
-                        <li><a href="react-components.html" class="submenu-link">React Components</a></li>
-                        <li><a href="state-management.html" class="submenu-link">State Management</a></li>
-                        <li><a href="styling-guide.html" class="submenu-link">Styling Guide</a></li>
-                        <li><a href="drag-drop-system.html" class="submenu-link">Drag & Drop System</a></li>
-                        <li><a href="widget-development.html" class="submenu-link">Widget Development</a></li>
-                    </ul>
-                </li>
+                <li class="nav-section">Architecture</li>
+                <li><a href="../architecture/system-overview.html"><i class="fas fa-sitemap"></i> System Overview</a></li>
+                <li><a href="../architecture/backend-architecture.html"><i class="fas fa-server"></i> Backend Architecture</a></li>
+                <li><a href="../architecture/frontend-architecture.html"><i class="fas fa-desktop"></i> Frontend Architecture</a></li>
+                <li><a href="../architecture/module-system.html"><i class="fas fa-puzzle-piece"></i> Module System</a></li>
                 
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">Backend Development</a>
-                    <ul class="submenu">
-                        <li><a href="../backend/fastapi-setup.html" class="submenu-link">FastAPI Setup</a></li>
-                        <li><a href="../backend/database-operations.html" class="submenu-link">Database Operations</a></li>
-                        <li><a href="../backend/api-development.html" class="submenu-link">API Development</a></li>
-                        <li><a href="../backend/authentication.html" class="submenu-link">Authentication</a></li>
-                        <li><a href="../backend/module-system.html" class="submenu-link">Module System</a></li>
-                    </ul>
-                </li>
+                <li class="nav-section">Backend Development</li>
+                <li><a href="../backend/fastapi-setup.html"><i class="fab fa-python"></i> FastAPI Setup</a></li>
+                <li><a href="../backend/database-models.html"><i class="fas fa-database"></i> Database Models</a></li>
                 
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">Database</a>
-                    <ul class="submenu">
-                        <li><a href="../database/postgresql-setup.html" class="submenu-link">PostgreSQL Setup</a></li>
-                        <li><a href="../database/schema-design.html" class="submenu-link">Schema Design</a></li>
-                        <li><a href="../database/migrations.html" class="submenu-link">Migrations</a></li>
-                        <li><a href="../database/performance.html" class="submenu-link">Performance</a></li>
-                    </ul>
-                </li>
+                <li class="nav-section">Frontend Development</li>
+                <li><a href="nextjs-setup.html" class="active"><i class="fab fa-react"></i> Next.js Setup</a></li>
+                <li><a href="react-components.html"><i class="fas fa-puzzle-piece"></i> React Components</a></li>
+                <li><a href="state-management.html"><i class="fas fa-brain"></i> State Management</a></li>
+                <li><a href="editor-system.html"><i class="fas fa-edit"></i> Editor System</a></li>
+                <li><a href="widget-development.html"><i class="fas fa-cube"></i> Widget Development</a></li>
                 
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">API Reference</a>
-                    <ul class="submenu">
-                        <li><a href="../api/authentication.html" class="submenu-link">Authentication</a></li>
-                        <li><a href="../api/widgets.html" class="submenu-link">Widgets API</a></li>
-                        <li><a href="../api/projects.html" class="submenu-link">Projects API</a></li>
-                        <li><a href="../api/modules.html" class="submenu-link">Modules API</a></li>
-                    </ul>
-                </li>
-                
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">Advanced Topics</a>
-                    <ul class="submenu">
-                        <li><a href="../advanced/deployment.html" class="submenu-link">Deployment</a></li>
-                        <li><a href="../advanced/scaling.html" class="submenu-link">Scaling</a></li>
-                        <li><a href="../advanced/security.html" class="submenu-link">Security</a></li>
-                        <li><a href="../advanced/monitoring.html" class="submenu-link">Monitoring</a></li>
-                    </ul>
-                </li>
-                
-                <li class="menu-item has-submenu">
-                    <a href="#" class="menu-link">Tutorials</a>
-                    <ul class="submenu">
-                        <li><a href="../tutorials/build-first-app.html" class="submenu-link">Build Your First App</a></li>
-                        <li><a href="../tutorials/create-custom-widget.html" class="submenu-link">Create Custom Widget</a></li>
-                        <li><a href="../tutorials/integrate-api.html" class="submenu-link">Integrate External API</a></li>
-                        <li><a href="../tutorials/deploy-production.html" class="submenu-link">Deploy to Production</a></li>
-                    </ul>
-                </li>
-                
-                <li class="menu-item">
-                    <a href="../troubleshooting.html" class="menu-link">Troubleshooting</a>
-                </li>
+                <li class="nav-section">API Reference</li>
+                <li><a href="../api/apps.html"><i class="fas fa-th-large"></i> Apps API</a></li>
+                <li><a href="../api/widgets.html"><i class="fas fa-cube"></i> Widgets API</a></li>
+                <li><a href="../api/pages.html"><i class="fas fa-file"></i> Pages API</a></li>
             </ul>
         </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="content-header">
-                <h1>Next.js Setup Guide</h1>
-                <p>Complete guide to setting up Next.js 15 for WebCraft development</p>
+        <main class="content">
+            <header>
+                <h1>Next.js Setup</h1>
+                <p>Complete guide to setting up Next.js 15 for WebCraft frontend development</p>
             </header>
-
+            
             <div class="content-body">
                 <section class="doc-section">
                     <h2>Overview</h2>
                     <p>WebCraft uses Next.js 15 with App Router for the frontend. This guide covers the complete setup process, configuration options, and best practices for development.</p>
                     
-                    <div class="info-box">
+                    <div class="alert alert-info">
                         <strong>Prerequisites:</strong>
                         <ul>
-                            <li>Node.js 18+</li>
-                            <li>npm, yarn, or pnpm</li>
-                            <li>Basic React knowledge</li>
+                            <li>Node.js 18+ (LTS recommended)</li>
+                            <li>npm, yarn, or pnpm package manager</li>
+                            <li>Basic React and TypeScript knowledge</li>
                         </ul>
                     </div>
                 </section>
@@ -126,53 +74,74 @@
                     <h2>Project Structure</h2>
                     <p>Next.js follows a specific directory structure that WebCraft leverages for optimal organization:</p>
                     
-                    <div class="code-block">
-                        <pre><code>apps/web/
+                    <pre><code class="language-bash">apps/web/
 ├── app/                    # App Router directory
 │   ├── (auth)/            # Route groups
+│   │   ├── login/
+│   │   └── register/
 │   ├── (dashboard)/       # Dashboard routes
+│   │   ├── apps/
+│   │   ├── editor/
+│   │   └── settings/
+│   ├── setup/             # Setup wizard
 │   ├── api/               # API routes
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
 ├── components/            # Reusable components
-│   ├── ui/               # UI components
+│   ├── ui/               # UI components (shadcn/ui)
 │   ├── widgets/          # Widget components
+│   ├── editor/           # Editor components
+│   ├── landing/          # Landing page components
 │   └── shared/           # Shared components
 ├── lib/                   # Utility functions
+│   ├── api-client.ts     # API client
+│   ├── design-system.ts  # Design tokens
+│   └── utils.ts          # Helper functions
 ├── hooks/                 # Custom React hooks
 ├── store/                 # Redux store configuration
+│   ├── index.ts          # Store setup
+│   └── slices/           # Redux slices
+├── contexts/              # React contexts
 ├── types/                 # TypeScript types
 └── public/               # Static assets</code></pre>
-                    </div>
                 </section>
 
                 <section class="doc-section">
                     <h2>Installation & Setup</h2>
                     
                     <h3>1. Install Dependencies</h3>
-                    <div class="code-block">
-                        <pre><code>cd apps/web
-npm install</code></pre>
-                    </div>
+                    <pre><code class="language-bash">cd apps/web
+
+# Using npm
+npm install
+
+# Using yarn
+yarn install
+
+# Using pnpm
+pnpm install</code></pre>
 
                     <h3>2. Environment Configuration</h3>
-                    <p>Create a <code>.env.local</code> file:</p>
-                    <div class="code-block">
-                        <pre><code># API Configuration
+                    <p>Create a <code>.env.local</code> file in the <code>apps/web</code> directory:</p>
+                    <pre><code class="language-bash"># API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_WS_URL=ws://localhost:8000
 
 # Authentication
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key
+NEXTAUTH_SECRET=your-secret-key-here
 
 # Feature Flags
 NEXT_PUBLIC_ENABLE_REALTIME=true
 NEXT_PUBLIC_ENABLE_ANALYTICS=true
+NEXT_PUBLIC_ENABLE_AI_FEATURES=true
 
 # Development
 NODE_ENV=development</code></pre>
+
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> All environment variables prefixed with <code>NEXT_PUBLIC_</code> are exposed to the browser. Never put sensitive keys in these variables.
                     </div>
                 </section>
 
@@ -180,11 +149,10 @@ NODE_ENV=development</code></pre>
                     <h2>Next.js Configuration</h2>
                     
                     <h3>next.config.js</h3>
-                    <div class="code-block">
-                        <pre><code>/** @type {import('next').NextConfig} */
+                    <pre><code class="language-javascript">/** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable experimental features
   experimental: {
-    appDir: true,
     serverComponentsExternalPackages: ['@react-dnd/backend'],
   },
   
@@ -192,6 +160,12 @@ const nextConfig = {
   images: {
     domains: ['localhost', 'api.webcraft.dev'],
     formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.amazonaws.com',
+      },
+    ],
   },
   
   // API proxy for development
@@ -199,7 +173,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
       },
     ];
   },
@@ -214,28 +188,35 @@ const nextConfig = {
         tls: false,
       };
     }
+    
+    // Handle canvas for chart libraries
+    config.resolve.alias.canvas = false;
+    
     return config;
   },
   
-  // Environment variables
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  // TypeScript configuration
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  
+  // ESLint configuration
+  eslint: {
+    ignoreDuringBuilds: false,
   },
 };
 
 module.exports = nextConfig;</code></pre>
-                    </div>
                 </section>
 
                 <section class="doc-section">
                     <h2>TypeScript Configuration</h2>
                     
                     <h3>tsconfig.json</h3>
-                    <div class="code-block">
-                        <pre><code>{
+                    <pre><code class="language-json">{
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "es6"],
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -261,13 +242,17 @@ module.exports = nextConfig;</code></pre>
       "@/hooks/*": ["./hooks/*"],
       "@/store/*": ["./store/*"],
       "@/types/*": ["./types/*"],
-      "@/utils/*": ["./utils/*"]
+      "@/contexts/*": ["./contexts/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }</code></pre>
-                    </div>
                 </section>
 
                 <section class="doc-section">
@@ -275,10 +260,9 @@ module.exports = nextConfig;</code></pre>
                     
                     <p>The root layout is the foundation of your Next.js application:</p>
                     
-                    <div class="code-block">
-                        <pre><code>// app/layout.tsx
+                    <pre><code class="language-typescript">// app/layout.tsx
 import type { Metadata } from 'next'
-import { Inter, Roboto_Mono } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
@@ -287,18 +271,13 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
-const robotoMono = Roboto_Mono({
-  subsets: ['latin'],
-  variable: '--font-roboto-mono',
-})
-
 export const metadata: Metadata = {
   title: 'WebCraft - Build Without Code',
   description: 'Create powerful web applications with our no-code platform',
   keywords: 'no-code, web development, drag and drop, visual builder',
   authors: [{ name: 'WebCraft Team' }],
   viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#0070f3',
+  themeColor: '#2563eb',
 }
 
 export default function RootLayout({
@@ -307,24 +286,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${robotoMono.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body className="min-h-screen bg-background font-sans antialiased">
         <Providers>
-          <div className="relative flex min-h-screen flex-col">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              {/* Header content */}
-            </header>
-            <main className="flex-1">{children}</main>
-            <footer className="border-t">
-              {/* Footer content */}
-            </footer>
-          </div>
+          {children}
         </Providers>
       </body>
     </html>
   )
 }</code></pre>
-                    </div>
                 </section>
 
                 <section class="doc-section">
@@ -332,14 +302,12 @@ export default function RootLayout({
                     
                     <p>Set up the necessary providers for Redux, React Query, and other services:</p>
                     
-                    <div class="code-block">
-                        <pre><code>// app/providers.tsx
+                    <pre><code class="language-typescript">// app/providers.tsx
 'use client'
 
 import { Provider as ReduxProvider } from 'react-redux'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { SessionProvider } from 'next-auth/react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { store } from '@/store'
@@ -350,6 +318,7 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 60 * 1000, // 1 minute
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 })
@@ -358,33 +327,29 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ReduxProvider store={store}>
       <QueryClientProvider client={queryClient}>
-        <SessionProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <DndProvider backend={HTML5Backend}>
-              {children}
-            </DndProvider>
-          </ThemeProvider>
-        </SessionProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <DndProvider backend={HTML5Backend}>
+            {children}
+          </DndProvider>
+        </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ReduxProvider>
   )
 }</code></pre>
-                    </div>
                 </section>
 
                 <section class="doc-section">
                     <h2>Development Scripts</h2>
                     
-                    <p>Add these scripts to your package.json:</p>
+                    <p>Add these scripts to your <code>package.json</code>:</p>
                     
-                    <div class="code-block">
-                        <pre><code>{
+                    <pre><code class="language-json">{
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
@@ -400,7 +365,105 @@ export function Providers({ children }: { children: React.ReactNode }) {
     "analyze": "ANALYZE=true npm run build"
   }
 }</code></pre>
-                    </div>
+
+                    <h3>Running the Development Server</h3>
+                    <pre><code class="language-bash"># Start development server
+npm run dev
+
+# The app will be available at http://localhost:3000</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Key Dependencies</h2>
+                    
+                    <p>WebCraft frontend uses the following key dependencies:</p>
+                    
+                    <h3>Core Framework</h3>
+                    <ul>
+                        <li><strong>next</strong> - Next.js 15 framework</li>
+                        <li><strong>react</strong> - React 18</li>
+                        <li><strong>react-dom</strong> - React DOM</li>
+                        <li><strong>typescript</strong> - TypeScript support</li>
+                    </ul>
+
+                    <h3>State Management</h3>
+                    <ul>
+                        <li><strong>@reduxjs/toolkit</strong> - Redux Toolkit</li>
+                        <li><strong>react-redux</strong> - React bindings for Redux</li>
+                        <li><strong>redux-persist</strong> - State persistence</li>
+                        <li><strong>@tanstack/react-query</strong> - Server state management</li>
+                    </ul>
+
+                    <h3>UI & Styling</h3>
+                    <ul>
+                        <li><strong>tailwindcss</strong> - Utility-first CSS</li>
+                        <li><strong>@radix-ui/*</strong> - Headless UI components</li>
+                        <li><strong>framer-motion</strong> - Animation library</li>
+                        <li><strong>lucide-react</strong> - Icon library</li>
+                    </ul>
+
+                    <h3>Editor & Drag-Drop</h3>
+                    <ul>
+                        <li><strong>react-dnd</strong> - Drag and drop</li>
+                        <li><strong>react-dnd-html5-backend</strong> - HTML5 backend</li>
+                        <li><strong>@dnd-kit/core</strong> - Modern drag and drop</li>
+                    </ul>
+
+                    <h3>Utilities</h3>
+                    <ul>
+                        <li><strong>axios</strong> - HTTP client</li>
+                        <li><strong>zod</strong> - Schema validation</li>
+                        <li><strong>date-fns</strong> - Date utilities</li>
+                        <li><strong>clsx</strong> - Class name utilities</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>API Client Setup</h2>
+                    
+                    <p>WebCraft uses a centralized API client for all HTTP requests:</p>
+                    
+                    <pre><code class="language-typescript">// lib/api-client.ts
+import axios from 'axios'
+import { store } from '@/store'
+
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// Request interceptor - Add auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const state = store.getState()
+    const token = state.auth?.token
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// Response interceptor - Handle errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Handle token refresh or redirect to login
+      window.location.href = '/login'
+    }
+    
+    return Promise.reject(error)
+  }
+)
+
+export default apiClient</code></pre>
                 </section>
 
                 <section class="doc-section">
@@ -413,6 +476,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                         <li>Leverage Server Components for static content</li>
                         <li>Use <code>loading.tsx</code> for loading states</li>
                         <li>Implement proper error boundaries</li>
+                        <li>Enable React Server Components where possible</li>
                     </ul>
 
                     <h3>Code Organization</h3>
@@ -422,89 +486,74 @@ export function Providers({ children }: { children: React.ReactNode }) {
                         <li>Separate business logic from UI components</li>
                         <li>Follow consistent naming conventions</li>
                         <li>Document complex components with JSDoc</li>
+                        <li>Use TypeScript strictly - avoid <code>any</code> types</li>
                     </ul>
 
-                    <h3>TypeScript Guidelines</h3>
+                    <h3>State Management</h3>
                     <ul>
-                        <li>Use strict TypeScript configuration</li>
-                        <li>Avoid <code>any</code> types</li>
-                        <li>Create proper interfaces for props</li>
-                        <li>Use utility types effectively</li>
-                        <li>Export types alongside components</li>
+                        <li>Use Redux for global application state</li>
+                        <li>Use React Query for server state and caching</li>
+                        <li>Use React Context for component-specific state</li>
+                        <li>Avoid prop drilling - use context or state management</li>
+                        <li>Normalize state structure for better performance</li>
                     </ul>
                 </section>
 
                 <section class="doc-section">
                     <h2>Common Issues & Solutions</h2>
                     
-                    <div class="troubleshooting-item">
-                        <h4>Build Errors with React DnD</h4>
-                        <p>If you encounter build errors with React DnD, ensure you have the correct backend configured:</p>
-                        <div class="code-block">
-                            <pre><code>// Use HTML5Backend for web
+                    <h3>Build Errors with React DnD</h3>
+                    <p>If you encounter build errors with React DnD, ensure you have the correct backend configured:</p>
+                    <pre><code class="language-typescript">// Use HTML5Backend for web
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
 // For touch devices, use TouchBackend
-import { TouchBackend } from 'react-dnd-touch-backend'</code></pre>
-                        </div>
-                    </div>
+import { TouchBackend } from 'react-dnd-touch-backend'
 
-                    <div class="troubleshooting-item">
-                        <h4>TypeScript Path Resolution</h4>
-                        <p>If TypeScript can't resolve your path aliases, ensure your tsconfig.json is properly configured and restart your IDE.</p>
-                    </div>
+// Configure in next.config.js
+experimental: {
+  serverComponentsExternalPackages: ['@react-dnd/backend'],
+}</code></pre>
 
-                    <div class="troubleshooting-item">
-                        <h4>Hot Reload Not Working</h4>
-                        <p>Check that your files are in the correct directories and that you're using the latest version of Next.js.</p>
-                    </div>
+                    <h3>TypeScript Path Resolution</h3>
+                    <p>If TypeScript can't resolve your path aliases:</p>
+                    <ol>
+                        <li>Ensure <code>tsconfig.json</code> has correct <code>paths</code> configuration</li>
+                        <li>Restart your IDE/TypeScript server</li>
+                        <li>Clear Next.js cache: <code>rm -rf .next</code></li>
+                    </ol>
+
+                    <h3>Hot Reload Not Working</h3>
+                    <p>Check that:</p>
+                    <ul>
+                        <li>Files are in the correct directories</li>
+                        <li>You're using the latest version of Next.js</li>
+                        <li>No syntax errors in your code</li>
+                        <li>Clear <code>.next</code> directory and restart</li>
+                    </ul>
+
+                    <h3>Environment Variables Not Loading</h3>
+                    <p>Remember that:</p>
+                    <ul>
+                        <li>Only <code>NEXT_PUBLIC_*</code> variables are exposed to the browser</li>
+                        <li>Restart the dev server after changing <code>.env.local</code></li>
+                        <li>Use <code>.env.local</code> for local development (not committed to git)</li>
+                    </ul>
                 </section>
 
                 <section class="doc-section">
                     <h2>Next Steps</h2>
-                    <p>Now that you have Next.js set up, explore these guides:</p>
-                    
-                    <div class="next-steps">
-                        <a href="react-components.html" class="btn primary">React Components</a>
-                        <a href="state-management.html" class="btn primary">State Management</a>
-                        <a href="../architecture/frontend-architecture.html" class="btn secondary">Frontend Architecture</a>
-                    </div>
+                    <ul>
+                        <li><a href="react-components.html">React Components</a> - Component architecture and patterns</li>
+                        <li><a href="state-management.html">State Management</a> - Redux and React Query setup</li>
+                        <li><a href="editor-system.html">Editor System</a> - Visual editor implementation</li>
+                        <li><a href="widget-development.html">Widget Development</a> - Creating custom widgets</li>
+                        <li><a href="../architecture/frontend-architecture.html">Frontend Architecture</a> - System architecture overview</li>
+                    </ul>
                 </section>
             </div>
         </main>
     </div>
-
-    <script>
-        // Sidebar functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuItems = document.querySelectorAll('.has-submenu > .menu-link');
-            
-            menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const parent = this.parentElement;
-                    const submenu = parent.querySelector('.submenu');
-                    
-                    if (submenu) {
-                        parent.classList.toggle('active');
-                        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-                    }
-                });
-            });
-            
-            // Auto-expand active menu items
-            const activeLink = document.querySelector('.submenu-link.active');
-            if (activeLink) {
-                const parentMenu = activeLink.closest('.has-submenu');
-                if (parentMenu) {
-                    parentMenu.classList.add('active');
-                    const submenu = parentMenu.querySelector('.submenu');
-                    if (submenu) {
-                        submenu.style.display = 'block';
-                    }
-                }
-            }
-        });
-    </script>
+    <script src="../../js/main.js"></script>
 </body>
 </html>

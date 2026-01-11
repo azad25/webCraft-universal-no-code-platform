@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Provider } from 'react-redux'
 import { store } from '@/store'
 import { AuthProvider } from '@/contexts/auth-context'
+import { MotionProvider } from '@/contexts/motion-context'
 // import { WebSocketProvider } from '@/contexts/websocket-context'
 // import { EditorProvider } from '@/contexts/editor-context'
 import { useState } from 'react'
@@ -35,13 +36,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          {/* <WebSocketProvider> */}
-          {/* <EditorProvider> */}
-          {children}
-          {/* </EditorProvider> */}
-          {/* </WebSocketProvider> */}
-        </AuthProvider>
+        <MotionProvider>
+          <AuthProvider>
+            {/* <WebSocketProvider> */}
+            {/* <EditorProvider> */}
+            {children}
+            {/* </EditorProvider> */}
+            {/* </WebSocketProvider> */}
+          </AuthProvider>
+        </MotionProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </Provider>

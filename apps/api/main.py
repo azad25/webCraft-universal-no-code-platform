@@ -13,7 +13,7 @@ import uvicorn
 import time
 from contextlib import asynccontextmanager
 
-# Import routers
+# Import v1 routers (existing)
 from routers import auth, apps, templates, ai, mobile_api
 from routers import widgets, seo, modules, content_api
 from routers import automations, export, pages, integrations
@@ -30,6 +30,15 @@ from core.kafka_client import init_kafka
 from core.module_system import module_registry
 from middleware.seo_middleware import SEOMiddleware
 from middleware.ai_crawler_middleware import AICrawlerMiddleware
+
+# Import v2 app from restructured backend
+try:
+    from src.main import v2_app
+    HAS_V2_APP = True
+    print("✓ V2 API loaded successfully")
+except ImportError as e:
+    print(f"⚠ Warning: Could not import v2 app: {e}")
+    HAS_V2_APP = False
 
 
 async def init_modules():
@@ -74,14 +83,19 @@ async def lifespan(app: FastAPI):
     try:
         from services.scheduler_service import init_scheduler, shutdown_scheduler
         await init_scheduler()
-        print("Automation scheduler initialized")
+        print("✓ Automation scheduler initialized")
     except Exception as e:
-        print(f"Failed to initialize scheduler: {e}")
+        print(f"⚠ Failed to initialize scheduler: {e}")
     
     # Register module routes dynamically
     for module in module_registry.get_all_modules().values():
         for router in module.get_routes():
             app.include_router(router, prefix="/api/v1")
+    
+    print("✓ WebCraft API started successfully")
+    print(f"  - V1 API: /api/v1/*")
+    if HAS_V2_APP:
+        print(f"  - V2 API: /api/v2/*")
     
     yield
     
@@ -118,8 +132,8 @@ app = FastAPI(
     - ⚡ **Real-time**: WebSocket support for live collaboration
     
     ### API Versions:
-    - **v1**: Stable production API
-    - **v2**: Latest features with backward compatibility
+    - **v1**: Stable production API (all existing endpoints)
+    - **v2**: Domain-driven architecture with enhanced features
     
     ### Authentication:
     - JWT Bearer tokens
@@ -190,6 +204,10 @@ async def health_check():
             "database": "connected",
             "redis": "connected",
             "kafka": "connected"
+        },
+        "api_versions": {
+            "v1": "available",
+            "v2": "available" if HAS_V2_APP else "unavailable"
         }
     }
 
@@ -203,6 +221,10 @@ async def root():
         "documentation": "/docs",
         "graphql": "/graphql",
         "websocket": "/ws",
+        "api_versions": {
+            "v1": "/api/v1 - Stable production API",
+            "v2": "/api/v2 - Domain-driven architecture" if HAS_V2_APP else "Not available"
+        },
         "features": [
             "Universal app builder",
             "SEO optimized",
@@ -214,7 +236,11 @@ async def root():
     }
 
 
-# Include core API routers
+# ============================================
+# V1 API ROUTES (Existing - Preserved)
+# ============================================
+
+# Core API routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(apps.router, prefix="/api/v1/apps", tags=["App Builder"])
 app.include_router(templates.router, prefix="/api/v1/templates", tags=["Templates"])
@@ -280,9 +306,14 @@ app.include_router(sdk.router, tags=["SDK"])
 # Setup & Installation
 app.include_router(setup.router, prefix="/api/v1", tags=["Setup"])
 
-# V2 API routes (latest features)
-app.include_router(apps.router, prefix="/api/v2/apps", tags=["App Builder v2"])
-app.include_router(ai.router, prefix="/api/v2/ai", tags=["AI Services v2"])
+
+# ============================================
+# V2 API ROUTES (New Domain-Driven Architecture)
+# ============================================
+
+if HAS_V2_APP:
+    # Mount the entire v2 app under /api/v2
+    app.mount("/api/v2", v2_app)
 
 
 # Custom OpenAPI schema for better documentation
@@ -313,6 +344,18 @@ def custom_openapi():
         "AI crawler optimization",
         "Core Web Vitals monitoring"
     ]
+    
+    # Add API version info
+    openapi_schema["x-api-versions"] = {
+        "v1": {
+            "status": "stable",
+            "description": "Production API with all existing endpoints"
+        },
+        "v2": {
+            "status": "available" if HAS_V2_APP else "unavailable",
+            "description": "Domain-driven architecture with enhanced features"
+        }
+    }
     
     app.openapi_schema = openapi_schema
     return app.openapi_schema

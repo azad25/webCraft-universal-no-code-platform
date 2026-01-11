@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { Loader2, Smartphone, Tablet, Monitor, ExternalLink, QrCode, ArrowLeft, RefreshCw, Eye, EyeOff, Copy, Check, Keyboard, Home, Globe, Layers, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from \'framer-motion\';
 import { WidgetRenderer } from '@/components/editor/widget-renderer';
 import { PreviewLoading } from '@/components/preview/preview-loading';
 import { PreviewError } from '@/components/preview/preview-error';
@@ -196,7 +196,7 @@ export default function PreviewPage() {
       {/* Enhanced Fixed Preview Bar */}
       <AnimatePresence>
         {showPreviewBar && (
-          <motion.div
+          <m.div
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             exit={{ y: -100 }}
@@ -326,7 +326,7 @@ export default function PreviewPage() {
 
               {/* Expiration Warning */}
               {isExpired && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   className="mt-4 bg-red-50 border border-red-200 text-red-800 rounded-lg p-3"
@@ -337,13 +337,13 @@ export default function PreviewPage() {
                       ⚠️ This preview has expired. Please generate a new preview link.
                     </p>
                   </div>
-                </motion.div>
+                </m.div>
               )}
 
               {/* QR Code Panel */}
               <AnimatePresence>
                 {showQR && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -369,14 +369,14 @@ export default function PreviewPage() {
                         </p>
                       </div>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
 
               {/* Keyboard Shortcuts Help */}
               <AnimatePresence>
                 {showShortcuts && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -403,24 +403,24 @@ export default function PreviewPage() {
                         <kbd className="px-2 py-1 bg-white border border-slate-300 rounded text-xs font-mono shadow-sm">Ctrl+Shift+C</kbd>
                       </div>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* Show Preview Bar Button (when hidden) */}
       {!showPreviewBar && (
-        <motion.button
+        <m.button
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           onClick={() => setShowPreviewBar(true)}
           className="fixed top-4 right-4 z-50 bg-white text-slate-700 p-3 rounded-xl shadow-lg hover:shadow-xl border border-slate-200 transition-all duration-200 hover:scale-105"
         >
           <Eye className="w-5 h-5" />
-        </motion.button>
+        </m.button>
       )}
 
       {/* Enhanced Preview Content */}
@@ -471,7 +471,7 @@ export default function PreviewPage() {
 
       {/* Enhanced Preview Info Footer */}
       {!fullscreen && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="fixed bottom-6 right-6 bg-white rounded-xl shadow-lg border border-slate-200 p-4 text-xs text-slate-600 backdrop-blur-sm"
@@ -492,7 +492,7 @@ export default function PreviewPage() {
               <span className="font-medium">{expiresAt.toLocaleString()}</span>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );
@@ -614,7 +614,7 @@ function AppPreviewRenderer({
             <div className="space-y-0">
               {elements.map((element: any, index: number) => {
                 return (
-                  <motion.div
+                  <m.div
                     key={element.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -632,14 +632,14 @@ function AppPreviewRenderer({
                       isPreview={true}
                       onSelect={() => {}}
                     />
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
           </div>
         ) : (
           <div className={`h-full flex items-center justify-center p-8 ${fullscreen ? 'min-h-screen' : ''}`}>
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
@@ -718,7 +718,7 @@ function AppPreviewRenderer({
                   </div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           </div>
         )}
       </div>

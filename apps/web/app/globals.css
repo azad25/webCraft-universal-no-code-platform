@@ -311,6 +311,15 @@
   }
   
   /* Professional Animations */
+  .animate-pulse-slow {
+    animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.5; }
+  }
+
   .animate-slide-in {
     animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -325,6 +334,17 @@
   
   .animate-slide-up {
     animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+  
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   
   @keyframes slideIn {
@@ -389,6 +409,20 @@
     @apply bg-card border border-border rounded-xl shadow-lg;
     background-color: hsl(var(--card) / 0.95);
     backdrop-filter: blur(12px);
+  }
+  
+  /* Glass Morphism Effects */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
   }
   
   /* Professional Status Indicators */

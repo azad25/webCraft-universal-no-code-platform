@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useDrag } from 'react-dnd'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useEditor } from '@/contexts/editor-context'
 import { getActionService } from '@/lib/action-service'
@@ -249,7 +249,10 @@ export function WidgetRenderer({
   }
 
   const [isDraggingPosition, setIsDraggingPosition] = useState(false)
-  const [dragMode, setDragMode] = useState<'reorder' | 'position'>('reorder')
+  const [dragMode, setDragMode] = useState<'reorder' | 'position'>(() => {
+    // Default to position mode for elements with position data, reorder for others
+    return (element.position?.x !== undefined && element.position?.y !== undefined) ? 'position' : 'reorder'
+  })
 
   // Drag handle for reordering (only when selected and not in preview)
   const dragResult = !isPreview ? useDrag({
@@ -269,22 +272,24 @@ export function WidgetRenderer({
     item: () => ({
       type: 'element-position',
       id: element.id,
-      initialPosition: element.position
+      initialPosition: element.position || { x: 0, y: 0 }
     }),
     canDrag: () => isSelected && !isPreview && dragMode === 'position',
     collect: (monitor) => ({
       isDraggingPos: monitor.isDragging()
     }),
     end: (item, monitor) => {
-      if (!monitor.didDrop()) return
-      
-      const delta = monitor.getDifferenceFromInitialOffset()
-      if (delta) {
-        const newPosition = {
-          x: element.position.x + delta.x,
-          y: element.position.y + delta.y
+      if (!monitor.didDrop()) {
+        // If not dropped on a valid target, update position based on mouse movement
+        const delta = monitor.getDifferenceFromInitialOffset()
+        if (delta) {
+          const currentPos = element.position || { x: 0, y: 0 }
+          const newPosition = {
+            x: Math.max(0, currentPos.x + delta.x),
+            y: Math.max(0, currentPos.y + delta.y)
+          }
+          updateElement(element.id, { position: newPosition })
         }
-        updateElement(element.id, { position: newPosition })
       }
     }
   }) : [{ isDraggingPos: false }, () => {}]
@@ -677,16 +682,10 @@ export function WidgetRenderer({
         !isPreview && "cursor-pointer hover:ring-1 hover:ring-primary/30",
         (isDragging || isDraggingPos) && "opacity-50",
         !isPreview && isSelected && "ring-2 ring-primary ring-offset-1",
-        !isPreview && isHovered && !isSelected && "ring-1 ring-primary/50",
-        dragMode === 'position' && !isPreview && "absolute"
+        !isPreview && isHovered && !isSelected && "ring-1 ring-primary/50"
       )}
       style={{
-        ...(dragMode === 'position' && !isPreview ? {
-          left: element.position?.x || 0,
-          top: element.position?.y || 0,
-          width: element.size?.width || 'auto',
-          zIndex: isSelected ? 1000 : 1
-        } : {})
+        // Let the canvas handle positioning through its container
       }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
@@ -694,10 +693,17 @@ export function WidgetRenderer({
     >
       {/* Widget Content */}
       <div 
-        ref={dragMode === 'position' ? dragPosition as any : undefined}
+        ref={(node) => {
+          // Apply the appropriate drag ref based on drag mode
+          if (dragMode === 'position' && !isPreview) {
+            dragPosition(node)
+          } else if (dragMode === 'reorder' && !isPreview) {
+            drag(node)
+          }
+        }}
         style={element.style}
         className={cn(
-          "relative",
+          "relative w-full h-full",
           !isPreview && !isSelected && "hover:outline hover:outline-1 hover:outline-primary/40 hover:outline-offset-2",
           dragMode === 'position' && isSelected && !isPreview && "cursor-move",
           // Add better visual feedback for editable elements
@@ -726,7 +732,7 @@ export function WidgetRenderer({
       {isSelected && !isPreview && (
         <TooltipProvider>
           {/* Top Label */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             className="absolute -top-8 left-0 flex items-center gap-1 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-medium shadow-lg z-50"
@@ -752,7 +758,14 @@ export function WidgetRenderer({
                   className="h-5 w-5 p-0 hover:bg-white/20 text-white"
                   onClick={(e) => {
                     e.stopPropagation()
-                    setDragMode(dragMode === 'reorder' ? 'position' : 'reorder')
+                    const newMode = dragMode === 'reorder' ? 'position' : 'reorder'
+                    setDragMode(newMode)
+                    // Update element style to match drag mode
+                    if (newMode === 'position') {
+                      updateElement(element.id, { 
+                        style: { ...element.style, position: 'absolute' }
+                      })
+                    }
                   }}
                 >
                   {dragMode === 'reorder' ? <ArrowUpDown className="w-3 h-3" /> : <Move className="w-3 h-3" />}
@@ -903,10 +916,10 @@ export function WidgetRenderer({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Add Section Button (below) */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-50"
@@ -930,30 +943,30 @@ export function WidgetRenderer({
                 <p>Add new section below</p>
               </TooltipContent>
             </Tooltip>
-          </motion.div>
+          </m.div>
         </TooltipProvider>
       )}
 
       {/* Hover indicator for non-selected elements */}
       {isHovered && !isSelected && !isPreview && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="absolute -top-6 left-0 bg-muted text-muted-foreground px-2 py-0.5 rounded text-xs font-medium z-40 pointer-events-none"
         >
           Click to select • Double-click to edit • {element.type} • {dragMode === 'position' ? 'Position Mode' : 'Stack Mode'}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Position mode indicator */}
       {dragMode === 'position' && isSelected && !isPreview && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="absolute -bottom-6 left-0 bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-medium z-40 pointer-events-none"
         >
           Position Mode • Drag to move freely
-        </motion.div>
+        </m.div>
       )}
 
       {/* Widget Toolbar - Figma-like editing */}
@@ -985,14 +998,14 @@ export function WidgetRenderer({
 
       {/* Quick Actions Hint */}
       {showQuickActions && !isPreview && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
           className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-black text-white px-3 py-1 rounded text-xs whitespace-nowrap z-50"
         >
           Double-click text to edit • Right-click for options • Enter to start editing
-        </motion.div>
+        </m.div>
       )}
     </div>
   )

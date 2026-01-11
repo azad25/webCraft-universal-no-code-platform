@@ -23,6 +23,7 @@ interface EditorState {
   elements: Element[]
   selectedElementId: string | null
   hoveredElementId: string | null
+  selectedSubElement: { path: string; type: string } | null // Add sub-element selection
   history: Element[][]
   historyIndex: number
   clipboard: Element | null
@@ -39,6 +40,7 @@ interface EditorContextValue {
   elements: Element[]
   selectedElement: Element | null
   hoveredElement: Element | null
+  selectedSubElement: { path: string; type: string } | null // Add sub-element selection
   canUndo: boolean
   canRedo: boolean
   isDirty: boolean
@@ -70,6 +72,7 @@ interface EditorContextValue {
   // Selection
   selectElement: (element: Element | null) => void
   setHoveredElement: (element: Element | null) => void
+  selectSubElement: (path: string, type: string) => void // Add sub-element selection
   
   // Clipboard
   copy: () => void
@@ -104,6 +107,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     elements: [],
     selectedElementId: null,
     hoveredElementId: null,
+    selectedSubElement: null, // Add sub-element selection
     history: [[]],
     historyIndex: 0,
     clipboard: null,
@@ -403,11 +407,23 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
 
   // Selection
   const selectElement = useCallback((element: Element | null) => {
-    setState(prev => ({ ...prev, selectedElementId: element?.id || null }))
+    setState(prev => ({ 
+      ...prev, 
+      selectedElementId: element?.id || null,
+      selectedSubElement: null // Clear sub-element selection when selecting main element
+    }))
   }, [])
 
   const setHoveredElement = useCallback((element: Element | null) => {
     setState(prev => ({ ...prev, hoveredElementId: element?.id || null }))
+  }, [])
+
+  // Sub-element selection
+  const selectSubElement = useCallback((path: string, type: string) => {
+    setState(prev => ({ 
+      ...prev, 
+      selectedSubElement: path ? { path, type } : null 
+    }))
   }, [])
 
   // Clipboard
@@ -705,6 +721,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     elements: state.elements,
     selectedElement,
     hoveredElement,
+    selectedSubElement: state.selectedSubElement, // Add sub-element selection
     canUndo,
     canRedo,
     isDirty: state.isDirty,
@@ -735,6 +752,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     
     selectElement,
     setHoveredElement,
+    selectSubElement, // Add sub-element selection
     
     copy,
     cut,

@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface LogoProps {
@@ -26,7 +26,7 @@ export function Logo({
   const { icon: iconSize, text: textSize } = sizes[size]
   
   const LogoIcon = () => (
-    <motion.svg
+    <m.svg
       width={iconSize}
       height={iconSize}
       viewBox="0 0 48 48"
@@ -67,7 +67,7 @@ export function Logo({
       />
       
       {/* Inner design - Abstract "W" shape representing web/craft */}
-      <motion.path
+      <m.path
         d="M12 16L18 32L24 20L30 32L36 16"
         stroke="white"
         strokeWidth="3"
@@ -80,7 +80,7 @@ export function Logo({
       />
       
       {/* Accent dot */}
-      <motion.circle
+      <m.circle
         cx="24"
         cy="14"
         r="3"
@@ -91,7 +91,7 @@ export function Logo({
       />
       
       {/* Decorative elements */}
-      <motion.circle
+      <m.circle
         cx="38"
         cy="24"
         r="2"
@@ -101,7 +101,7 @@ export function Logo({
         animate={{ scale: 1 }}
         transition={{ duration: 0.3, delay: 0.8 }}
       />
-      <motion.circle
+      <m.circle
         cx="10"
         cy="24"
         r="2"
@@ -111,11 +111,11 @@ export function Logo({
         animate={{ scale: 1 }}
         transition={{ duration: 0.3, delay: 0.9 }}
       />
-    </motion.svg>
+    </m.svg>
   )
   
   const LogoText = () => (
-    <motion.span
+    <m.span
       className={cn(
         "font-bold tracking-tight",
         textSize
@@ -128,7 +128,7 @@ export function Logo({
         Web
       </span>
       <span className="text-foreground">Craft</span>
-    </motion.span>
+    </m.span>
   )
   
   if (variant === 'icon') {
@@ -195,13 +195,13 @@ export function LogoSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   
   return (
     <div className="flex items-center justify-center">
-      <motion.div
+      <m.div
         className={cn(spinnerSizes[size])}
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
       >
         <Logo size={size} variant="icon" animated={false} />
-      </motion.div>
+      </m.div>
     </div>
   )
 }

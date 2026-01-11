@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Navigation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .test-link:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Dashboard Navigation Test</h1>
+        <p>Test all dashboard navigation links to ensure they work properly without 404 errors.</p>
+        
+        <div class="status info">
+            <strong>Base URL:</strong> <span id="baseUrl"></span>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 Primary Navigation</h2>
+        <p>Main dashboard sections:</p>
+        <div id="primaryNav">
+            <a href="/dashboard" class="test-link" data-route="/dashboard">Dashboard</a>
+            <a href="/apps" class="test-link" data-route="/apps">My Apps</a>
+            <a href="/templates" class="test-link" data-route="/templates">Templates</a>
+            <a href="/automations" class="test-link" data-route="/automations">Automations</a>
+            <a href="/data-sources" class="test-link" data-route="/data-sources">Data Sources</a>
+            <a href="/analytics" class="test-link" data-route="/analytics">Analytics</a>
+            <a href="/media" class="test-link" data-route="/media">Media Library</a>
+            <a href="/integrations" class="test-link" data-route="/integrations">Integrations</a>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>⚙️ Secondary Navigation</h2>
+        <p>Advanced features and settings:</p>
+        <div id="secondaryNav">
+            <a href="/collections" class="test-link" data-route="/collections">Collections</a>
+            <a href="/webhooks" class="test-link" data-route="/webhooks">Webhooks</a>
+            <a href="/ai" class="test-link" data-route="/ai">AI Assistant</a>
+            <a href="/mobile" class="test-link" data-route="/mobile">Mobile SDKs</a>
+            <a href="/export" class="test-link" data-route="/export">Export & Deploy</a>
+            <a href="/settings" class="test-link" data-route="/settings">Settings</a>
+            <a href="/billing" class="test-link" data-route="/billing">Billing</a>
+            <a href="/team" class="test-link" data-route="/team">Team</a>
+            <a href="/help" class="test-link" data-route="/help">Help</a>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test Results</h2>
+        <div id="testResults">
+            <div class="status info">Click on any navigation link above to test it. Results will appear here.</div>
+        </div>
+        
+        <button onclick="testAllRoutes()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">
+            Test All Routes
+        </button>
+    </div>
+
+    <script>
+        // Set base URL
+        document.getElementById('baseUrl').textContent = window.location.origin;
+
+        // Track test results
+        const testResults = [];
+
+        // Test individual route
+        async function testRoute(route) {
+            try {
+                const response = await fetch(route, { method: 'HEAD' });
+                const status = response.status;
+                const success = status === 200;
+                
+                testResults.push({
+                    route,
+                    status,
+                    success,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+
+                updateTestResults();
+                return success;
+            } catch (error) {
+                testResults.push({
+                    route,
+                    status: 'ERROR',
+                    success: false,
+                    error: error.message,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                updateTestResults();
+                return false;
+            }
+        }
+
+        // Test all routes
+        async function testAllRoutes() {
+            const links = document.querySelectorAll('.test-link');
+            const routes = Array.from(links).map(link => link.getAttribute('data-route'));
+            
+            document.getElementById('testResults').innerHTML = '<div class="status info">Testing all routes...</div>';
+            
+            for (const route of routes) {
+                await testRoute(route);
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        // Update test results display
+        function updateTestResults() {
+            const resultsDiv = document.getElementById('testResults');
+            
+            if (testResults.length === 0) {
+                resultsDiv.innerHTML = '<div class="status info">No tests run yet.</div>';
+                return;
+            }
+
+            const successCount = testResults.filter(r => r.success).length;
+            const totalCount = testResults.length;
+            
+            let html = `<div class="status ${successCount === totalCount ? 'success' : 'error'}">
+                <strong>Test Summary:</strong> ${successCount}/${totalCount} routes working
+            </div>`;
+
+            testResults.forEach(result => {
+                const statusClass = result.success ? 'success' : 'error';
+                const statusText = result.success ? '✅ Working' : `❌ Failed (${result.status})`;
+                
+                html += `<div class="status ${statusClass}">
+                    <strong>${result.route}</strong> - ${statusText} 
+                    <small>(${result.timestamp})</small>
+                    ${result.error ? `<br><em>Error: ${result.error}</em>` : ''}
+                </div>`;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Add click handlers to test links
+        document.querySelectorAll('.test-link').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const route = link.getAttribute('data-route');
+                const success = await testRoute(route);
+                
+                if (success) {
+                    // If test passes, navigate to the route
+                    setTimeout(() => {
+                        window.location.href = route;
+                    }, 1000);
+                }
+            });
+        });
+
+        // Initial display
+        updateTestResults();
+    </script>
+</body>
+</html>

@@ -28,6 +28,7 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://webcraft:password@postgres:5432/webcraft_db
+      - DATABASE_V2_URL=postgresql://webcraft:password@postgres:5432/webcraft_v2_db
       - REDIS_URL=redis://redis:6379
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - JWT_SECRET_KEY=VYZVWRaQG6i1djEDjs+C4nzpMlz2bbt1/84j3QJHRPKw=
@@ -50,7 +51,7 @@ services:
     networks:
       - webcraft-network
 
-  # PostgreSQL Database
+  # PostgreSQL Database (V1 & V2)
   postgres:
     image: postgres:15-alpine
     environment:
@@ -61,6 +62,7 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-v2-db.sql:/docker-entrypoint-initdb.d/init-v2-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U webcraft -d webcraft_db"]
       interval: 10s

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -84,6 +84,7 @@ export function HeroWidget({
   href,
   target,
   
+  // Editor props
   isEditing,
   isPreview,
   isSelected,
@@ -91,8 +92,15 @@ export function HeroWidget({
   elementId,
   appId,
   onChange,
-  onStyleChange
-}: HeroWidgetProps) {
+  onStyleChange,
+  
+  // Sub-element selection support
+  selectedSubElement,
+  onSubElementSelect
+}: HeroWidgetProps & {
+  selectedSubElement?: { path: string; type: string } | null
+  onSubElementSelect?: (path: string, type: string) => void
+}) {
   // Data source state
   const [heroData, setHeroData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -300,7 +308,7 @@ export function HeroWidget({
         <div className="max-w-4xl mx-auto">
           {/* Badge */}
           {showBadge && activeBadgeText && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6"
@@ -310,21 +318,29 @@ export function HeroWidget({
                 className={cn(
                   "inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-text",
                   editingField === 'badgeText' && "outline-none ring-2 ring-primary/50 bg-primary/5",
-                  !isPreview && editingField !== 'badgeText' && "hover:bg-muted/30"
+                  !isPreview && editingField !== 'badgeText' && "hover:bg-muted/30",
+                  // Sub-element selection highlight
+                  selectedSubElement?.path === 'badgeText' && "ring-2 ring-primary/70 bg-primary/10"
                 )}
                 contentEditable={editingField === 'badgeText'}
                 suppressContentEditableWarning
                 onBlur={() => handleFieldBlur('badgeText')}
                 onKeyDown={(e) => handleKeyDown(e, 'badgeText')}
                 onDoubleClick={() => handleFieldEdit('badgeText')}
+                onClick={(e) => {
+                  if (!isPreview && onSubElementSelect) {
+                    e.stopPropagation()
+                    onSubElementSelect('badgeText', 'badge')
+                  }
+                }}
               >
                 {activeBadgeText}
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {/* Title */}
-          <motion.h1
+          <m.h1
             ref={titleRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -332,19 +348,27 @@ export function HeroWidget({
             className={cn(
               "text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight cursor-text",
               editingField === 'title' && "outline-none ring-2 ring-primary/50 rounded px-2 bg-primary/5",
-              !isPreview && editingField !== 'title' && "hover:bg-muted/30 rounded px-2"
+              !isPreview && editingField !== 'title' && "hover:bg-muted/30 rounded px-2",
+              // Sub-element selection highlight
+              selectedSubElement?.path === 'title' && "ring-2 ring-primary/70 bg-primary/10 rounded px-2"
             )}
             contentEditable={editingField === 'title'}
             suppressContentEditableWarning
             onBlur={() => handleFieldBlur('title')}
             onKeyDown={(e) => handleKeyDown(e, 'title')}
             onDoubleClick={() => handleFieldEdit('title')}
+            onClick={(e) => {
+              if (!isPreview && onSubElementSelect) {
+                e.stopPropagation()
+                onSubElementSelect('title', 'title')
+              }
+            }}
           >
             {activeTitle}
-          </motion.h1>
+          </m.h1>
 
           {/* Subtitle */}
-          <motion.h2
+          <m.h2
             ref={subtitleRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -361,10 +385,10 @@ export function HeroWidget({
             onDoubleClick={() => handleFieldEdit('subtitle')}
           >
             {activeSubtitle}
-          </motion.h2>
+          </m.h2>
 
           {/* Description */}
-          <motion.p
+          <m.p
             ref={descriptionRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -383,10 +407,10 @@ export function HeroWidget({
             onDoubleClick={() => handleFieldEdit('description')}
           >
             {activeDescription}
-          </motion.p>
+          </m.p>
 
           {/* Buttons */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -446,7 +470,7 @@ export function HeroWidget({
                 </span>
               </Button>
             )}
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

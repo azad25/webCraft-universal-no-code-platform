@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { m, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { FileCode, LayoutGrid, Smartphone, Palette, Code2, Database } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -60,25 +60,25 @@ function TemplateCard({ template, index }: TemplateCardProps) {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md"
+      className="group relative overflow-hidden rounded-2xl border border-white/5 bg-slate-900/60 p-8 shadow-sm transition-all hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-900/20 hover:-translate-y-1"
     >
-      <div className="absolute right-4 top-4 rounded-full bg-muted px-3 py-1 text-xs font-medium">
+      <div className="absolute right-4 top-4 rounded-full bg-blue-500/10 border border-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
         {template.count}+ Templates
       </div>
       <div className={cn(
-        "mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br text-white",
+        "mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-inner",
         template.color
       )}>
-        <template.icon className="h-6 w-6" />
+        <template.icon className="h-7 w-7" />
       </div>
-      <h3 className="mb-2 text-lg font-semibold">{template.title}</h3>
-      <p className="text-muted-foreground">{template.description}</p>
-    </motion.div>
+      <h3 className="mb-3 text-xl font-bold text-white group-hover:text-blue-200 transition-colors">{template.title}</h3>
+      <p className="text-slate-400 leading-relaxed">{template.description}</p>
+    </m.div>
   )
 }
 
@@ -87,42 +87,43 @@ export function TemplatesSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="py-16 md:py-24 lg:py-32">
+    <section ref={ref} className="py-24 bg-[#0d1226] relative">
       <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-3xl text-center">
-          <motion.h2
+        <div className="mx-auto max-w-3xl text-center mb-16">
+          <m.h2
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5 }}
-            className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl"
+            className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6"
           >
             Beautiful Templates for Every Need
-          </motion.h2>
-          <motion.p
+          </m.h2>
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground"
+            className="mx-auto mt-4 max-w-2xl text-lg text-slate-400"
           >
-            Jumpstart your project with our professionally designed templates, fully customizable to match your brand.
-          </motion.p>
+            Jumpstart your project with our professionally designed templates,
+            fully customizable to match your brand style.
+          </m.p>
         </div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {templates.map((template, index) => (
             <TemplateCard key={template.title} template={template} index={index} />
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <motion.button
+        <div className="mt-16 text-center">
+          <m.button
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-white shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl"
+            className="rounded-full bg-white/10 border border-white/10 px-8 py-4 text-base font-medium text-white shadow-lg transition-all hover:bg-white/20 hover:scale-105 backdrop-blur-md"
           >
             Browse All Templates
-          </motion.button>
+          </m.button>
         </div>
       </div>
     </section>

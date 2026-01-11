@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import {
   Plus,
   Sparkles,
@@ -325,7 +325,7 @@ export default function DashboardPage() {
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {STATS_DATA.map((stat, i) => (
-                <motion.div
+                <m.div
                   key={stat.label}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -348,12 +348,12 @@ export default function DashboardPage() {
                       <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </m.div>
               ))}
             </div>
 
             {/* Quick Actions */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
@@ -404,11 +404,11 @@ export default function DashboardPage() {
                   )
                 })}
               </div>
-            </motion.div>
+            </m.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Recent Apps */}
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
@@ -500,10 +500,10 @@ export default function DashboardPage() {
                     })}
                   </div>
                 )}
-              </motion.div>
+              </m.div>
 
               {/* Sidebar */}
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
@@ -637,7 +637,7 @@ export default function DashboardPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </m.div>
             </div>
           </TabsContent>
 
@@ -857,7 +857,7 @@ export default function DashboardPage() {
                 {apps.map((app: any, i: number) => {
                   const Icon = APP_TYPE_ICONS[app.app_type as keyof typeof APP_TYPE_ICONS] || Globe
                   return (
-                    <motion.div
+                    <m.div
                       key={app.id}
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -914,7 +914,7 @@ export default function DashboardPage() {
                           </div>
                         </CardContent>
                       </Card>
-                    </motion.div>
+                    </m.div>
                   )
                 })}
               </div>

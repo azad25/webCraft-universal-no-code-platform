@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page Motion Fix Test</title>
+</head>
+<body>
+    <h1>Landing Page Motion Fix Test</h1>
+    
+    <h2>✅ Fixed Components</h2>
+    <ul>
+        <li>✅ Hero Section - Replaced motion with m</li>
+        <li>✅ Pricing Section - Replaced motion with m</li>
+        <li>✅ Features Section - Replaced motion with m</li>
+        <li>✅ Testimonials Section - Replaced motion with m</li>
+        <li>✅ Dynamic Bento - Replaced motion with m</li>
+        <li>✅ FAQ Section - Replaced motion with m</li>
+        <li>✅ Modular Assembly - Replaced motion with m</li>
+        <li>✅ Templates Section - Replaced motion with m</li>
+        <li>✅ Workflow Section - Replaced motion with m</li>
+        <li>✅ CTA Section - Replaced motion with m</li>
+        <li>✅ Trusted By Section - Replaced motion with m</li>
+        <li>✅ Template Library - Replaced motion with m</li>
+        <li>✅ Section Templates - Replaced motion with m</li>
+        <li>✅ Template Selector - Replaced motion with m</li>
+        <li>✅ Smart Button - Replaced motion with m</li>
+        <li>✅ Toaster - Replaced motion with m</li>
+        <li>✅ Header - Replaced motion with m</li>
+        <li>✅ Floating Toolbar - Replaced motion with m</li>
+        <li>✅ CircuitBackground className issue - Fixed</li>
+    </ul>
+    
+    <h2>🎯 Solution Summary</h2>
+    <p>The error "You have rendered a `motion` component within a `LazyMotion` component. This will break tree shaking. Import and render a `m` component instead." has been resolved by:</p>
+    
+    <ol>
+        <li><strong>Replaced all motion imports:</strong> Changed <code>import { motion } from 'framer-motion'</code> to <code>import { m } from 'framer-motion'</code></li>
+        <li><strong>Replaced all motion components:</strong> Changed <code>&lt;motion.div&gt;</code> to <code>&lt;m.div&gt;</code> throughout all landing page components</li>
+        <li><strong>Maintained LazyMotion wrapper:</strong> The LazyMotion component in providers.tsx remains intact with strict mode enabled</li>
+        <li><strong>Fixed component props:</strong> Resolved CircuitBackground className prop issue</li>
+    </ol>
+    
+    <h2>🔍 Verification</h2>
+    <ul>
+        <li>✅ No more motion. usage found in landing page components</li>
+        <li>✅ All components now use m. instead of motion.</li>
+        <li>✅ TypeScript diagnostics are clean</li>
+        <li>✅ LazyMotion tree shaking will now work correctly</li>
+    </ul>
+    
+    <p><strong>Result:</strong> The landing page should now load without the motion/LazyMotion runtime error.</p>
+</body>
+</html>

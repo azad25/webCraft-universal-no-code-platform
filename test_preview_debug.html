@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Debug Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .debug-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .json-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Preview System Debug Tool</h1>
+        <p>This tool helps debug the preview system by testing API endpoints and data flow.</p>
+
+        <div class="debug-section">
+            <h3>1. Test App Data Loading</h3>
+            <button class="test-button" onclick="testAppData()">Load Test App Data</button>
+            <div id="app-data-status"></div>
+            <div id="app-data-display" class="json-display" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>2. Test Preview Generation</h3>
+            <input type="text" id="app-id-input" placeholder="Enter App ID" style="padding: 8px; margin-right: 10px; width: 300px;">
+            <button class="test-button" onclick="generatePreview()">Generate Preview</button>
+            <div id="preview-status"></div>
+            <div id="preview-data-display" class="json-display" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>3. Test Preview Data Retrieval</h3>
+            <input type="text" id="token-input" placeholder="Enter Preview Token" style="padding: 8px; margin-right: 10px; width: 300px;">
+            <button class="test-button" onclick="testPreviewData()">Get Preview Data</button>
+            <div id="preview-retrieval-status"></div>
+            <div id="preview-retrieval-display" class="json-display" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>4. Element Structure Analysis</h3>
+            <button class="test-button" onclick="analyzeElements()">Analyze Elements</button>
+            <div id="elements-analysis-status"></div>
+            <div id="elements-analysis-display" class="json-display" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>5. Quick Preview Test</h3>
+            <p>Test with a known working app:</p>
+            <button class="test-button" onclick="quickPreviewTest()">Quick Test</button>
+            <div id="quick-test-status"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPreviewData = null;
+
+        function showStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showData(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function testAppData() {
+            showStatus('app-data-status', 'Loading app data...', 'info');
+            
+            try {
+                // Get auth token
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    showStatus('app-data-status', 'No auth token found. Please login first.', 'error');
+                    return;
+                }
+
+                // Get list of apps
+                const response = await fetch('/api/apps', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                showStatus('app-data-status', `Found ${data.apps?.length || 0} apps`, 'success');
+                showData('app-data-display', data);
+
+                // Auto-fill first app ID if available
+                if (data.apps && data.apps.length > 0) {
+                    document.getElementById('app-id-input').value = data.apps[0].id;
+                }
+
+            } catch (error) {
+                showStatus('app-data-status', `Error: ${error.message}`, 'error');
+                console.error('App data test failed:', error);
+            }
+        }
+
+        async function generatePreview() {
+            const appId = document.getElementById('app-id-input').value.trim();
+            if (!appId) {
+                showStatus('preview-status', 'Please enter an App ID', 'error');
+                return;
+            }
+
+            showStatus('preview-status', 'Generating preview...', 'info');
+
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    showStatus('preview-status', 'No auth token found. Please login first.', 'error');
+                    return;
+                }
+
+                const response = await fetch(`/api/apps/${appId}/preview`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                showStatus('preview-status', 'Preview generated successfully!', 'success');
+                showData('preview-data-display', data);
+
+                // Auto-fill token for next test
+                if (data.token) {
+                    document.getElementById('token-input').value = data.token;
+                }
+
+            } catch (error) {
+                showStatus('preview-status', `Error: ${error.message}`, 'error');
+                console.error('Preview generation failed:', error);
+            }
+        }
+
+        async function testPreviewData() {
+            const token = document.getElementById('token-input').value.trim();
+            if (!token) {
+                showStatus('preview-retrieval-status', 'Please enter a Preview Token', 'error');
+                return;
+            }
+
+            showStatus('preview-retrieval-status', 'Retrieving preview data...', 'info');
+
+            try {
+                const response = await fetch(`/api/apps/preview/${token}?device=desktop`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                currentPreviewData = data;
+                
+                showStatus('preview-retrieval-status', 
+                    `Preview data retrieved! App: ${data.app?.name}, Pages: ${data.pages?.length || 0}`, 
+                    'success'
+                );
+                showData('preview-retrieval-display', data);
+
+            } catch (error) {
+                showStatus('preview-retrieval-status', `Error: ${error.message}`, 'error');
+                console.error('Preview data retrieval failed:', error);
+            }
+        }
+
+        function analyzeElements() {
+            if (!currentPreviewData) {
+                showStatus('elements-analysis-status', 'Please retrieve preview data first', 'error');
+                return;
+            }
+
+            const analysis = {
+                app: {
+                    name: currentPreviewData.app?.name,
+                    type: currentPreviewData.app?.app_type,
+                    hasConfig: !!currentPreviewData.app?.config,
+                    configElements: currentPreviewData.app?.config?.elements?.length || 0
+                },
+                pages: currentPreviewData.pages?.map(page => ({
+                    id: page.id,
+                    title: page.title,
+                    slug: page.slug,
+                    isHomepage: page.is_homepage,
+                    hasContent: !!page.content,
+                    contentStructure: page.content ? Object.keys(page.content) : [],
+                    elementsCount: page.content?.elements?.length || 0,
+                    elements: page.content?.elements?.map(el => ({
+                        id: el.id,
+                        type: el.type,
+                        hasPosition: !!el.position,
+                        hasSize: !!el.size,
+                        hasProps: !!el.props,
+                        hasStyle: !!el.style
+                    })) || []
+                })) || []
+            };
+
+            showStatus('elements-analysis-status', 
+                `Analysis complete! Total pages: ${analysis.pages.length}`, 
+                'success'
+            );
+            showData('elements-analysis-display', analysis);
+        }
+
+        async function quickPreviewTest() {
+            showStatus('quick-test-status', 'Running quick preview test...', 'info');
+
+            try {
+                // Step 1: Get apps
+                await testAppData();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Step 2: Generate preview for first app
+                const appId = document.getElementById('app-id-input').value;
+                if (appId) {
+                    await generatePreview();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Step 3: Test preview data
+                    const token = document.getElementById('token-input').value;
+                    if (token) {
+                        await testPreviewData();
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        // Step 4: Analyze elements
+                        analyzeElements();
+
+                        showStatus('quick-test-status', 'Quick test completed! Check results above.', 'success');
+                    }
+                }
+
+            } catch (error) {
+                showStatus('quick-test-status', `Quick test failed: ${error.message}`, 'error');
+                console.error('Quick test failed:', error);
+            }
+        }
+
+        // Auto-load app data on page load
+        window.addEventListener('load', () => {
+            console.log('Preview Debug Tool loaded');
+            // Uncomment to auto-run test on load
+            // testAppData();
+        });
+    </script>
+</body>
+</html>

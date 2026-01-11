@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { m, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Check, Zap, Sparkles, Code, Server, BarChart, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -88,20 +88,20 @@ function PricingCard({ tier, index }: PricingCardProps) {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className={cn(
-        'relative flex flex-col overflow-hidden rounded-2xl border p-8',
+        'relative flex flex-col overflow-hidden rounded-3xl border p-8 transition-all duration-300',
         tier.featured
-          ? 'border-2 border-primary bg-primary/5 shadow-lg'
-          : 'border-gray-200 bg-white',
+          ? 'border-blue-500 bg-slate-900/80 shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)] z-10 scale-105'
+          : 'border-white/10 bg-white/5 hover:border-white/20',
       )}
     >
       {tier.featured && (
-        <div className="absolute right-0 top-0 rounded-bl-lg bg-primary px-4 py-1.5 text-sm font-medium text-white">
+        <div className="absolute right-0 top-0 rounded-bl-2xl bg-blue-600 px-6 py-2 text-sm font-bold text-white shadow-lg">
           Most popular
         </div>
       )}
@@ -110,34 +110,34 @@ function PricingCard({ tier, index }: PricingCardProps) {
           <tier.icon
             className={cn(
               'h-8 w-8',
-              tier.featured ? 'text-primary' : 'text-gray-900',
+              tier.featured ? 'text-blue-400' : 'text-slate-400',
             )}
             aria-hidden="true"
           />
           <h3
             className={cn(
               'ml-3 text-2xl font-bold',
-              tier.featured ? 'text-primary' : 'text-gray-900',
+              tier.featured ? 'text-white' : 'text-white',
             )}
           >
             {tier.name}
           </h3>
         </div>
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="mt-4 text-sm text-slate-400">
           {tier.description}
         </p>
         <p className="mt-6 flex items-baseline gap-x-1">
-          <span className="text-4xl font-bold tracking-tight text-gray-900">
+          <span className="text-5xl font-bold tracking-tight text-white">
             {tier.priceMonthly}
           </span>
-          <span className="text-sm font-semibold leading-6 text-gray-600">
+          <span className="text-sm font-semibold leading-6 text-slate-500">
             {tier.priceMonthly !== 'Custom' && '/month'}
           </span>
         </p>
-        <ul className="mt-8 space-y-3 text-sm leading-6 text-gray-600">
+        <ul className="mt-8 space-y-4 text-sm leading-6 text-slate-300">
           {tier.features.map((feature) => (
-            <li key={feature} className="flex gap-x-3">
-              <CheckIcon className="h-6 w-5 flex-none text-primary" />
+            <li key={feature} className="flex gap-x-3 items-start">
+              <CheckIcon className={cn("h-6 w-5 flex-none", tier.featured ? "text-blue-400" : "text-slate-500")} />
               {feature}
             </li>
           ))}
@@ -145,15 +145,15 @@ function PricingCard({ tier, index }: PricingCardProps) {
       </div>
       <Button
         className={cn(
-          'mt-auto',
+          'mt-auto w-full py-6 text-lg rounded-xl transition-all',
           tier.featured
-            ? 'bg-primary hover:bg-primary/90'
-            : 'bg-gray-900 text-white hover:bg-gray-800',
+            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25'
+            : 'bg-white/10 text-white hover:bg-white/20',
         )}
       >
         Get started
       </Button>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -165,27 +165,30 @@ export function PricingSection() {
     <section
       ref={ref}
       id="pricing"
-      className="bg-gradient-to-b from-background to-muted/20 py-16 sm:py-24"
+      className="bg-[#0a0f1e] py-16 sm:py-24 relative overflow-hidden"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Background Decor */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="mx-auto max-w-4xl text-center">
-          <motion.h2
+          <m.h2
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5 }}
-            className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl"
+            className="text-4xl font-bold tracking-tight text-white sm:text-5xl"
           >
             Simple, transparent pricing
-          </motion.h2>
-          <motion.p
+          </m.h2>
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground"
+            className="mx-auto mt-4 max-w-2xl text-lg text-slate-400"
           >
             Choose an affordable plan that's packed with the best features for
             engaging your audience, creating customer loyalty, and driving sales.
-          </motion.p>
+          </m.p>
         </div>
 
         <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
@@ -194,21 +197,21 @@ export function PricingSection() {
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <motion.div
+        <div className="mt-16 text-center">
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="rounded-lg bg-muted/50 p-6"
+            className="inline-block rounded-2xl bg-white/5 border border-white/10 p-8 backdrop-blur-md"
           >
-            <h3 className="text-lg font-medium">Need something else?</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h3 className="text-xl font-medium text-white">Need something else?</h3>
+            <p className="mt-2 text-slate-400">
               We offer custom solutions for large teams and enterprises.
             </p>
-            <Button variant="outline" className="mt-4">
+            <Button variant="outline" className="mt-6 border-white/20 text-white hover:bg-white/10 hover:text-white">
               Contact sales
             </Button>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

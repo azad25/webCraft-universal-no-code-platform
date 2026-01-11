@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { 
   Plus, 
   Search, 
@@ -234,7 +234,7 @@ export default function AppsPage() {
       <div className="container mx-auto px-6 py-8">
         {/* Quick Start Section */}
         {apps.length === 0 && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-12"
@@ -253,7 +253,7 @@ export default function AppsPage() {
               {QUICK_START_TEMPLATES.map((template, index) => {
                 const Icon = template.icon
                 return (
-                  <motion.div
+                  <m.div
                     key={template.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -288,11 +288,11 @@ export default function AppsPage() {
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </m.div>
                 )
               })}
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Apps Section */}
@@ -371,7 +371,7 @@ export default function AppsPage() {
                 </p>
               </div>
             ) : (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className={viewMode === 'grid' 
@@ -384,7 +384,7 @@ export default function AppsPage() {
                   const typeColor = APP_TYPE_COLORS[app.app_type as keyof typeof APP_TYPE_COLORS] || APP_TYPE_COLORS.website
                   
                   return (
-                    <motion.div
+                    <m.div
                       key={app.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -478,10 +478,10 @@ export default function AppsPage() {
                           </div>
                         </CardContent>
                       </Card>
-                    </motion.div>
+                    </m.div>
                   )
                 })}
-              </motion.div>
+              </m.div>
             )}
           </div>
         )}

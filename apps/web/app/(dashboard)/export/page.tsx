@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { m } from \'framer-motion\'
 import {
   Download,
   Upload,
@@ -213,7 +213,7 @@ export default function ExportPage() {
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {STATS.map((stat, i) => (
-              <motion.div
+              <m.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -232,7 +232,7 @@ export default function ExportPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </m.div>
             ))}
           </div>
 
@@ -243,7 +243,7 @@ export default function ExportPage() {
               {EXPORT_OPTIONS.map((option, index) => {
                 const Icon = option.icon
                 return (
-                  <motion.div
+                  <m.div
                     key={option.id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -289,7 +289,7 @@ export default function ExportPage() {
                         </Button>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </m.div>
                 )
               })}
             </div>

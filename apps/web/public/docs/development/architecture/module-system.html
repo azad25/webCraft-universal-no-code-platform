@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module System - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">Architecture</li>
+                <li><a href="system-overview.html"><i class="fas fa-sitemap"></i> System Overview</a></li>
+                <li><a href="backend-architecture.html"><i class="fas fa-server"></i> Backend Architecture</a></li>
+                <li><a href="frontend-architecture.html"><i class="fas fa-desktop"></i> Frontend Architecture</a></li>
+                <li><a href="module-system.html" class="active"><i class="fas fa-puzzle-piece"></i> Module System</a></li>
+                <li><a href="data-flow.html"><i class="fas fa-exchange-alt"></i> Data Flow</a></li>
+                <li><a href="design-patterns.html"><i class="fas fa-code-branch"></i> Design Patterns</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Module System</h1>
+                <p>Understanding WebCraft's plugin architecture</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>WebCraft uses a powerful module system that allows features to be dynamically loaded, enabled, and disabled without restarting the application. This plugin architecture makes the platform highly extensible.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module Architecture</h2>
+                    <p>All modules inherit from <code>BaseModule</code> and implement a standard interface:</p>
+                    
+                    <h3>Base Module Class</h3>
+                    <pre><code class="language-python">from abc import ABC, abstractmethod
+from core.module_system import BaseModule, ModuleMetadata, ModuleType
+
+class BaseModule(ABC):
+    """Base class for all modules"""
+    
+    def __init__(self, config: Dict[str, Any] = None):
+        self.config = config or {}
+        self._initialized = False
+        self._hooks: Dict[str, List[Callable]] = {}
+    
+    @property
+    @abstractmethod
+    def metadata(self) -> ModuleMetadata:
+        """Return module metadata"""
+        pass
+    
+    @abstractmethod
+    async def initialize(self) -> bool:
+        """Initialize the module"""
+        pass
+    
+    @abstractmethod
+    async def shutdown(self) -> bool:
+        """Cleanup when module is disabled"""
+        pass
+    
+    def get_routes(self) -> List[Any]:
+        """Return FastAPI routes for this module"""
+        return []
+    
+    def get_frontend_components(self) -> Dict[str, Any]:
+        """Return frontend component definitions"""
+        return {}</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Creating a Custom Module</h2>
+                    <p>Here's a complete example of creating a custom module:</p>
+                    
+                    <pre><code class="language-python">from core.module_system import BaseModule, ModuleMetadata, ModuleType
+from fastapi import APIRouter
+from typing import Dict, Any
+
+class MyCustomModule(BaseModule):
+    """Example custom module"""
+    
+    @property
+    def metadata(self) -> ModuleMetadata:
+        return ModuleMetadata(
+            id="custom.my_module",
+            name="My Custom Module",
+            version="1.0.0",
+            type=ModuleType.INTEGRATION,
+            description="Custom functionality for specific use case",
+            author="Your Name",
+            dependencies=["core.widgets"],  # Requires widgets module
+            is_premium=False,
+            price=0.0,
+            tags=["custom", "integration"]
+        )
+    
+    async def initialize(self) -> bool:
+        """Initialize the module"""
+        try:
+            # Setup code here
+            self._initialized = True
+            print(f"✅ Module {self.metadata.id} initialized")
+            return True
+        except Exception as e:
+            print(f"❌ Failed to initialize module: {e}")
+            return False
+    
+    async def shutdown(self) -> bool:
+        """Cleanup when module is disabled"""
+        try:
+            # Cleanup code here
+            self._initialized = False
+            return True
+        except Exception as e:
+            print(f"❌ Failed to shutdown module: {e}")
+            return False
+    
+    def get_routes(self) -> List[Any]:
+        """Return FastAPI routes"""
+        router = APIRouter()
+        
+        @router.get("/custom-endpoint")
+        async def custom_endpoint():
+            return {"message": "Hello from custom module"}
+        
+        return [router]</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module Registry</h2>
+                    <p>The module registry manages all modules in the system:</p>
+                    
+                    <h3>Registering a Module</h3>
+                    <pre><code class="language-python">from core.module_system import module_registry
+from modules.my_module import MyCustomModule
+
+# Register module class
+module_registry.register_module_class(MyCustomModule)
+
+# Enable module
+await module_registry.enable_module("custom.my_module", config={})
+
+# Get module instance
+module = module_registry.get_module("custom.my_module")
+
+# Disable module
+await module_registry.disable_module("custom.my_module")</code></pre>
+
+                    <h3>Module Registry Methods</h3>
+                    <ul>
+                        <li><code>register_module_class(module_class)</code> - Register a module class</li>
+                        <li><code>enable_module(module_id, config)</code> - Enable and initialize a module</li>
+                        <li><code>disable_module(module_id)</code> - Disable a module</li>
+                        <li><code>get_module(module_id)</code> - Get an enabled module instance</li>
+                        <li><code>get_all_modules()</code> - Get all enabled modules</li>
+                        <li><code>get_available_modules()</code> - Get all available module metadata</li>
+                        <li><code>get_modules_by_type(module_type)</code> - Get modules by type</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Built-in Modules</h2>
+                    <p>WebCraft includes several built-in modules:</p>
+                    
+                    <h3>Core Modules</h3>
+                    <ul>
+                        <li><strong>core.widgets</strong> - 60+ widget library</li>
+                        <li><strong>core.integrations</strong> - 100+ third-party integrations</li>
+                        <li><strong>core.analytics</strong> - Analytics and tracking</li>
+                        <li><strong>core.ai_providers</strong> - AI service integrations</li>
+                        <li><strong>core.storage</strong> - File storage (S3, GCS, local)</li>
+                        <li><strong>core.notifications</strong> - Email, SMS, Push notifications</li>
+                        <li><strong>core.data_sources</strong> - External API connections</li>
+                        <li><strong>core.web_scraper</strong> - Web scraping engine</li>
+                    </ul>
+
+                    <h3>Premium Modules</h3>
+                    <ul>
+                        <li><strong>core.ecommerce</strong> - E-commerce functionality</li>
+                        <li><strong>core.crm</strong> - CRM features</li>
+                        <li><strong>core.workflow</strong> - Automation workflows</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module Hooks</h2>
+                    <p>Modules can register hooks to respond to system events:</p>
+                    
+                    <pre><code class="language-python">class MyModule(BaseModule):
+    async def initialize(self) -> bool:
+        # Register hooks
+        self.register_hook("app.created", self.on_app_created)
+        self.register_hook("app.updated", self.on_app_updated)
+        return True
+    
+    async def on_app_created(self, data: Dict):
+        """Called when an app is created"""
+        app_id = data.get("app_id")
+        print(f"App {app_id} was created")
+    
+    async def on_app_updated(self, data: Dict):
+        """Called when an app is updated"""
+        app_id = data.get("app_id")
+        print(f"App {app_id} was updated")</code></pre>
+
+                    <h3>Available Hooks</h3>
+                    <ul>
+                        <li><code>module.enabled</code> - Module enabled</li>
+                        <li><code>module.disabled</code> - Module disabled</li>
+                        <li><code>app.created</code> - App created</li>
+                        <li><code>app.updated</code> - App updated</li>
+                        <li><code>app.deleted</code> - App deleted</li>
+                        <li><code>page.created</code> - Page created</li>
+                        <li><code>widget.added</code> - Widget added</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module Dependencies</h2>
+                    <p>Modules can declare dependencies on other modules:</p>
+                    
+                    <pre><code class="language-python">@property
+def metadata(self) -> ModuleMetadata:
+    return ModuleMetadata(
+        id="custom.advanced_module",
+        dependencies=["core.widgets", "core.integrations"],
+        # ...
+    )</code></pre>
+
+                    <p>The module system automatically ensures dependencies are enabled before initializing a module.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module Configuration</h2>
+                    <p>Modules can accept configuration during initialization:</p>
+                    
+                    <pre><code class="language-python"># Enable module with configuration
+config = {
+    "api_key": "your-api-key",
+    "endpoint": "https://api.example.com",
+    "timeout": 30
+}
+
+await module_registry.enable_module(
+    "custom.my_module",
+    config=config
+)
+
+# Access config in module
+class MyModule(BaseModule):
+    async def initialize(self) -> bool:
+        api_key = self.config.get("api_key")
+        endpoint = self.config.get("endpoint")
+        # Use configuration
+        return True</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module Routes</h2>
+                    <p>Modules can provide FastAPI routes that are automatically registered:</p>
+                    
+                    <pre><code class="language-python">def get_routes(self) -> List[Any]:
+    router = APIRouter(prefix="/custom", tags=["Custom Module"])
+    
+    @router.get("/status")
+    async def get_status():
+        return {"status": "active", "module": self.metadata.id}
+    
+    @router.post("/action")
+    async def perform_action(data: Dict):
+        # Module-specific logic
+        return {"result": "success"}
+    
+    return [router]</code></pre>
+
+                    <p>Routes are automatically prefixed with <code>/api/v1</code> when registered.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Frontend Module Integration</h2>
+                    <p>Modules can also provide frontend components:</p>
+                    
+                    <pre><code class="language-python">def get_frontend_components(self) -> Dict[str, Any]:
+    return {
+        "CustomWidget": {
+            "component": "CustomWidget",
+            "props": {
+                "title": {"type": "string", "default": "Custom"},
+                "content": {"type": "richtext", "default": ""}
+            },
+            "category": "custom"
+        }
+    }</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module Lifecycle</h2>
+                    <ol>
+                        <li><strong>Registration</strong> - Module class is registered with the registry</li>
+                        <li><strong>Enable</strong> - Module is enabled, dependencies checked</li>
+                        <li><strong>Initialize</strong> - <code>initialize()</code> method called</li>
+                        <li><strong>Active</strong> - Module is active and handling requests</li>
+                        <li><strong>Shutdown</strong> - <code>shutdown()</code> method called when disabled</li>
+                    </ol>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Best Practices</h2>
+                    <ul>
+                        <li><strong>Idempotent Initialization</strong> - Initialize should be safe to call multiple times</li>
+                        <li><strong>Graceful Shutdown</strong> - Clean up resources properly in shutdown</li>
+                        <li><strong>Error Handling</strong> - Handle errors gracefully and return False on failure</li>
+                        <li><strong>Dependency Management</strong> - Declare all dependencies explicitly</li>
+                        <li><strong>Configuration Validation</strong> - Validate configuration in initialize</li>
+                        <li><strong>Resource Cleanup</strong> - Release all resources in shutdown</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Example: Complete Module</h2>
+                    <pre><code class="language-python">from core.module_system import BaseModule, ModuleMetadata, ModuleType
+from fastapi import APIRouter
+from typing import Dict, Any
+
+class WeatherModule(BaseModule):
+    """Weather integration module"""
+    
+    @property
+    def metadata(self) -> ModuleMetadata:
+        return ModuleMetadata(
+            id="integrations.weather",
+            name="Weather Integration",
+            version="1.0.0",
+            type=ModuleType.INTEGRATION,
+            description="Weather data integration",
+            author="WebCraft Team",
+            dependencies=[],
+            tags=["weather", "api"]
+        )
+    
+    async def initialize(self) -> bool:
+        api_key = self.config.get("api_key")
+        if not api_key:
+            print("⚠️ Weather API key not configured")
+            return False
+        
+        self.api_key = api_key
+        self._initialized = True
+        return True
+    
+    async def shutdown(self) -> bool:
+        self._initialized = False
+        return True
+    
+    def get_routes(self) -> List[Any]:
+        router = APIRouter(prefix="/weather", tags=["Weather"])
+        
+        @router.get("/current")
+        async def get_current_weather(city: str):
+            # Fetch weather data
+            return {"city": city, "temperature": 72}
+        
+        return [router]</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="../advanced/module-development.html">Advanced Module Development</a> - Deep dive into module development</li>
+                        <li><a href="../backend/api-routers.html">API Routers</a> - Learn about creating API endpoints</li>
+                        <li><a href="../tutorials/custom-widget.html">Create Custom Widget</a> - Build a custom widget</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+

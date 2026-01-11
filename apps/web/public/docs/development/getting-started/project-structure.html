@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Structure - WebCraft Developer Documentation</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>WebCraft</h2>
+                <p>Developer Docs</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html"><i class="fas fa-home"></i> Overview</a></li>
+                <li class="nav-section">Getting Started</li>
+                <li><a href="quick-start.html"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="installation.html"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="environment-setup.html"><i class="fas fa-cog"></i> Environment Setup</a></li>
+                <li><a href="project-structure.html" class="active"><i class="fas fa-folder-tree"></i> Project Structure</a></li>
+            </ul>
+        </nav>
+        <main class="content">
+            <header>
+                <h1>Project Structure</h1>
+                <p>Understanding the WebCraft codebase organization</p>
+            </header>
+            
+            <div class="content-body">
+                <section class="doc-section">
+                    <h2>Overview</h2>
+                    <p>WebCraft follows a monorepo structure with clear separation between backend and frontend code. This guide will help you navigate the codebase.</p>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Root Directory Structure</h2>
+                    <pre><code class="language-bash">webcraft-platform/
+├── apps/
+│   ├── api/              # FastAPI Backend
+│   └── web/              # Next.js Frontend
+├── k8s/                  # Kubernetes configurations
+├── scripts/              # Setup and utility scripts
+├── docs/                 # Documentation
+├── docker-compose.yml    # Docker Compose configuration
+├── .env.example          # Environment variables template
+├── README.md             # Project README
+└── architecture.md       # Architecture documentation</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Backend Structure (apps/api/)</h2>
+                    <pre><code class="language-bash">apps/api/
+├── core/                 # Core utilities and base classes
+│   ├── __init__.py
+│   ├── auth.py           # Authentication utilities
+│   ├── config.py         # Configuration management
+│   ├── database.py       # Database models and session
+│   ├── kafka_client.py   # Kafka client
+│   ├── logging.py        # Logging configuration
+│   ├── module_system.py  # Module system base
+│   ├── redis_client.py   # Redis client
+│   └── websocket.py      # WebSocket handler
+│
+├── modules/              # Plugin modules
+│   ├── __init__.py
+│   ├── widgets.py        # Widget module
+│   ├── integrations.py   # Integrations module
+│   ├── ecommerce.py      # E-commerce module
+│   ├── crm.py            # CRM module
+│   ├── analytics.py       # Analytics module
+│   ├── ai_providers.py   # AI providers module
+│   ├── storage.py        # Storage module
+│   ├── workflow.py       # Workflow module
+│   ├── notifications.py  # Notifications module
+│   ├── data_sources.py   # Data sources module
+│   ├── web_scraper.py    # Web scraper module
+│   └── custom_assets/     # Custom assets module
+│
+├── routers/              # API route handlers
+│   ├── __init__.py
+│   ├── auth.py           # Authentication routes
+│   ├── apps.py           # App management routes
+│   ├── templates.py      # Template routes
+│   ├── widgets.py        # Widget routes
+│   ├── ai.py             # AI service routes
+│   ├── seo.py            # SEO routes
+│   ├── automations.py    # Automation routes
+│   ├── data_sources.py   # Data source routes
+│   ├── scrapers.py       # Web scraper routes
+│   ├── media.py          # Media routes
+│   ├── collections.py    # Collections routes
+│   ├── integrations.py   # Integration routes
+│   ├── export.py         # Export routes
+│   ├── preview.py        # Preview routes
+│   ├── mobile_api.py     # Mobile API routes
+│   ├── graphql.py        # GraphQL endpoint
+│   ├── webhooks.py       # Webhook routes
+│   └── ...
+│
+├── services/             # Business logic services
+│   ├── app_builder.py    # App building service
+│   ├── template_service.py
+│   ├── ai_service.py     # AI service orchestration
+│   ├── seo_service.py    # SEO optimization
+│   ├── deployment_service.py
+│   ├── storage_service.py
+│   ├── email_service.py
+│   ├── payment_service.py
+│   ├── preview_service.py
+│   └── ...
+│
+├── middleware/           # Request middleware
+│   ├── rate_limiting.py
+│   ├── seo_middleware.py
+│   └── ai_crawler_middleware.py
+│
+├── migrations/           # Database migrations
+│   ├── versions/
+│   └── env.py
+│
+├── main.py              # FastAPI application entry point
+├── requirements.txt     # Python dependencies
+└── Dockerfile          # Docker configuration</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Frontend Structure (apps/web/)</h2>
+                    <pre><code class="language-bash">apps/web/
+├── app/                  # Next.js App Router
+│   ├── (auth)/           # Authentication pages
+│   │   ├── login/
+│   │   └── register/
+│   │
+│   ├── (dashboard)/      # Dashboard pages
+│   │   ├── dashboard/
+│   │   ├── apps/
+│   │   │   ├── [appId]/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── data/
+│   │   │   │   ├── deploy/
+│   │   │   │   └── export/
+│   │   │   └── page.tsx
+│   │   ├── templates/
+│   │   ├── automations/
+│   │   ├── data-sources/
+│   │   ├── media/
+│   │   ├── collections/
+│   │   ├── analytics/
+│   │   └── ai/
+│   │
+│   ├── preview/          # Preview pages
+│   │   └── [token]/
+│   │
+│   ├── setup/            # Setup wizard
+│   │
+│   ├── api/              # Next.js API routes
+│   │   └── [...path]/
+│   │
+│   ├── layout.tsx        # Root layout
+│   ├── page.tsx          # Home page
+│   └── globals.css       # Global styles
+│
+├── components/           # React components
+│   ├── editor/           # Visual editor components
+│   │   ├── live-editor.tsx
+│   │   ├── widget-renderer.tsx
+│   │   ├── properties-panel.tsx
+│   │   ├── editor-sidebar.tsx
+│   │   └── widgets/       # 60+ widget components
+│   │
+│   ├── automation/       # Automation builder
+│   ├── data-sources/     # Data source UI
+│   ├── media/            # Media manager
+│   ├── templates/        # Template library
+│   ├── ui/               # Reusable UI components
+│   ├── layout/           # Layout components
+│   └── landing/          # Landing page components
+│
+├── lib/                  # Utilities and helpers
+│   ├── api-client.ts     # API client
+│   ├── utils.ts          # Utility functions
+│   ├── widget-registry.ts
+│   ├── module-system.ts
+│   └── ...
+│
+├── store/                # Redux store
+│   ├── index.ts
+│   ├── slices/           # Redux slices
+│   │   ├── authSlice.ts
+│   │   ├── appSlice.ts
+│   │   ├── editorSlice.ts
+│   │   └── ...
+│   └── api/              # RTK Query API
+│       └── apiSlice.ts
+│
+├── contexts/             # React contexts
+│   ├── auth-context.tsx
+│   ├── editor-context.tsx
+│   └── websocket-context.tsx
+│
+├── public/               # Static assets
+│   ├── docs/             # Documentation
+│   └── ...
+│
+├── package.json
+├── tsconfig.json
+├── tailwind.config.js
+└── next.config.js</code></pre>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Key Directories Explained</h2>
+                    
+                    <h3>Backend Core (apps/api/core/)</h3>
+                    <ul>
+                        <li><strong>auth.py</strong> - JWT authentication, OAuth handlers</li>
+                        <li><strong>config.py</strong> - Environment configuration management</li>
+                        <li><strong>database.py</strong> - SQLAlchemy models and database session</li>
+                        <li><strong>module_system.py</strong> - Plugin system base classes</li>
+                        <li><strong>websocket.py</strong> - WebSocket connection handling</li>
+                    </ul>
+
+                    <h3>Backend Modules (apps/api/modules/)</h3>
+                    <p>Each module is a self-contained feature that can be enabled/disabled:</p>
+                    <ul>
+                        <li><strong>widgets.py</strong> - Widget library management</li>
+                        <li><strong>integrations.py</strong> - Third-party integrations</li>
+                        <li><strong>workflow.py</strong> - Automation workflows</li>
+                        <li><strong>ai_providers.py</strong> - AI service integrations</li>
+                    </ul>
+
+                    <h3>Backend Routers (apps/api/routers/)</h3>
+                    <p>FastAPI route handlers organized by feature:</p>
+                    <ul>
+                        <li>Each router file contains related API endpoints</li>
+                        <li>Routes are registered in <code>main.py</code></li>
+                        <li>All routes are prefixed with <code>/api/v1</code></li>
+                    </ul>
+
+                    <h3>Backend Services (apps/api/services/)</h3>
+                    <p>Business logic separated from route handlers:</p>
+                    <ul>
+                        <li>Services contain reusable business logic</li>
+                        <li>Called by routers and other services</li>
+                        <li>Handle database operations and external API calls</li>
+                    </ul>
+
+                    <h3>Frontend App Directory (apps/web/app/)</h3>
+                    <p>Next.js 14 App Router structure:</p>
+                    <ul>
+                        <li><strong>(auth)/</strong> - Authentication pages (route group)</li>
+                        <li><strong>(dashboard)/</strong> - Dashboard pages (route group)</li>
+                        <li><strong>[appId]</strong> - Dynamic route segments</li>
+                        <li><strong>layout.tsx</strong> - Shared layouts</li>
+                    </ul>
+
+                    <h3>Frontend Components (apps/web/components/)</h3>
+                    <p>React components organized by feature:</p>
+                    <ul>
+                        <li><strong>editor/</strong> - Visual editor components</li>
+                        <li><strong>ui/</strong> - Reusable UI primitives (Radix UI)</li>
+                        <li><strong>widgets/</strong> - 60+ widget components</li>
+                    </ul>
+
+                    <h3>Frontend Store (apps/web/store/)</h3>
+                    <p>Redux Toolkit state management:</p>
+                    <ul>
+                        <li><strong>slices/</strong> - Feature-based state slices</li>
+                        <li><strong>api/</strong> - RTK Query API endpoints</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>File Naming Conventions</h2>
+                    
+                    <h3>Backend (Python)</h3>
+                    <ul>
+                        <li>Files: <code>snake_case.py</code></li>
+                        <li>Classes: <code>PascalCase</code></li>
+                        <li>Functions: <code>snake_case</code></li>
+                        <li>Constants: <code>UPPER_SNAKE_CASE</code></li>
+                    </ul>
+
+                    <h3>Frontend (TypeScript/React)</h3>
+                    <ul>
+                        <li>Components: <code>PascalCase.tsx</code></li>
+                        <li>Utilities: <code>camelCase.ts</code></li>
+                        <li>Hooks: <code>useCamelCase.ts</code></li>
+                        <li>Types: <code>camelCase.ts</code> or inline</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Important Files</h2>
+                    
+                    <h3>Backend Entry Point</h3>
+                    <pre><code class="language-bash">apps/api/main.py</code></pre>
+                    <p>FastAPI application initialization, middleware setup, route registration.</p>
+
+                    <h3>Frontend Entry Point</h3>
+                    <pre><code class="language-bash">apps/web/app/layout.tsx
+apps/web/app/page.tsx</code></pre>
+                    <p>Root layout and home page.</p>
+
+                    <h3>Configuration Files</h3>
+                    <ul>
+                        <li><code>docker-compose.yml</code> - Service orchestration</li>
+                        <li><code>.env</code> - Environment variables</li>
+                        <li><code>apps/api/core/config.py</code> - Backend config</li>
+                        <li><code>apps/web/next.config.js</code> - Next.js config</li>
+                        <li><code>apps/web/tailwind.config.js</code> - Tailwind CSS config</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Module System Structure</h2>
+                    <p>Understanding how modules are organized:</p>
+                    
+                    <pre><code class="language-bash">modules/
+├── base.py              # Base module class
+├── widgets.py           # Widget module implementation
+└── custom_assets/       # Module with subdirectory
+    ├── __init__.py
+    ├── models.py
+    └── schemas.py</code></pre>
+
+                    <p>Each module follows this structure:</p>
+                    <ol>
+                        <li>Inherits from <code>BaseModule</code></li>
+                        <li>Implements <code>metadata</code> property</li>
+                        <li>Implements <code>initialize()</code> and <code>shutdown()</code> methods</li>
+                        <li>Optionally provides routes via <code>get_routes()</code></li>
+                    </ol>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Widget Structure</h2>
+                    <p>Widgets are organized in the frontend:</p>
+                    
+                    <pre><code class="language-bash">components/editor/widgets/
+├── index.ts             # Widget exports
+├── text-widget.tsx      # Text widget
+├── image-widget.tsx     # Image widget
+├── button-widget.tsx    # Button widget
+└── ...                  # 60+ widgets</code></pre>
+
+                    <p>Each widget follows this pattern:</p>
+                    <ul>
+                        <li>Accepts <code>WidgetProps</code> interface</li>
+                        <li>Handles editing and preview modes</li>
+                        <li>Exports default component</li>
+                    </ul>
+                </section>
+
+                <section class="doc-section">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><a href="../backend/fastapi-setup.html">Backend Development</a> - Start building backend features</li>
+                        <li><a href="../frontend/nextjs-setup.html">Frontend Development</a> - Start building frontend features</li>
+                        <li><a href="../architecture/module-system.html">Module System</a> - Learn about the plugin architecture</li>
+                        <li><a href="../tutorials/first-app.html">Build Your First App</a> - Hands-on tutorial</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/main.js"></script>
+</body>
+</html>
+
