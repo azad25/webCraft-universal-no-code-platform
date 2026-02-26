@@ -42,6 +42,7 @@ interface NavbarWidgetProps {
   isEditing?: boolean
   isPreview?: boolean
   onChange?: (props: any) => void
+  onLinkClick?: (href: string) => void // Add navigation handler
 }
 
 export function NavbarWidget({
@@ -52,34 +53,50 @@ export function NavbarWidget({
   autoRefresh = false,
   refreshInterval = 60,
   
-  // Navbar props
+  // Navbar props - handle both template format and widget format
   logo,
-  logoText = 'WebCraft',
-  items = [
-    { label: 'Home', href: '#' },
-    { label: 'Features', href: '#features' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'About', href: '#about' },
-    { label: 'Contact', href: '#contact' }
-  ],
+  logoText,
+  links, // Template format
+  items, // Widget format
   ctaText = 'Get Started',
-  ctaLink = '#',
+  ctaLink,
+  ctaHref, // Template format
   sticky = true,
   transparent = false,
   isEditing,
   isPreview,
-  onChange
-}: NavbarWidgetProps) {
+  onChange,
+  onLinkClick // Navigation handler
+}: NavbarWidgetProps & {
+  // Template props compatibility
+  links?: Array<{href: string, label: string}>
+  ctaHref?: string
+}) {
   // Data source state
   const [navbarData, setNavbarData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
 
-  // Use data source data if available, otherwise use static data
-  const activeLogoText = (dataSourceId && navbarData?.logoText) || logoText
-  const activeItems = (dataSourceId && navbarData?.items) || items
+  // Use data source data if available, otherwise use template/widget props
+  const activeLogoText = (dataSourceId && navbarData?.logoText) || logo || logoText || 'WebCraft'
+  
+  // Handle both template format (links) and widget format (items)
+  const defaultItems = [
+    { label: 'Home', href: '#' },
+    { label: 'Features', href: '#features' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'About', href: '#about' },
+    { label: 'Contact', href: '#contact' }
+  ]
+  
+  const activeItems = (dataSourceId && navbarData?.items) || 
+                     links || // Template format
+                     items || // Widget format
+                     defaultItems
+                     
   const activeCtaText = (dataSourceId && navbarData?.ctaText) || ctaText
+  const activeCtaLink = ctaHref || ctaLink || '#'
 
   // Fetch data from data source
   const fetchNavbarData = async () => {
@@ -161,7 +178,13 @@ export function NavbarWidget({
             <a
               key={index}
               href={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              onClick={(e) => {
+                if (isPreview && onLinkClick) {
+                  e.preventDefault();
+                  onLinkClick(item.href);
+                }
+              }}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               {item.label}
             </a>
@@ -172,7 +195,7 @@ export function NavbarWidget({
         <div className="hidden md:flex items-center gap-2">
           <SmartButton
             text={activeCtaText}
-            actions={[{ type: 'navigate', target: ctaLink }]}
+            actions={[{ type: 'navigate', target: activeCtaLink }]}
             variant="default"
             size="default"
             isPreview={isPreview}
@@ -222,8 +245,14 @@ export function NavbarWidget({
                 <a
                   key={index}
                   href={item.href}
-                  className="px-4 py-2 text-sm font-medium hover:bg-accent rounded-lg"
-                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2 text-sm font-medium hover:bg-accent rounded-lg cursor-pointer"
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    if (isPreview && onLinkClick) {
+                      e.preventDefault();
+                      onLinkClick(item.href);
+                    }
+                  }}
                 >
                   {item.label}
                 </a>

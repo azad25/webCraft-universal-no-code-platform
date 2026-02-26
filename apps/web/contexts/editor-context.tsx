@@ -140,13 +140,13 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
         
         // Load app data
         console.log('📡 Fetching app data...')
-        const appResponse = await apiClient.get(`/api/apps/${appId}`)
+        const appResponse = await apiClient.get(`/apps/${appId}`)
         const appData = appResponse.data
         console.log('📦 Loaded app data:', appData)
         
         // Load pages data
         console.log('📡 Fetching pages data...')
-        const pagesResponse = await apiClient.get(`/api/apps/${appId}/pages`)
+        const pagesResponse = await apiClient.get(`/apps/${appId}/pages`)
         const pagesData = pagesResponse.data
         const pages = pagesData.pages || []
         console.log('📄 Loaded pages:', pages.length, pages)
@@ -166,7 +166,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
           }
           
           console.log('🔄 Creating default page:', defaultPageData)
-          const createResponse = await apiClient.post(`/api/apps/${appId}/pages`, defaultPageData)
+          const createResponse = await apiClient.post(`/apps/${appId}/pages`, defaultPageData)
           const newPage = createResponse.data
           console.log('✅ Created default page:', newPage)
           
@@ -182,17 +182,39 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
           }))
         } else {
           // Find the homepage or first page
-          const homepage = pages.find((p: any) => p.is_homepage) || pages[0]
+          let homepage = pages.find((p: any) => p.is_homepage)
+          if (!homepage && pages.length > 0) {
+            homepage = pages[0]
+            console.log('⚠️ No homepage found, using first page as homepage')
+          }
+          
+          if (!homepage) {
+            console.error('❌ No pages available to load')
+            throw new Error('No pages found in app')
+          }
+          
           console.log('🏠 Auto-selecting page:', homepage.title, homepage.id)
           
           // Load the homepage content
           console.log('📡 Fetching page content...')
-          const pageResponse = await apiClient.get(`/api/apps/${appId}/pages/${homepage.id}`)
+          const pageResponse = await apiClient.get(`/apps/${appId}/pages/${homepage.id}`)
           const pageData = pageResponse.data
           console.log('📄 Loaded page content:', pageData)
           
-          const elements = pageData?.content?.elements || []
-          console.log('🧩 Page elements:', elements.length)
+          // Handle both V1 and V2 API response formats
+          let elements = []
+          if (Array.isArray(pageData?.content)) {
+            // V2 format: content is directly an array of elements
+            elements = pageData.content
+          } else if (pageData?.content?.elements) {
+            // V1 format: content.elements is the array
+            elements = pageData.content.elements
+          } else if (pageData?.elements) {
+            // Alternative format: elements at root level
+            elements = pageData.elements
+          }
+          
+          console.log('🧩 Page elements:', elements.length, elements)
           
           setState(prev => ({
             ...prev,
@@ -229,7 +251,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
             meta_description: 'Welcome to your app'
           }
           
-          const createResponse = await apiClient.post(`/api/apps/${appId}/pages`, defaultPageData)
+          const createResponse = await apiClient.post(`/apps/${appId}/pages`, defaultPageData)
           const newPage = createResponse.data
           console.log('✅ Created fallback page:', newPage)
           
@@ -494,7 +516,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
       }
       
       // Load the new page content
-      const pageResponse = await apiClient.get(`/api/apps/${appId}/pages/${pageId}`)
+      const pageResponse = await apiClient.get(`/apps/${appId}/pages/${pageId}`)
       const pageData = pageResponse.data
       console.log('📄 Loaded page content:', pageData)
       
@@ -521,7 +543,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     try {
       console.log('🔄 Creating new page:', pageData)
       
-      const response = await apiClient.post(`/api/apps/${appId}/pages`, {
+      const response = await apiClient.post(`/apps/${appId}/pages`, {
         ...pageData,
         content: { elements: [] }
       })
@@ -546,7 +568,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     try {
       console.log('🔄 Updating page info:', pageId, updates)
       
-      const response = await apiClient.put(`/api/apps/${appId}/pages/${pageId}`, updates)
+      const response = await apiClient.put(`/apps/${appId}/pages/${pageId}`, updates)
       const updatedPage = response.data
       
       setState(prev => ({
@@ -565,7 +587,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     try {
       console.log('🔄 Deleting page:', pageId)
       
-      await apiClient.delete(`/api/apps/${appId}/pages/${pageId}`)
+      await apiClient.delete(`/apps/${appId}/pages/${pageId}`)
       
       const remainingPages = state.pages.filter(p => p.id !== pageId)
       
@@ -596,7 +618,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     try {
       console.log('💾 Saving page content:', state.currentPageId)
       
-      await apiClient.put(`/api/apps/${appId}/pages/${state.currentPageId}/content`, {
+      await apiClient.put(`/apps/${appId}/pages/${state.currentPageId}/content`, {
         elements: state.elements
       })
       
@@ -631,7 +653,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
       // Step 1: Save current page content if dirty
       if (state.isDirty && state.currentPageId) {
         console.log('💾 Saving current page content first...')
-        await apiClient.put(`/api/apps/${appId}/pages/${state.currentPageId}/content`, {
+        await apiClient.put(`/apps/${appId}/pages/${state.currentPageId}/content`, {
           elements: state.elements,
           lastModified: new Date().toISOString()
         })
@@ -654,7 +676,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
           }
         }
         
-        await apiClient.put(`/api/apps/${appId}`, appUpdateData)
+        await apiClient.put(`/apps/${appId}`, appUpdateData)
         console.log('✅ App metadata saved')
       }
       
@@ -662,7 +684,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
       console.log('🔍 Validating all pages are saved...')
       for (const page of state.pages) {
         try {
-          const pageResponse = await apiClient.get(`/api/apps/${appId}/pages/${page.id}`)
+          const pageResponse = await apiClient.get(`/apps/${appId}/pages/${page.id}`)
           console.log(`✅ Page "${page.title}" validated`)
         } catch (error) {
           console.warn(`⚠️ Page "${page.title}" may have issues:`, error)

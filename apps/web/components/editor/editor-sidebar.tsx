@@ -2169,14 +2169,14 @@ function ElementLibraryContent({ onAddElement }: { onAddElement: (element: any) 
     try {
       // Try to load from API first, but fallback to mock data
       try {
-        const response = await apiClient.get(`/api/v1/templates/elements/${category}`)
+        const response = await apiClient.get(`/api/templates/elements/${category}`)
         setElements(prev => ({
           ...prev,
           [category]: response.data.elements || []
         }))
       } catch (apiError: any) {
         console.warn('API call failed, using mock data:', {
-          url: `/api/v1/templates/elements/${category}`,
+          url: `/api/templates/elements/${category}`,
           error: apiError?.message || 'Unknown error',
           status: apiError?.response?.status || 'No status',
           statusText: apiError?.response?.statusText || 'No status text',

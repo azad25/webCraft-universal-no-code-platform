@@ -21,7 +21,7 @@ interface ApiClientConfig {
 
 // Default configuration
 const defaultConfig: ApiClientConfig = {
-  baseURL: '/api/v2', // Use V2 API by default
+  baseURL: '/api/v2', // Use V2 API as base - all routes will automatically use V2
   timeout: 30000,
   retry: {
     retries: 3,

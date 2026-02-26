@@ -91,7 +91,7 @@ export default function PreviewPage() {
       setLoading(true);
       console.log('� Loading Apreview data for token:', token);
       
-      const response = await apiClient.get(`/api/apps/preview/${token}?device=${currentDevice}`);
+      const response = await apiClient.get(`/apps/preview/${token}?device=${currentDevice}`);
       console.log('📡 Preview API response:', response.data);
       
       if (!response.data || !response.data.app) {
@@ -521,7 +521,10 @@ function AppPreviewRenderer({
   const activePage = pages?.find(p => p.slug === currentPage) || pages?.find(p => p.is_homepage) || pages?.[0];
 
   // Get elements from page content (prioritize page content over app config)
-  const elements = activePage?.content?.elements || app.config?.elements || [];
+  // Handle both V1 format (content.elements) and V2 format (content as array)
+  const elements = activePage?.content?.elements || 
+                   (Array.isArray(activePage?.content) ? activePage.content : []) ||
+                   app.config?.elements || [];
   
   // Apply theme configuration
   const themeConfig = app.theme_config || {};
@@ -601,7 +604,7 @@ function AppPreviewRenderer({
 
       {/* Enhanced App Content */}
       <div 
-        className={`flex-1 relative overflow-auto ${fullscreen ? 'min-h-screen' : ''}`}
+        className={`flex-1 relative ${fullscreen ? 'min-h-screen overflow-y-auto' : 'overflow-y-auto max-h-[calc(100vh-200px)]'}`}
         style={{ 
           backgroundColor: 'var(--background-color)',
           color: 'var(--foreground-color)',
@@ -609,30 +612,18 @@ function AppPreviewRenderer({
         }}
       >
         {elements && elements.length > 0 ? (
-          <div className={`relative w-full h-full ${fullscreen ? 'min-h-screen' : 'min-h-[600px]'}`}>
+          <div className={`relative w-full ${fullscreen ? 'min-h-screen' : 'min-h-[600px]'}`}>
             {/* Render elements in stacked layout for better preview */}
             <div className="space-y-0">
               {elements.map((element: any, index: number) => {
                 return (
-                  <m.div
+                  <PreviewElement
                     key={element.id || index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
-                    className="w-full"
-                    style={{
-                      minHeight: element.size?.height || 'auto',
-                      zIndex: element.zIndex || index + 1,
-                    }}
-                  >
-                    <WidgetRenderer
-                      element={element}
-                      isSelected={false}
-                      isHovered={false}
-                      isPreview={true}
-                      onSelect={() => {}}
-                    />
-                  </m.div>
+                    element={element}
+                    index={index}
+                    onNavigate={setCurrentPage}
+                    pages={pages}
+                  />
                 );
               })}
             </div>
@@ -723,5 +714,63 @@ function AppPreviewRenderer({
         )}
       </div>
     </div>
+  );
+}
+
+// Preview Element Component with Navigation Support
+function PreviewElement({ 
+  element, 
+  index, 
+  onNavigate, 
+  pages 
+}: { 
+  element: any; 
+  index: number; 
+  onNavigate: (slug: string) => void;
+  pages: any[];
+}) {
+  // Handle navigation clicks
+  const handleNavigation = (href: string) => {
+    // Check if href matches any page slug
+    const targetPage = pages.find(page => 
+      href === `/${page.slug}` || 
+      href === page.slug ||
+      (href === '/' && page.is_homepage)
+    );
+    
+    if (targetPage) {
+      onNavigate(targetPage.slug);
+    }
+  };
+
+  // Clone element props and add navigation handler for navbar
+  const enhancedElement = { ...element };
+  if (element.type === 'navbar' && element.props?.links) {
+    enhancedElement.props = {
+      ...element.props,
+      onLinkClick: handleNavigation
+    };
+  }
+
+  return (
+    <m.div
+      key={element.id || index}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1, duration: 0.3 }}
+      className="w-full"
+      style={{
+        minHeight: element.size?.height || 'auto',
+        zIndex: element.zIndex || index + 1,
+      }}
+    >
+      <WidgetRenderer
+        element={enhancedElement}
+        isSelected={false}
+        isHovered={false}
+        isPreview={true}
+        onSelect={() => {}}
+      />
+    </m.div>
   );
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { m } from \'framer-motion\'
+import { m } from 'framer-motion'
 import {
   BarChart3,
   TrendingUp,

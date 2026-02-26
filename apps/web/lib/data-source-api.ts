@@ -232,3 +232,9 @@ export const generateDynamicPagePreviews = async (pageId: string): Promise<{ pre
   const response = await apiClient.post(`/api/dynamic-pages/${pageId}/generate-previews`);
   return response.data;
 };
+
+// Fetch data from a data source endpoint
+export const fetchDataSourceData = async (sourceId: string, endpointId: string, params?: Record<string, any>): Promise<any> => {
+  const response = await apiClient.post(`/api/data-sources/${sourceId}/endpoints/${endpointId}/fetch`, { params });
+  return response.data;
+};

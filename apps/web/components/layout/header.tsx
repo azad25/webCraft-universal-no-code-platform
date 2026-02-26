@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { m, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AnimatedLogo } from '@/components/brand/animated-logo'
+import { useAuth } from '@/contexts/auth-context'
 import {
   Menu,
   X,
@@ -18,7 +21,10 @@ import {
   Users,
   Newspaper,
   Building,
-  Mail
+  Mail,
+  Settings,
+  LogOut,
+  User
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -54,10 +60,19 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const { scrollY } = useScroll()
+  const { isAuthenticated, isInitialized, user, logout } = useAuth()
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50)
   })
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 transition-all duration-300">
@@ -131,17 +146,64 @@ export function Header() {
             ))}
           </div>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons / User Menu */}
           <div className="hidden lg:flex items-center gap-2">
-            <Button variant="ghost" asChild className="text-white hover:bg-white/10 rounded-full">
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild className="gap-2 rounded-full bg-white text-black hover:bg-slate-200">
-              <Link href="/signup">
-                <Sparkles className="w-4 h-4" />
-                Get Started
-              </Link>
-            </Button>
+            {isInitialized ? (
+              isAuthenticated && user ? (
+                // Authenticated user dropdown
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 rounded-full px-3 py-2">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={user.avatarUrl || undefined} />
+                        <AvatarFallback className="text-xs bg-white/10 text-white">
+                          {user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                           user.username ? user.username.slice(0, 2).toUpperCase() : 
+                           user.email ? user.email.slice(0, 2).toUpperCase() : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{user.fullName || user.username || 'User'}</span>
+                      <ChevronDown className="w-4 h-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-[#0a0f1e] border-white/10">
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="flex items-center">
+                        <User className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="flex items-center">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-white/10" />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-400 focus:text-red-300">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                // Not authenticated - show sign in buttons
+                <>
+                  <Button variant="ghost" asChild className="text-white hover:bg-white/10 rounded-full">
+                    <Link href="/login">Sign In</Link>
+                  </Button>
+                  <Button asChild className="gap-2 rounded-full bg-white text-black hover:bg-slate-200">
+                    <Link href="/register">
+                      <Sparkles className="w-4 h-4" />
+                      Get Started
+                    </Link>
+                  </Button>
+                </>
+              )
+            ) : (
+              // Loading state
+              <div className="w-24 h-8 bg-white/10 rounded-full animate-pulse" />
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -183,13 +245,59 @@ export function Header() {
                     )}
                   </div>
                 ))}
-                <div className="pt-4 grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="w-full rounded-xl border-white/10 text-white hover:bg-white/5" asChild>
-                    <Link href="/login">Sign In</Link>
-                  </Button>
-                  <Button className="w-full rounded-xl bg-blue-600 hover:bg-blue-500" asChild>
-                    <Link href="/signup">Get Started</Link>
-                  </Button>
+                
+                {/* Mobile Auth Section */}
+                <div className="pt-4 border-t border-white/10">
+                  {isInitialized ? (
+                    isAuthenticated && user ? (
+                      // Authenticated user mobile menu
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={user.avatarUrl || undefined} />
+                            <AvatarFallback className="text-xs bg-white/10 text-white">
+                              {user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                               user.username ? user.username.slice(0, 2).toUpperCase() : 
+                               user.email ? user.email.slice(0, 2).toUpperCase() : 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="text-sm font-medium text-white">{user.fullName || user.username || 'User'}</div>
+                            <div className="text-xs text-slate-400">{user.email}</div>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="w-full rounded-xl border-white/10 text-white hover:bg-white/5" asChild>
+                          <Link href="/dashboard">Dashboard</Link>
+                        </Button>
+                        <Button variant="outline" className="w-full rounded-xl border-white/10 text-white hover:bg-white/5" asChild>
+                          <Link href="/settings">Settings</Link>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="w-full rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/10"
+                          onClick={handleLogout}
+                        >
+                          Sign out
+                        </Button>
+                      </div>
+                    ) : (
+                      // Not authenticated mobile menu
+                      <div className="grid grid-cols-2 gap-4">
+                        <Button variant="outline" className="w-full rounded-xl border-white/10 text-white hover:bg-white/5" asChild>
+                          <Link href="/login">Sign In</Link>
+                        </Button>
+                        <Button className="w-full rounded-xl bg-blue-600 hover:bg-blue-500" asChild>
+                          <Link href="/register">Get Started</Link>
+                        </Button>
+                      </div>
+                    )
+                  ) : (
+                    // Loading state mobile
+                    <div className="space-y-2">
+                      <div className="w-full h-10 bg-white/10 rounded-xl animate-pulse" />
+                      <div className="w-full h-10 bg-white/10 rounded-xl animate-pulse" />
+                    </div>
+                  )}
                 </div>
               </div>
             </m.div>

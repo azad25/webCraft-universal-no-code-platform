@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { m } from \'framer-motion\'
+import { m } from 'framer-motion'
 import {
   Download,
   Upload,

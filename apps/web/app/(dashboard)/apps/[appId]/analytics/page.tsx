@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { m } from \'framer-motion\'
+import { m } from 'framer-motion'
 import {
   BarChart3, Users, Eye, Clock, TrendingUp, TrendingDown, Globe,
   Monitor, Smartphone, Tablet, Chrome, ArrowUpRight, ArrowDownRight,

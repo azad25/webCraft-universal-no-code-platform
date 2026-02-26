@@ -45,7 +45,7 @@ export default function AppOverviewPage() {
     setIsGeneratingPreview(true)
     try {
       const response = await fetch(`/api/apps/${appId}/preview`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${getAuthToken()}`
@@ -54,11 +54,13 @@ export default function AppOverviewPage() {
       
       if (response.ok) {
         const data = await response.json()
-        const url = `${window.location.origin}/preview/${data.token}`
+        const url = data.preview_url
         setPreviewUrl(url)
         return url
       } else {
-        console.error('Failed to generate preview URL')
+        console.error('Failed to generate preview URL:', response.status, response.statusText)
+        const errorText = await response.text()
+        console.error('Error details:', errorText)
         return null
       }
     } catch (error) {

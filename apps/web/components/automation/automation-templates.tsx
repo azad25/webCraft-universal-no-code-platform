@@ -21,6 +21,7 @@ import {
   Mail, ShoppingCart, Database, Globe, MessageSquare,
   Calendar, BarChart3, Settings, Sparkles
 } from 'lucide-react'
+import React from 'react'
 
 interface AutomationTemplate {
   id: string
@@ -86,7 +87,7 @@ export function AutomationTemplates({ onSelectTemplate, onClose }: AutomationTem
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/v1/automation-templates')
+      const response = await fetch('/api/automation-templates')
       const data = await response.json()
       setTemplates(data.templates || [])
     } catch (error) {

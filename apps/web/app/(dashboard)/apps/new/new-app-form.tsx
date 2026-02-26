@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { m } from \'framer-motion\'
+import { m } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Globe, ShoppingCart, Users, FileText, Calendar, Briefcase, Sparkles, Loader2, Layout } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,6 +53,7 @@ export default function NewAppForm() {
     const [appDescription, setAppDescription] = useState('')
     const [useAI, setUseAI] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [loadingTemplates, setLoadingTemplates] = useState(false)
 
     const [createApp, { isLoading }] = useCreateAppMutation()
 
@@ -60,7 +61,7 @@ export default function NewAppForm() {
     useEffect(() => {
         const loadAppTypes = async () => {
             try {
-                const response = await apiClient.get('/api/v1/templates/app-types')
+                const response = await apiClient.get('/templates/app-types')
                 setAppTypes(response.data.app_types || [])
             } catch (error) {
                 console.error('Failed to load app types:', error)
@@ -80,6 +81,32 @@ export default function NewAppForm() {
 
         loadAppTypes()
     }, [])
+
+    // Load templates when app type is selected
+    useEffect(() => {
+        const loadTemplates = async () => {
+            if (!selectedType) return
+
+            setLoadingTemplates(true)
+            try {
+                const response = await apiClient.get(`/templates/?category=${selectedType}`)
+                const templates = response.data.templates || []
+                
+                // Update the selected app type with templates
+                setAppTypes(prev => prev.map(type => 
+                    type.id === selectedType 
+                        ? { ...type, templates }
+                        : type
+                ))
+            } catch (error) {
+                console.error('Failed to load templates:', error)
+            } finally {
+                setLoadingTemplates(false)
+            }
+        }
+
+        loadTemplates()
+    }, [selectedType])
 
     const selectedAppType = appTypes.find(type => type.id === selectedType)
     const availableTemplates = selectedAppType?.templates || []
@@ -114,7 +141,7 @@ export default function NewAppForm() {
             const result = await createApp(requestData).unwrap()
 
             console.log('✅ App created successfully:', result)
-            router.push(`/apps/${result.id}`)
+            router.push(`/editor/${result.id}`)
         } catch (error: any) {
             console.error('❌ Failed to create app:', error)
             
@@ -311,10 +338,17 @@ export default function NewAppForm() {
                             ))}
                         </div>
 
-                        {availableTemplates.length === 0 && (
+                        {availableTemplates.length === 0 && !loadingTemplates && (
                             <div className="text-center py-8 text-muted-foreground">
                                 <p>No templates available for this app type yet.</p>
                                 <p className="text-sm">You can start from scratch and build your own!</p>
+                            </div>
+                        )}
+
+                        {loadingTemplates && (
+                            <div className="text-center py-8">
+                                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                <p className="text-muted-foreground">Loading templates...</p>
                             </div>
                         )}
 

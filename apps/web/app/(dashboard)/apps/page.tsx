@@ -8,16 +8,13 @@ import {
   Search, 
   Grid3X3, 
   List, 
-  Filter,
   Sparkles,
-  Zap,
   TrendingUp,
   Users,
   Globe,
   BarChart3,
   Clock,
   ArrowRight,
-  Palette,
   Layout,
   ShoppingCart,
   Briefcase,
@@ -93,7 +90,7 @@ const QUICK_START_TEMPLATES = [
   },
   {
     id: 'portfolio-site',
-    name: 'Portfolio Site',
+    name: 'Portfolio Site', 
     description: 'Showcase your work and skills',
     icon: Camera,
     color: 'from-pink-500 to-rose-600',
@@ -392,7 +389,7 @@ export default function AppsPage() {
                     >
                       <Card 
                         className="card-interactive group"
-                        onClick={() => router.push(`/editor/${app.id}`)}
+                        onClick={() => router.push(`/apps/${app.id}`)}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
@@ -432,7 +429,7 @@ export default function AppsPage() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={(e) => {
                                   e.stopPropagation()
-                                  router.push(`/editor/${app.id}`)
+                                  router.push(`/apps/${app.id}`)
                                 }}>
                                   <Settings className="w-4 h-4 mr-2" />
                                   Edit

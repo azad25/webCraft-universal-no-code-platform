@@ -8,7 +8,7 @@ import type { RootState } from '../index'
 
 // Base query with auth header
 const baseQuery = fetchBaseQuery({
-  baseUrl: '/', // Use relative URLs, Next.js will handle the rewrites
+  baseUrl: '/api/v2', // Use V2 API as base - all routes will automatically use V2
   prepareHeaders: (headers, { getState }) => {
     // Try to get token from Redux state first
     const token = (getState() as RootState).auth.accessToken
@@ -16,10 +16,10 @@ const baseQuery = fetchBaseQuery({
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     } else {
-      // Development bypass - always use admin@test.com
-      if (process.env.NODE_ENV === 'development') {
-        headers.set('Authorization', `Bearer admin-test-token`)
-        console.log(`🔧 RTK Query using admin@test.com token`)
+      // Try to get token from localStorage
+      const localToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+      if (localToken) {
+        headers.set('Authorization', `Bearer ${localToken}`)
       }
     }
     
@@ -46,7 +46,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     if (refreshToken) {
       const refreshResult = await baseQuery(
         {
-          url: '/api/v2/auth/refresh',
+          url: '/auth/refresh',
           method: 'POST',
           body: { refresh_token: refreshToken }
         },
@@ -123,7 +123,7 @@ export const apiSlice = createApi({
     // ==================== Apps ====================
     getApps: builder.query<any, { page?: number; perPage?: number; appType?: string }>({
       query: (params) => ({
-        url: '/apps/',
+        url: '/apps',
         params
       }),
       providesTags: ['Apps']
@@ -136,7 +136,7 @@ export const apiSlice = createApi({
     
     createApp: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/apps/',
+        url: '/apps',
         method: 'POST',
         body
       }),
@@ -197,25 +197,25 @@ export const apiSlice = createApi({
     // ==================== Templates ====================
     getTemplates: builder.query<any, { category?: string; search?: string; page?: number }>({
       query: (params) => ({
-        url: '/api/v2/templates/',
+        url: '/templates',
         params
       }),
       providesTags: ['Templates']
     }),
     
     getTemplate: builder.query<any, string>({
-      query: (id) => `/api/v2/templates/${id}`,
+      query: (id) => `/templates/${id}`,
       providesTags: (result, error, id) => [{ type: 'Template', id }]
     }),
     
     getFeaturedTemplates: builder.query<any, number>({
-      query: (limit = 6) => `/api/v2/templates/featured?limit=${limit}`,
+      query: (limit = 6) => `/templates/featured?limit=${limit}`,
       providesTags: ['Templates']
     }),
     
     installTemplate: builder.mutation<any, { id: string; body: any }>({
       query: ({ id, body }) => ({
-        url: `/api/v2/templates/${id}/install`,
+        url: `/templates/${id}/install`,
         method: 'POST',
         body
       }),
@@ -225,20 +225,20 @@ export const apiSlice = createApi({
     // ==================== Widgets ====================
     getWidgets: builder.query<any, { appId: string; category?: string }>({
       query: ({ appId, ...params }) => ({
-        url: `/api/v2/apps/${appId}/widgets`,
+        url: `/apps/${appId}/widgets`,
         params
       }),
       providesTags: ['Widgets']
     }),
     
     getWidget: builder.query<any, { appId: string; widgetId: string }>({
-      query: ({ appId, widgetId }) => `/api/v2/apps/${appId}/widgets/${widgetId}`,
+      query: ({ appId, widgetId }) => `/apps/${appId}/widgets/${widgetId}`,
       providesTags: (result, error, { widgetId }) => [{ type: 'Widget', id: widgetId }]
     }),
     
     // ==================== Pages ====================
     getPages: builder.query<any, string>({
-      query: (appId) => `/api/v2/apps/${appId}/pages`,
+      query: (appId) => `/apps/${appId}/pages`,
       providesTags: (result, error, appId) => [
         { type: 'App', id: appId },
         ...(result?.pages || []).map((page: any) => ({ type: 'Page' as const, id: page.id }))
@@ -246,13 +246,13 @@ export const apiSlice = createApi({
     }),
     
     getPage: builder.query<any, { appId: string; pageId: string }>({
-      query: ({ appId, pageId }) => `/api/v2/apps/${appId}/pages/${pageId}`,
+      query: ({ appId, pageId }) => `/apps/${appId}/pages/${pageId}`,
       providesTags: (result, error, { pageId }) => [{ type: 'Page', id: pageId }]
     }),
     
     createPage: builder.mutation<any, { appId: string; body: any }>({
       query: ({ appId, body }) => ({
-        url: `/api/v2/apps/${appId}/pages`,
+        url: `/apps/${appId}/pages`,
         method: 'POST',
         body
       }),
@@ -261,7 +261,7 @@ export const apiSlice = createApi({
     
     updatePage: builder.mutation<any, { appId: string; pageId: string; body: any }>({
       query: ({ appId, pageId, body }) => ({
-        url: `/api/v2/apps/${appId}/pages/${pageId}`,
+        url: `/apps/${appId}/pages/${pageId}`,
         method: 'PUT',
         body
       }),
@@ -273,7 +273,7 @@ export const apiSlice = createApi({
     
     updatePageContent: builder.mutation<any, { appId: string; pageId: string; content: any }>({
       query: ({ appId, pageId, content }) => ({
-        url: `/api/v2/apps/${appId}/pages/${pageId}/content`,
+        url: `/apps/${appId}/pages/${pageId}/content`,
         method: 'PUT',
         body: content
       }),
@@ -282,7 +282,7 @@ export const apiSlice = createApi({
     
     deletePage: builder.mutation<void, { appId: string; pageId: string }>({
       query: ({ appId, pageId }) => ({
-        url: `/api/v2/apps/${appId}/pages/${pageId}`,
+        url: `/apps/${appId}/pages/${pageId}`,
         method: 'DELETE'
       }),
       invalidatesTags: (result, error, { appId }) => [{ type: 'App', id: appId }]
@@ -290,7 +290,7 @@ export const apiSlice = createApi({
     
     duplicatePage: builder.mutation<any, { appId: string; pageId: string; newTitle: string; newSlug: string }>({
       query: ({ appId, pageId, newTitle, newSlug }) => ({
-        url: `/api/v2/apps/${appId}/pages/${pageId}/duplicate?new_title=${encodeURIComponent(newTitle)}&new_slug=${encodeURIComponent(newSlug)}`,
+        url: `/apps/${appId}/pages/${pageId}/duplicate?new_title=${encodeURIComponent(newTitle)}&new_slug=${encodeURIComponent(newSlug)}`,
         method: 'POST'
       }),
       invalidatesTags: (result, error, { appId }) => [{ type: 'App', id: appId }]
@@ -332,23 +332,23 @@ export const apiSlice = createApi({
     
     // ==================== Subscription ====================
     getSubscriptionStatus: builder.query<any, void>({
-      query: () => '/api/payment/subscription-status',
+      query: () => '/payment/subscription-status',
       providesTags: ['Subscription']
     }),
     
     getUsageStats: builder.query<any, void>({
-      query: () => '/api/payment/usage',
+      query: () => '/payment/usage',
       providesTags: ['Subscription']
     }),
     
     getBillingHistory: builder.query<any, void>({
-      query: () => '/api/payment/billing-history',
+      query: () => '/payment/billing-history',
       providesTags: ['Subscription']
     }),
     
     createSubscription: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/api/payment/create-subscription',
+        url: '/payment/create-subscription',
         method: 'POST',
         body
       }),
@@ -357,7 +357,7 @@ export const apiSlice = createApi({
     
     cancelSubscription: builder.mutation<any, void>({
       query: () => ({
-        url: '/api/payment/cancel-subscription',
+        url: '/payment/cancel-subscription',
         method: 'POST'
       }),
       invalidatesTags: ['Subscription', 'User']
@@ -366,7 +366,7 @@ export const apiSlice = createApi({
     // ==================== Comments ====================
     getComments: builder.query<any, { appId: string; pageId?: string }>({
       query: ({ appId, pageId }) => ({
-        url: `/api/apps/${appId}/comments`,
+        url: `/apps/${appId}/comments`,
         params: pageId ? { page_id: pageId } : undefined
       }),
       providesTags: ['Comments']
@@ -374,7 +374,7 @@ export const apiSlice = createApi({
     
     addComment: builder.mutation<any, { appId: string; body: any }>({
       query: ({ appId, body }) => ({
-        url: `/api/apps/${appId}/comments`,
+        url: `/apps/${appId}/comments`,
         method: 'POST',
         body
       }),
@@ -383,7 +383,7 @@ export const apiSlice = createApi({
     
     resolveComment: builder.mutation<any, { appId: string; commentId: string }>({
       query: ({ appId, commentId }) => ({
-        url: `/api/apps/${appId}/comments/${commentId}/resolve`,
+        url: `/apps/${appId}/comments/${commentId}/resolve`,
         method: 'POST'
       }),
       invalidatesTags: ['Comments']
@@ -391,7 +391,7 @@ export const apiSlice = createApi({
     
     deleteComment: builder.mutation<any, { appId: string; commentId: string }>({
       query: ({ appId, commentId }) => ({
-        url: `/api/apps/${appId}/comments/${commentId}`,
+        url: `/apps/${appId}/comments/${commentId}`,
         method: 'DELETE'
       }),
       invalidatesTags: ['Comments']
@@ -400,7 +400,7 @@ export const apiSlice = createApi({
     // ==================== Automations ====================
     getAutomations: builder.query<any, { appId: string; isEnabled?: boolean; triggerType?: string }>({
       query: ({ appId, isEnabled, triggerType }) => ({
-        url: `/api/apps/${appId}/automations`,
+        url: `/apps/${appId}/automations`,
         params: { is_enabled: isEnabled, trigger_type: triggerType }
       }),
       providesTags: (result, error, { appId }) => [
@@ -410,13 +410,13 @@ export const apiSlice = createApi({
     }),
     
     getAutomation: builder.query<any, { appId: string; automationId: string }>({
-      query: ({ appId, automationId }) => `/api/apps/${appId}/automations/${automationId}`,
+      query: ({ appId, automationId }) => `/apps/${appId}/automations/${automationId}`,
       providesTags: (result, error, { automationId }) => [{ type: 'Automation', id: automationId }]
     }),
     
     createAutomation: builder.mutation<any, { appId: string; body: any }>({
       query: ({ appId, body }) => ({
-        url: `/api/apps/${appId}/automations`,
+        url: `/apps/${appId}/automations`,
         method: 'POST',
         body
       }),
@@ -425,7 +425,7 @@ export const apiSlice = createApi({
     
     updateAutomation: builder.mutation<any, { appId: string; automationId: string; body: any }>({
       query: ({ appId, automationId, body }) => ({
-        url: `/api/apps/${appId}/automations/${automationId}`,
+        url: `/apps/${appId}/automations/${automationId}`,
         method: 'PUT',
         body
       }),
@@ -437,7 +437,7 @@ export const apiSlice = createApi({
     
     deleteAutomation: builder.mutation<any, { appId: string; automationId: string }>({
       query: ({ appId, automationId }) => ({
-        url: `/api/apps/${appId}/automations/${automationId}`,
+        url: `/apps/${appId}/automations/${automationId}`,
         method: 'DELETE'
       }),
       invalidatesTags: (result, error, { appId }) => [{ type: 'Automations', id: appId }]
@@ -445,7 +445,7 @@ export const apiSlice = createApi({
     
     executeAutomation: builder.mutation<any, { appId: string; automationId: string; triggerData?: any }>({
       query: ({ appId, automationId, triggerData = {} }) => ({
-        url: `/api/apps/${appId}/automations/${automationId}/execute`,
+        url: `/apps/${appId}/automations/${automationId}/execute`,
         method: 'POST',
         body: triggerData
       })
@@ -453,7 +453,7 @@ export const apiSlice = createApi({
     
     testAutomation: builder.mutation<any, { appId: string; automationId: string; testData?: any }>({
       query: ({ appId, automationId, testData = {} }) => ({
-        url: `/api/apps/${appId}/automations/${automationId}/test`,
+        url: `/apps/${appId}/automations/${automationId}/test`,
         method: 'POST',
         body: testData
       })
@@ -461,14 +461,14 @@ export const apiSlice = createApi({
     
     getAutomationLogs: builder.query<any, { appId: string; automationId: string; status?: string; limit?: number }>({
       query: ({ appId, automationId, status, limit = 50 }) => ({
-        url: `/api/apps/${appId}/automations/${automationId}/logs`,
+        url: `/apps/${appId}/automations/${automationId}/logs`,
         params: { status, limit }
       })
     }),
     
     enableAutomation: builder.mutation<any, { appId: string; automationId: string }>({
       query: ({ appId, automationId }) => ({
-        url: `/api/apps/${appId}/automations/${automationId}/enable`,
+        url: `/apps/${appId}/automations/${automationId}/enable`,
         method: 'POST'
       }),
       invalidatesTags: (result, error, { appId, automationId }) => [
@@ -479,7 +479,7 @@ export const apiSlice = createApi({
     
     disableAutomation: builder.mutation<any, { appId: string; automationId: string }>({
       query: ({ appId, automationId }) => ({
-        url: `/api/apps/${appId}/automations/${automationId}/disable`,
+        url: `/apps/${appId}/automations/${automationId}/disable`,
         method: 'POST'
       }),
       invalidatesTags: (result, error, { appId, automationId }) => [

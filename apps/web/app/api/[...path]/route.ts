@@ -8,18 +8,31 @@ async function getApiBaseUrl(): Promise<string> {
   }
   
   // Otherwise use the public API URL
-  return process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.109:8000'
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 }
 
 async function handler(request: NextRequest, { params }: { params: { path: string[] } }) {
   const path = params.path.join('/')
   const apiBaseUrl = await getApiBaseUrl()
   
-  // Don't add /api/v1/ prefix for health endpoint and other root endpoints
-  const isRootEndpoint = ['health'].includes(path)
-  const url = isRootEndpoint 
-    ? `${apiBaseUrl}/${path}`
-    : `${apiBaseUrl}/api/v1/${path}`
+  // Handle different API versions and root endpoints
+  let url: string
+  
+  if (['health'].includes(path)) {
+    // Root endpoints (no version prefix)
+    url = `${apiBaseUrl}/${path}`
+  } else if (path.startsWith('v1/')) {
+    // V1 endpoints - explicit V1 routing
+    const v1Path = path.substring(3)
+    url = `${apiBaseUrl}/api/v1/${v1Path}`
+  } else if (path.startsWith('v2/')) {
+    // V2 endpoints - explicit V2 routing
+    const v2Path = path.substring(3)
+    url = `${apiBaseUrl}/api/v2/${v2Path}`
+  } else {
+    // Default ALL API calls to V2 (this is the key change)
+    url = `${apiBaseUrl}/api/v2/${path}`
+  }
   
   console.log(`🔄 Proxying ${request.method} ${request.url} -> ${url}`)
   console.log('🔧 Environment:', {
