@@ -2,7 +2,7 @@
 Templates domain models for V2
 """
 
-from sqlalchemy import Column, String, Boolean, Text, Integer, Index
+from sqlalchemy import Column, String, Boolean, Text, Integer, Index, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 
@@ -58,7 +58,7 @@ class TemplatePage(BaseModel):
     sort_order = Column(Integer, default=0)
     
     # Template relationship
-    template_id = Column(UUID(as_uuid=True), nullable=False)
+    template_id = Column(UUID(as_uuid=True), ForeignKey('templates.id'), nullable=False)
     
     __table_args__ = (
         Index('idx_template_page_template_slug', 'template_id', 'slug'),

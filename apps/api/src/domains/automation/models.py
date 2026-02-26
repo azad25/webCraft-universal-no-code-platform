@@ -62,7 +62,7 @@ class Automation(BaseModel):
     last_executed_at = Column(DateTime, nullable=True)
     execution_count = Column(Integer, default=0)
     
-    # Relationships
+    # Relationships (properly configured)
     app = relationship("App", back_populates="automations")
     logs = relationship("AutomationLog", back_populates="automation")
 
@@ -80,5 +80,5 @@ class AutomationLog(BaseModel):
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     
-    # Relationships
+    # Relationships (properly configured)
     automation = relationship("Automation", back_populates="logs")

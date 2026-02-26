@@ -4,8 +4,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 import uuid
 
-# Import Page from v1 database models
-from core.database import Page
+# Import Page from V2 database models
+from .models import Page
 from src.domains.apps.models import App
 
 

@@ -15,12 +15,14 @@ from .schemas import (
     MediaFolderCreate, MediaFolderResponse, MediaListParams,
     EmbedRequest, CodeSnippetRequest, UrlMediaRequest
 )
+from src.domains.storage.service import StorageService
 
 
 class MediaService(BaseService[MediaItem, MediaItemCreate, MediaItemUpdate]):
     def __init__(self, db: Session):
         super().__init__(MediaItem, db)
         self.db = db
+        self.storage_service = StorageService(db)
 
     def get_media_type(self, mime_type: str) -> MediaType:
         """Determine media type from MIME type"""
@@ -75,35 +77,122 @@ class MediaService(BaseService[MediaItem, MediaItemCreate, MediaItemUpdate]):
         file: UploadFile, 
         folder_id: Optional[str] = None,
         alt_text: Optional[str] = None,
-        tags: Optional[List[str]] = None
+        tags: Optional[List[str]] = None,
+        user_id: Optional[str] = None
     ) -> MediaItemResponse:
-        """Upload a file and create media item"""
-        content = await file.read()
+        """Upload a file and create media item (integrated with Storage)"""
+        
+        # First upload to Storage system
+        if user_id:
+            storage_file = await self.storage_service.upload_file(
+                user_id=user_id,
+                file_data=file.file,
+                filename=file.filename,
+                mime_type=file.content_type,
+                folder_path=f"/apps/{app_id}/media",
+                is_public=True  # Media files are typically public
+            )
+            
+            # Use storage URLs
+            file_url = storage_file.public_url or storage_file.cdn_url
+            thumbnail_url = storage_file.thumbnail_url
+            file_size = storage_file.size_bytes
+            width = storage_file.width
+            height = storage_file.height
+        else:
+            # Fallback to old method if no user_id provided
+            content = await file.read()
+            file_url = f"/api/media/file/{str(uuid.uuid4())}"
+            thumbnail_url = None
+            file_size = len(content)
+            width = None
+            height = None
         
         mime_type = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
         media_type = self.get_media_type(mime_type)
         
-        # Generate thumbnail URL for images/videos (placeholder)
-        thumbnail_url = None
-        if media_type == MediaType.IMAGE:
+        # Generate thumbnail URL for images/videos if not from storage
+        if not thumbnail_url and media_type == MediaType.IMAGE:
             thumbnail_url = f"/api/media/thumbnail/{str(uuid.uuid4())}"
         
         media_data = MediaItemCreate(
             app_id=app_id,
             type=media_type,
             name=file.filename,
-            url=f"/api/media/file/{str(uuid.uuid4())}",
+            url=file_url,
             thumbnail_url=thumbnail_url,
             mime_type=mime_type,
-            size=len(content),
+            size=file_size,
+            width=width,
+            height=height,
             alt_text=alt_text,
             folder_id=folder_id,
             tags=tags or [],
-            extra_data={"original_filename": file.filename}
+            extra_data={
+                "original_filename": file.filename,
+                "storage_file_id": storage_file.id if user_id else None
+            }
         )
         
         media_item = self.create(media_data)
         return MediaItemResponse.model_validate(media_item)
+
+    async def import_from_storage(
+        self,
+        app_id: str,
+        storage_file_id: str,
+        user_id: str,
+        folder_id: Optional[str] = None,
+        alt_text: Optional[str] = None,
+        tags: Optional[List[str]] = None
+    ) -> MediaItemResponse:
+        """Import a file from Storage into Media library"""
+        
+        # Get storage file
+        storage_file = await self.storage_service.get_file(storage_file_id, user_id)
+        if not storage_file:
+            raise ValueError("Storage file not found")
+        
+        # Determine media type
+        media_type = self.get_media_type(storage_file.mime_type)
+        
+        media_data = MediaItemCreate(
+            app_id=app_id,
+            type=media_type,
+            name=storage_file.filename,
+            url=storage_file.public_url or storage_file.cdn_url or f"/storage/files/{storage_file_id}",
+            thumbnail_url=storage_file.thumbnail_url,
+            mime_type=storage_file.mime_type,
+            size=storage_file.size_bytes,
+            width=storage_file.width,
+            height=storage_file.height,
+            alt_text=alt_text,
+            folder_id=folder_id,
+            tags=tags or [],
+            extra_data={
+                "storage_file_id": storage_file_id,
+                "imported_from_storage": True,
+                "original_filename": storage_file.original_filename
+            }
+        )
+        
+        media_item = self.create(media_data)
+        return MediaItemResponse.model_validate(media_item)
+
+    async def list_storage_files(
+        self,
+        user_id: str,
+        mime_type_filter: Optional[str] = None,
+        page: int = 1,
+        per_page: int = 50
+    ) -> Dict[str, Any]:
+        """List available storage files for import"""
+        return await self.storage_service.list_files(
+            user_id=user_id,
+            mime_type_filter=mime_type_filter,
+            page=page,
+            per_page=per_page
+        )
 
     def add_embed(self, request: EmbedRequest) -> MediaItemResponse:
         """Add an embed (YouTube, Vimeo, Google Drive, etc.)"""

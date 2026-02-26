@@ -30,7 +30,7 @@ class DataSource(BaseModel):
     last_error = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True)
     
-    # Relationships
+    # Relationships (properly configured)
     app = relationship("App", back_populates="data_sources")
     endpoints = relationship("DataSourceEndpoint", back_populates="data_source", cascade="all, delete-orphan")
 

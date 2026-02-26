@@ -45,8 +45,9 @@ class WebScraper(BaseModel):
     run_count = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
     
-    # Relationships
-    app = relationship("App", back_populates="scrapers")
+    # Relationships (temporarily remove back_populates to fix circular imports)
+    # TODO: Re-enable back_populates once App model relationships are fixed
+    app = relationship("App", lazy="select")
     results = relationship("ScraperResult", back_populates="scraper", cascade="all, delete-orphan")
 
 
@@ -69,5 +70,5 @@ class ScraperResult(BaseModel):
     expires_at = Column(DateTime, nullable=True)  # Cache expiration
     is_active = Column(Boolean, default=True)
     
-    # Relationships
+    # Relationships (properly configured)
     scraper = relationship("WebScraper", back_populates="results")

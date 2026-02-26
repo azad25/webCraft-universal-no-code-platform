@@ -5,7 +5,7 @@ import uuid
 import json
 
 from src.domains.apps.models import App
-from core.database import Page
+from src.domains.pages.models import Page
 
 
 class LiveAppsService:

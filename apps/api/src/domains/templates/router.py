@@ -11,9 +11,137 @@ from src.core.database import get_db
 from src.core.security import get_current_user
 from src.domains.auth.schemas import UserResponse
 from .service import TemplateService
-from .schemas import TemplateResponse, TemplateListResponse
+from .schemas import TemplateResponse, TemplateListResponse, TemplateCreateRequest, TemplateUpdateRequest, TemplatePageCreateRequest, TemplatePageUpdateRequest
 
 router = APIRouter()
+
+
+@router.post("/", response_model=TemplateResponse)
+async def create_template(
+    template_data: TemplateCreateRequest,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new template"""
+    service = TemplateService(db)
+    template = await service.create_template(
+        creator_id=str(current_user.id),
+        name=template_data.name,
+        description=template_data.description,
+        category=template_data.category,
+        config=template_data.config,
+        pages_config=template_data.pages_config,
+        is_premium=template_data.is_premium,
+        price=template_data.price,
+        preview_image=template_data.preview_image,
+        demo_url=template_data.demo_url
+    )
+    return template
+
+
+@router.put("/{template_id}", response_model=TemplateResponse)
+async def update_template(
+    template_id: str,
+    template_data: TemplateUpdateRequest,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update an existing template"""
+    service = TemplateService(db)
+    template = await service.update_template(
+        template_id=template_id,
+        user_id=str(current_user.id),
+        **template_data.model_dump(exclude_unset=True)
+    )
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return template
+
+
+@router.delete("/{template_id}")
+async def delete_template(
+    template_id: str,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a template"""
+    service = TemplateService(db)
+    success = await service.delete_template(
+        template_id=template_id,
+        user_id=str(current_user.id)
+    )
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Template not found or not authorized")
+    
+    return {"success": True, "message": "Template deleted successfully"}
+
+
+@router.post("/{template_id}/pages", response_model=dict)
+async def create_template_page(
+    template_id: str,
+    page_data: TemplatePageCreateRequest,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new page for a template"""
+    service = TemplateService(db)
+    page = await service.create_template_page(
+        template_id=template_id,
+        user_id=str(current_user.id),
+        **page_data.model_dump()
+    )
+    
+    if not page:
+        raise HTTPException(status_code=404, detail="Template not found or not authorized")
+    
+    return page
+
+
+@router.put("/{template_id}/pages/{page_id}")
+async def update_template_page(
+    template_id: str,
+    page_id: str,
+    page_data: TemplatePageUpdateRequest,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update a template page"""
+    service = TemplateService(db)
+    page = await service.update_template_page(
+        template_id=template_id,
+        page_id=page_id,
+        user_id=str(current_user.id),
+        **page_data.model_dump(exclude_unset=True)
+    )
+    
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found or not authorized")
+    
+    return page
+
+
+@router.delete("/{template_id}/pages/{page_id}")
+async def delete_template_page(
+    template_id: str,
+    page_id: str,
+    current_user: UserResponse = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a template page"""
+    service = TemplateService(db)
+    success = await service.delete_template_page(
+        template_id=template_id,
+        page_id=page_id,
+        user_id=str(current_user.id)
+    )
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Page not found or not authorized")
+    
+    return {"success": True, "message": "Page deleted successfully"}
 
 
 @router.get("/", response_model=dict)
@@ -72,7 +200,7 @@ async def get_section_templates(
 
 @router.get("/{template_id}")
 async def get_template(
-    template_id: str = Path(..., description="Template ID or slug"),
+    template_id: str,
     db: Session = Depends(get_db)
 ):
     """Get a specific template by ID"""
@@ -90,7 +218,7 @@ async def get_template(
 
 @router.post("/{template_id}/install")
 async def install_template(
-    template_id: str = Path(..., description="Template ID"),
+    template_id: str,
     app_name: str = Query(..., description="Name for the new app"),
     app_description: Optional[str] = Query(None, description="Description for the new app"),
     current_user: UserResponse = Depends(get_current_user),
@@ -120,7 +248,7 @@ async def install_template(
 
 @router.post("/{template_id}/rate")
 async def rate_template(
-    template_id: str = Path(..., description="Template ID"),
+    template_id: str,
     rating: int = Query(..., ge=1, le=5, description="Rating from 1 to 5"),
     review: Optional[str] = Query(None, description="Optional review text"),
     current_user: UserResponse = Depends(get_current_user),
@@ -145,7 +273,7 @@ async def rate_template(
 
 @router.get("/{template_id}/preview")
 async def generate_template_preview(
-    template_id: str = Path(..., description="Template ID"),
+    template_id: str,
     db: Session = Depends(get_db)
 ):
     """Generate a preview URL for template"""
@@ -294,7 +422,7 @@ async def get_template_elements(db: Session = Depends(get_db)):
 
 @router.get("/elements/{category}")
 async def get_elements_by_category(
-    category: str = Path(..., description="Element category"),
+    category: str,
     db: Session = Depends(get_db)
 ):
     """Get template elements by category"""

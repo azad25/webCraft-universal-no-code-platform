@@ -5,6 +5,7 @@ Authentication domain models for V2
 from sqlalchemy import Column, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 from datetime import datetime
 import uuid
 
@@ -32,9 +33,17 @@ class User(BaseModel):
     subscription_tier = Column(String(50), default="free")  # free, pro, enterprise
     subscription_expires = Column(DateTime, nullable=True)
     
-    # Relationships
-    ai_requests = relationship("AIRequest", back_populates="user")
-    ai_usage_stats = relationship("AIUsageStats", back_populates="user")
+    # Relationships using declared_attr to avoid circular imports
+    # TODO: Re-enable AI relationships once circular import issues are resolved
+    # @declared_attr
+    # def ai_requests(cls):
+    #     return relationship("AIRequest", back_populates="user", lazy="dynamic", 
+    #                       cascade="all, delete-orphan", passive_deletes=True)
+    
+    # @declared_attr
+    # def ai_usage_stats(cls):
+    #     return relationship("AIUsageStats", back_populates="user", lazy="dynamic",
+    #                       cascade="all, delete-orphan", passive_deletes=True)
 
 
 class APIKey(BaseModel):

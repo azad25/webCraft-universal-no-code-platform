@@ -8,7 +8,8 @@ from datetime import datetime
 import re
 import json
 
-from src.domains.apps.models import App, Page
+from src.domains.apps.models import App
+from src.domains.pages.models import Page
 
 
 class SEOService:

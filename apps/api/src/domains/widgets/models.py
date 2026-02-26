@@ -35,3 +35,26 @@ class Widget(BaseModel):
     
     # Relationships
     app_widgets = relationship("AppWidget", back_populates="widget")
+
+
+class AppWidget(BaseModel):
+    """Widget instance in an app"""
+    __tablename__ = "app_widgets"
+    
+    app_id = Column(UUID(as_uuid=True), ForeignKey("apps.id"), nullable=False, index=True)
+    widget_id = Column(UUID(as_uuid=True), ForeignKey("widgets.id"), nullable=False, index=True)
+    page_id = Column(UUID(as_uuid=True), ForeignKey("pages.id"), nullable=True, index=True)
+    
+    # Instance configuration
+    config = Column(JSONB, default={})
+    position = Column(JSONB, default={})  # x, y, width, height
+    z_index = Column(Integer, default=0)
+    
+    # Status
+    is_visible = Column(Boolean, default=True)
+    is_locked = Column(Boolean, default=False)
+    
+    # Relationships
+    app = relationship("App")
+    widget = relationship("Widget", back_populates="app_widgets")
+    page = relationship("Page")

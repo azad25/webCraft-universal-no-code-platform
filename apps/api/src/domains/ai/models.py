@@ -44,9 +44,10 @@ class AIRequest(BaseModel):
     success = Column(Boolean, default=True)
     error_message = Column(Text, nullable=True)
     
-    # Relationships
-    app = relationship("App", back_populates="ai_requests")
-    user = relationship("User", back_populates="ai_requests")
+    # Relationships (temporarily disabled to fix circular imports)
+    # TODO: Re-enable once User model relationships are fixed
+    # app = relationship("App", back_populates="ai_requests", lazy="select")
+    # user = relationship("User", back_populates="ai_requests", lazy="select")
 
 
 class AITemplate(BaseModel):
@@ -74,5 +75,6 @@ class AIUsageStats(BaseModel):
     tokens_used = Column(Integer, default=0)
     cost_cents = Column(Integer, default=0)
     
-    # Relationships
-    user = relationship("User", back_populates="ai_usage_stats")
+    # Relationships (temporarily disabled to fix circular imports)
+    # TODO: Re-enable once User model relationships are fixed
+    # user = relationship("User", back_populates="ai_usage_stats", lazy="select")

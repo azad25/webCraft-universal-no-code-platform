@@ -9,7 +9,8 @@ import uuid
 from slugify import slugify
 
 from src.common.exceptions import NotFoundError, ValidationError, AuthorizationError
-from .models import App, Page, CustomAsset
+from .models import App
+from src.domains.pages.models import Page
 from .schemas import AppCreate, AppUpdate, PageCreate, PageUpdate
 
 
@@ -1352,7 +1353,7 @@ class AppService:
         return {
             "session_id": str(session.id),
             "token": token,
-            "preview_url": f"https://preview.webcraft.dev/{token}",
+            "preview_url": f"http://localhost:3000/preview/{token}",
             "expires_at": session.expires_at
         }
     
@@ -2515,4 +2516,88 @@ class AppService:
             "pre_deploy_hooks": len(pre_deploy),
             "post_deploy_hooks": len(post_deploy),
             "configured_at": datetime.utcnow().isoformat()
+        }
+
+    # Helper methods
+    async def _apply_template(self, app: App, template_id: str):
+        """Apply template to app"""
+        try:
+            # Import template service
+            from ..templates.service import TemplateService
+            template_service = TemplateService(self.db)
+            
+            # Get template
+            template = await template_service.get_template(template_id)
+            if not template:
+                print(f"⚠️ Template {template_id} not found, creating default page")
+                self._create_default_page(app)
+                return
+            
+            # Apply template pages
+            pages = template.get("pages", [])
+            for i, page_data in enumerate(pages):
+                page = Page(
+                    app_id=app.id,
+                    title=page_data.get("name", "Home"),
+                    slug=page_data.get("slug", "home"),
+                    content=page_data.get("elements", []),
+                    is_homepage=page_data.get("is_homepage", i == 0)  # First page is homepage by default
+                )
+                self.db.add(page)
+            
+            # Update app config with template config
+            if template.get("config"):
+                app.config.update(template["config"])
+            
+            print(f"✅ Applied template {template_id} with {len(pages)} pages")
+            
+        except Exception as e:
+            print(f"❌ Failed to apply template {template_id}: {e}")
+            # Fallback to default page
+            self._create_default_page(app)
+
+    def _create_default_page(self, app: App):
+        """Create default home page"""
+        page = Page(
+            app_id=app.id,
+            title="Home",
+            slug="home",
+            content=[],
+            is_homepage=True
+        )
+        self.db.add(page)
+        print(f"✅ Created default page for app {app.name}")
+
+    def _default_theme(self) -> Dict[str, Any]:
+        """Get default theme configuration"""
+        return {
+            "colors": {
+                "primary": "#3b82f6",
+                "secondary": "#64748b",
+                "accent": "#f59e0b",
+                "background": "#ffffff",
+                "text": "#1f2937"
+            },
+            "fonts": {
+                "heading": "Inter",
+                "body": "Inter"
+            },
+            "spacing": {
+                "unit": 8
+            },
+            "breakpoints": {
+                "mobile": 768,
+                "tablet": 1024,
+                "desktop": 1280
+            }
+        }
+
+    def _default_seo(self, name: str, description: str = None) -> Dict[str, Any]:
+        """Get default SEO configuration"""
+        return {
+            "title": name,
+            "description": description or f"{name} - Built with WebCraft",
+            "keywords": [],
+            "og_image": "",
+            "twitter_card": "summary_large_image"
         }

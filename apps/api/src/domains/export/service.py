@@ -6,7 +6,7 @@ import uuid
 import os
 
 from .schemas import ExportOptions, ExportFormat
-from core.database import Page
+from src.domains.pages.models import Page
 
 EXPORT_DIR = os.getenv("EXPORT_DIR", "/tmp/webcraft-exports")
 os.makedirs(EXPORT_DIR, exist_ok=True)

@@ -39,7 +39,7 @@ class MediaItem(BaseModel):
     folder_id = Column(UUID(as_uuid=True), ForeignKey("media_folders.id"), nullable=True, index=True)
     tags = Column(JSON, default=[])
     
-    # Relationships
+    # Relationships (properly configured)
     app = relationship("App", back_populates="media_items")
     folder = relationship("MediaFolder", back_populates="media_items")
 
@@ -51,7 +51,7 @@ class MediaFolder(BaseModel):
     name = Column(String(255), nullable=False)
     parent_id = Column(UUID(as_uuid=True), ForeignKey("media_folders.id"), nullable=True, index=True)
     
-    # Relationships
+    # Relationships (properly configured)
     app = relationship("App", back_populates="media_folders")
     parent = relationship("MediaFolder", remote_side="MediaFolder.id", back_populates="children")
     children = relationship("MediaFolder", back_populates="parent")

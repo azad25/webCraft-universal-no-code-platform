@@ -7,13 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 
 from src.core.database import get_db
 from src.core.security import get_current_user
 from src.domains.auth.models import User
-from src.domains.apps.models import App, Page
+from src.domains.apps.models import App
+from src.domains.pages.models import Page
 from src.domains.apps.service import AppService
 from src.domains.templates.models import Template
 
@@ -393,14 +394,31 @@ async def preview_app(
         import secrets
         token = secrets.token_urlsafe(32)
         
-        # Create preview URL
-        preview_url = f"https://preview.webcraft.dev/{token}"
+        # Create preview session in database
+        from .models import PreviewSession
+        expires_at = datetime.utcnow() + timedelta(hours=24)
+        
+        preview_session = PreviewSession(
+            token=token,
+            device=device,
+            expires_at=expires_at.isoformat(),
+            app_id=app.id
+        )
+        
+        db.add(preview_session)
+        db.commit()
+        db.refresh(preview_session)
+        
+        # Create preview URL - Use localhost for development like V1
+        preview_url = f"http://localhost:3000/preview/{token}"
+        if device != "desktop":
+            preview_url += f"?device={device}"
         
         preview_data = {
             "preview_url": preview_url,
             "token": token,
             "device": device,
-            "expires_at": (datetime.utcnow().timestamp() + 86400)  # 24 hours
+            "expires_at": expires_at.timestamp()
         }
         
         print(f"✅ Preview created: {preview_data['preview_url']}")
@@ -428,27 +446,62 @@ async def get_preview_data(
     print(f"🔍 Getting preview data for token: {token}")
     
     try:
-        # For now, return mock data - in production this would validate token
-        # and return actual app data
+        # Look up preview session by token
+        from .models import PreviewSession
+        session = db.query(PreviewSession).filter(
+            PreviewSession.token == token,
+            PreviewSession.expires_at > datetime.utcnow().isoformat()
+        ).first()
         
-        return {
+        if not session:
+            print(f"❌ Preview session not found or expired for token: {token}")
+            raise HTTPException(status_code=404, detail="Preview not found or expired")
+        
+        # Get the app
+        app = db.query(App).filter(App.id == session.app_id).first()
+        if not app:
+            print(f"❌ App not found for preview session: {session.app_id}")
+            raise HTTPException(status_code=404, detail="App not found")
+        
+        # Get app pages
+        from src.domains.pages.models import Page
+        pages = db.query(Page).filter(
+            Page.app_id == app.id,
+            Page.is_published == True
+        ).all()
+        
+        preview_data = {
             "app": {
-                "id": "preview-app",
-                "name": "Preview App",
-                "slug": "preview-app",
-                "description": "App preview",
-                "app_type": "website",
-                "config": {},
-                "theme_config": {},
-                "seo_config": {}
+                "id": str(app.id),
+                "name": app.name,
+                "slug": app.slug,
+                "description": app.description,
+                "app_type": app.app_type,
+                "config": app.config,
+                "theme_config": app.theme_config,
+                "seo_config": app.seo_config
             },
             "preview": {
                 "token": token,
                 "device": device,
-                "expires_at": (datetime.utcnow().timestamp() + 86400)
+                "expires_at": session.expires_at
             },
-            "pages": []
+            "pages": [
+                {
+                    "id": str(page.id),
+                    "title": page.title,
+                    "slug": page.slug,
+                    "content": page.content,
+                    "is_homepage": page.is_homepage,
+                    "meta_title": page.meta_title,
+                    "meta_description": page.meta_description
+                }
+                for page in pages
+            ]
         }
+        
+        print(f"✅ Preview data retrieved: {len(pages)} pages")
+        return preview_data
     
     except Exception as e:
         print(f"❌ Failed to get preview data: {e}")
@@ -469,17 +522,26 @@ async def get_preview_qr_code(
     """
     
     try:
-        from fastapi.responses import JSONResponse
-        import os
+        # Verify token exists and is valid
+        from .models import PreviewSession
+        session = db.query(PreviewSession).filter(
+            PreviewSession.token == token,
+            PreviewSession.expires_at > datetime.utcnow().isoformat()
+        ).first()
         
-        # Generate QR code URL
-        base_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        qr_url = f"{base_url}/preview/{token}?device=mobile"
+        if not session:
+            raise HTTPException(status_code=404, detail="Preview not found or expired")
         
+        # Generate mobile preview URL - use localhost for development like V1
+        mobile_url = f"http://localhost:3000/preview/{token}?device=mobile"
+        
+        # For now return JSON with URLs - in production this would generate actual QR image
         return {
-            "qr_url": qr_url,
-            "preview_url": f"https://preview.webcraft.dev/{token}",
-            "size": size
+            "qr_url": mobile_url,
+            "preview_url": f"http://localhost:3000/preview/{token}",
+            "mobile_url": mobile_url,
+            "size": size,
+            "token": token
         }
     
     except Exception as e:
@@ -571,6 +633,9 @@ async def create_page(
     current_user: User = Depends(get_current_user)
 ):
     """Create a new page"""
+    print(f"📄 Creating page for app {app_id}")
+    print(f"📦 Page data: {page_data}")
+    
     app = db.query(App).filter(
         App.id == app_id,
         App.owner_id == current_user.id
@@ -579,8 +644,39 @@ async def create_page(
     if not app:
         raise HTTPException(status_code=404, detail="App not found")
     
-    # Create page logic here
-    return {"message": "Page created successfully"}
+    try:
+        # Create new page
+        new_page = Page(
+            title=page_data.get('title', 'New Page'),
+            slug=page_data.get('slug', 'new-page'),
+            content=page_data.get('content', {}),
+            meta_title=page_data.get('meta_title'),
+            meta_description=page_data.get('meta_description'),
+            is_homepage=page_data.get('is_homepage', False),
+            is_published=page_data.get('is_published', True),  # Default to published
+            app_id=app_id
+        )
+        
+        db.add(new_page)
+        db.commit()
+        db.refresh(new_page)
+        
+        print(f"✅ Page created: {new_page.title} ({new_page.slug})")
+        
+        return {
+            "message": "Page created successfully",
+            "page": {
+                "id": str(new_page.id),
+                "title": new_page.title,
+                "slug": new_page.slug,
+                "is_homepage": new_page.is_homepage,
+                "is_published": new_page.is_published
+            }
+        }
+    except Exception as e:
+        print(f"❌ Failed to create page: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create page: {str(e)}")
 
 
 @router.get("/{app_id}/pages/{page_id}")
@@ -619,6 +715,9 @@ async def update_page(
     current_user: User = Depends(get_current_user)
 ):
     """Update a page"""
+    print(f"🔄 Updating page {page_id} for app {app_id}")
+    print(f"📦 Page data: {page_data}")
+    
     app = db.query(App).filter(
         App.id == app_id,
         App.owner_id == current_user.id
@@ -635,8 +734,33 @@ async def update_page(
     if not page:
         raise HTTPException(status_code=404, detail="Page not found")
     
-    # Update page logic here
-    return {"message": "Page updated successfully"}
+    # Update page fields
+    try:
+        for field, value in page_data.items():
+            if hasattr(page, field):
+                setattr(page, field, value)
+                print(f"✅ Updated {field}")
+        
+        page.updated_at = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(page)
+        print(f"💾 Page {page_id} saved successfully")
+        
+        return {
+            "message": "Page updated successfully",
+            "page": {
+                "id": str(page.id),
+                "title": page.title,
+                "slug": page.slug,
+                "content": page.content,
+                "is_homepage": page.is_homepage
+            }
+        }
+    except Exception as e:
+        print(f"❌ Failed to update page: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update page: {str(e)}")
 
 
 @router.delete("/{app_id}/pages/{page_id}")

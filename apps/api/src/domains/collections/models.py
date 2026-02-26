@@ -27,7 +27,7 @@ class Collection(BaseModel):
     webhooks = Column(JSON, default=list)
     is_active = Column(Boolean, default=True)
     
-    # Relationships
+    # Relationships (properly configured)
     app = relationship("App", back_populates="collections")
     records = relationship("CollectionRecord", back_populates="collection", cascade="all, delete-orphan")
 
@@ -43,7 +43,7 @@ class CollectionRecord(BaseModel):
     created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     updated_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     
-    # Relationships
+    # Relationships (properly configured)
     collection = relationship("Collection", back_populates="records")
 
 

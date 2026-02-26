@@ -599,24 +599,209 @@ class TemplateService:
         pages_config: Dict[str, Any],
         is_premium: bool = False,
         price: int = 0,
-        tags: List[str] = []
-    ):
+        preview_image: Optional[str] = None,
+        demo_url: Optional[str] = None
+    ) -> Template:
         """Create a new template"""
-        template = {
-            "id": str(uuid.uuid4()),
-            "name": name,
-            "description": description,
-            "category": category,
-            "config": config,
-            "pages": pages_config,
-            "is_premium": is_premium,
-            "price": price,
-            "tags": tags,
-            "creator_id": creator_id,
-            "created_at": datetime.utcnow().isoformat()
-        }
+        from slugify import slugify
+        
+        # Generate unique slug
+        base_slug = slugify(name)
+        slug = base_slug
+        counter = 1
+        while self.db.query(Template).filter(Template.slug == slug).first():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        template = Template(
+            name=name,
+            slug=slug,
+            description=description,
+            category=category,
+            preview_image=preview_image,
+            demo_url=demo_url,
+            config=config,
+            pages_config=pages_config,
+            is_premium=is_premium,
+            price=price,
+            creator_id=creator_id
+        )
+        
+        self.db.add(template)
+        self.db.commit()
+        self.db.refresh(template)
+        
         return template
     
+    async def update_template(
+        self,
+        template_id: str,
+        user_id: str,
+        **updates
+    ) -> Optional[Template]:
+        """Update an existing template"""
+        template = self.db.query(Template).filter(Template.slug == template_id).first()
+        
+        if not template or str(template.creator_id) != user_id:
+            return None
+        
+        # Update slug if name changed
+        if 'name' in updates and updates['name'] != template.name:
+            from slugify import slugify
+            base_slug = slugify(updates['name'])
+            slug = base_slug
+            counter = 1
+            while self.db.query(Template).filter(
+                Template.slug == slug,
+                Template.id != template.id
+            ).first():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            updates['slug'] = slug
+        
+        for key, value in updates.items():
+            if hasattr(template, key) and value is not None:
+                setattr(template, key, value)
+        
+        self.db.commit()
+        self.db.refresh(template)
+        
+        return template
+    
+    async def delete_template(
+        self,
+        template_id: str,
+        user_id: str
+    ) -> bool:
+        """Delete a template"""
+        template = self.db.query(Template).filter(Template.slug == template_id).first()
+        
+        if not template or str(template.creator_id) != user_id:
+            return False
+        
+        # Delete associated pages first
+        self.db.query(TemplatePage).filter(TemplatePage.template_id == template.id).delete()
+        
+        # Delete template
+        self.db.delete(template)
+        self.db.commit()
+        
+        return True
+    
+    async def create_template_page(
+        self,
+        template_id: str,
+        user_id: str,
+        title: str,
+        slug: str,
+        content: Dict[str, Any],
+        meta_title: Optional[str] = None,
+        meta_description: Optional[str] = None,
+        meta_keywords: Optional[str] = None,
+        og_image: Optional[str] = None,
+        is_homepage: bool = False,
+        sort_order: int = 0
+    ) -> Optional[TemplatePage]:
+        """Create a new page for a template"""
+        template = self.db.query(Template).filter(Template.slug == template_id).first()
+        
+        if not template or str(template.creator_id) != user_id:
+            return None
+        
+        # Check if slug already exists for this template
+        existing_page = self.db.query(TemplatePage).filter(
+            TemplatePage.template_id == template.id,
+            TemplatePage.slug == slug
+        ).first()
+        
+        if existing_page:
+            raise ValidationError(f"Page with slug '{slug}' already exists for this template")
+        
+        page = TemplatePage(
+            title=title,
+            slug=slug,
+            content=content,
+            meta_title=meta_title,
+            meta_description=meta_description,
+            meta_keywords=meta_keywords,
+            og_image=og_image,
+            is_homepage=is_homepage,
+            sort_order=sort_order,
+            template_id=template.id
+        )
+        
+        self.db.add(page)
+        self.db.commit()
+        self.db.refresh(page)
+        
+        return page
+    
+    async def update_template_page(
+        self,
+        template_id: str,
+        page_id: str,
+        user_id: str,
+        **updates
+    ) -> Optional[TemplatePage]:
+        """Update a template page"""
+        template = self.db.query(Template).filter(Template.slug == template_id).first()
+        
+        if not template or str(template.creator_id) != user_id:
+            return None
+        
+        page = self.db.query(TemplatePage).filter(
+            TemplatePage.id == page_id,
+            TemplatePage.template_id == template.id
+        ).first()
+        
+        if not page:
+            return None
+        
+        # Check slug uniqueness if slug is being updated
+        if 'slug' in updates and updates['slug'] != page.slug:
+            existing_page = self.db.query(TemplatePage).filter(
+                TemplatePage.template_id == template.id,
+                TemplatePage.slug == updates['slug'],
+                TemplatePage.id != page.id
+            ).first()
+            
+            if existing_page:
+                raise ValidationError(f"Page with slug '{updates['slug']}' already exists for this template")
+        
+        for key, value in updates.items():
+            if hasattr(page, key) and value is not None:
+                setattr(page, key, value)
+        
+        self.db.commit()
+        self.db.refresh(page)
+        
+        return page
+    
+    async def delete_template_page(
+        self,
+        template_id: str,
+        page_id: str,
+        user_id: str
+    ) -> bool:
+        """Delete a template page"""
+        template = self.db.query(Template).filter(Template.slug == template_id).first()
+        
+        if not template or str(template.creator_id) != user_id:
+            return False
+        
+        page = self.db.query(TemplatePage).filter(
+            TemplatePage.id == page_id,
+            TemplatePage.template_id == template.id
+        ).first()
+        
+        if not page:
+            return False
+        
+        self.db.delete(page)
+        self.db.commit()
+        
+        return True
+
     def _apply_customizations(
         self,
         pages: List[Dict[str, Any]],

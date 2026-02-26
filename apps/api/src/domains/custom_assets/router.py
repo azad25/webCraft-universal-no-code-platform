@@ -15,7 +15,13 @@ router = APIRouter(prefix="/apps/{app_id}/assets")
 
 
 async def get_app_or_404(app_id: str, user_id: str, db: Session) -> App:
-    app = db.query(App).filter(App.id == uuid.UUID(app_id), App.owner_id == user_id).first()
+    try:
+        app_uuid = uuid.UUID(app_id)
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid UUID format")
+    
+    app = db.query(App).filter(App.id == app_uuid, App.owner_id == user_uuid).first()
     if not app:
         raise HTTPException(status_code=404, detail="App not found")
     return app

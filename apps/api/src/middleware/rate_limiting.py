@@ -63,7 +63,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def _should_skip(self, path: str) -> bool:
         """Skip rate limiting for certain paths"""
         skip_paths = ["/health", "/docs", "/redoc", "/openapi.json", "/"]
-        return path in skip_paths
+        if path in skip_paths:
+            return True
+        
+        # Skip rate limiting for auth endpoints (login, register, refresh)
+        # These are critical paths that should not be blocked, especially
+        # since Docker internal traffic shares a single IP
+        auth_skip_paths = [
+            "/auth/login", "/auth/register", "/auth/refresh",
+            "/auth/forgot-password", "/auth/reset-password",
+        ]
+        for auth_path in auth_skip_paths:
+            if path.endswith(auth_path):
+                return True
+        
+        return False
     
     def _get_client_id(self, request: Request) -> str:
         """Get unique client identifier"""

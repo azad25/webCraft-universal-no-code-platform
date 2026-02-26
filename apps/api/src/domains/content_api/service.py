@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session
 
 from src.domains.apps.models import App
-from core.database import Page
+from src.domains.pages.models import Page
 
 
 class ContentAPIService:

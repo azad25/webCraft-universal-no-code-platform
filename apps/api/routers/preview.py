@@ -80,7 +80,7 @@ async def get_preview(
         raise HTTPException(status_code=404, detail="App not found")
     
     # Load app pages
-    from core.database import Page
+    from src.domains.pages.models import Page
     pages = db.query(Page).filter(
         Page.app_id == app.id,
         Page.is_published == True

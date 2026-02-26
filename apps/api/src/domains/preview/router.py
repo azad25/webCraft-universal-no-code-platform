@@ -12,7 +12,8 @@ import io
 from src.core.database import get_db
 from src.core.security import get_current_user, get_current_user_optional
 from src.domains.auth.models import User
-from src.domains.apps.models import App, Page
+from src.domains.apps.models import App
+from src.domains.pages.models import Page
 from .service import PreviewService
 from .schemas import PreviewCreate, PreviewResponse, PreviewDataResponse
 

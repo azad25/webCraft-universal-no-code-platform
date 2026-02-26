@@ -9,7 +9,7 @@ from src.core.database import get_db
 from src.core.security import get_current_user
 from src.domains.apps.models import App
 from src.domains.auth.schemas import UserResponse
-from core.database import Page
+from src.domains.pages.models import Page
 from .service import AnalyticsService
 from .schemas import TimeRange, AnalyticsEventCreate, GoalCreate
 

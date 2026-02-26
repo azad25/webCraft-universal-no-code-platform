@@ -7,6 +7,8 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.core.security import get_current_user
+from src.domains.auth.schemas import UserResponse
 from .service import MediaService, MediaFolderService
 from .schemas import (
     MediaItemResponse, MediaFolderResponse, UploadResponse,
@@ -32,9 +34,10 @@ async def upload_media(
     folder_id: Optional[str] = Form(None),
     alt_text: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),  # Comma-separated
+    current_user: UserResponse = Depends(get_current_user),
     service: MediaService = Depends(get_media_service)
 ):
-    """Upload a file (image, video, document)"""
+    """Upload a file (image, video, document) - integrated with Storage"""
     try:
         tag_list = tags.split(",") if tags else []
         media = await service.upload_file(
@@ -42,7 +45,8 @@ async def upload_media(
             file=file,
             folder_id=folder_id,
             alt_text=alt_text,
-            tags=tag_list
+            tags=tag_list,
+            user_id=str(current_user.id)  # Pass user_id for storage integration
         )
         return UploadResponse(success=True, media=media)
     except Exception as e:
@@ -191,6 +195,53 @@ async def delete_media(
     
     service.delete(media_id)
     return {"success": True}
+
+
+# Storage integration endpoints
+@router.post("/import-from-storage", response_model=UploadResponse)
+async def import_from_storage(
+    app_id: str,
+    storage_file_id: str,
+    folder_id: Optional[str] = None,
+    alt_text: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    current_user: UserResponse = Depends(get_current_user),
+    service: MediaService = Depends(get_media_service)
+):
+    """Import a file from Storage into Media library"""
+    try:
+        media = await service.import_from_storage(
+            app_id=app_id,
+            storage_file_id=storage_file_id,
+            user_id=str(current_user.id),
+            folder_id=folder_id,
+            alt_text=alt_text,
+            tags=tags or []
+        )
+        return UploadResponse(success=True, media=media)
+    except Exception as e:
+        return UploadResponse(success=False, error=str(e))
+
+
+@router.get("/storage-files")
+async def list_storage_files(
+    app_id: str,
+    mime_type: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(50, ge=1, le=100),
+    current_user: UserResponse = Depends(get_current_user),
+    service: MediaService = Depends(get_media_service)
+):
+    """List available storage files for import"""
+    try:
+        return await service.list_storage_files(
+            user_id=str(current_user.id),
+            mime_type_filter=mime_type,
+            page=page,
+            per_page=per_page
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Folder management

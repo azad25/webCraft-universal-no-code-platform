@@ -1,0 +1,1 @@
+"""Links domain for managing app links and navigation"""

@@ -33,11 +33,21 @@ from middleware.ai_crawler_middleware import AICrawlerMiddleware
 
 # Import v2 app from restructured backend
 try:
-    from src.main import v2_app
-    HAS_V2_APP = True
-    print("✓ V2 API loaded successfully")
+    # Only import V2 if it's properly configured
+    import os
+    v2_db_url = os.getenv('DATABASE_V2_URL')
+    if v2_db_url and 'webcraft_v2_db' in v2_db_url:
+        from src.main import v2_app
+        HAS_V2_APP = True
+        print("✓ V2 API loaded successfully with separate database")
+    else:
+        print("⚠ V2 database not configured, skipping V2 API")
+        HAS_V2_APP = False
 except ImportError as e:
     print(f"⚠ Warning: Could not import v2 app: {e}")
+    HAS_V2_APP = False
+except Exception as e:
+    print(f"⚠ Warning: V2 initialization failed: {e}")
     HAS_V2_APP = False
 
 
@@ -133,7 +143,13 @@ app = FastAPI(
     
     ### API Versions:
     - **v1**: Stable production API (all existing endpoints)
-    - **v2**: Domain-driven architecture with enhanced features
+    - **v2**: Domain-driven architecture with enhanced features including:
+      - Links Management (CRUD, validation, analytics)
+      - Push Notifications (subscriptions, broadcasting, delivery tracking)
+      - Storage Management (file upload, organization, quotas)
+      - Relations (record relationships, bidirectional support)
+      - Scheduler (cron jobs, intervals, retry logic)
+      - Incoming Webhooks (dynamic endpoints, verification)
     
     ### Authentication:
     - JWT Bearer tokens
@@ -208,7 +224,15 @@ async def health_check():
         "api_versions": {
             "v1": "available",
             "v2": "available" if HAS_V2_APP else "unavailable"
-        }
+        },
+        "v2_new_features": [
+            "Links Management - Complete link CRUD with validation and analytics",
+            "Push Notifications - Full push system with subscriptions and broadcasting", 
+            "Storage Management - File upload, organization, and quota management",
+            "Relations - Record relationship management with bidirectional support",
+            "Scheduler - Advanced job scheduling with cron and retry logic",
+            "Incoming Webhooks - Dynamic webhook endpoints with verification"
+        ] if HAS_V2_APP else []
     }
 
 
@@ -231,7 +255,13 @@ async def root():
             "Mobile-friendly APIs",
             "AI-powered content generation",
             "Real-time collaboration",
-            "Multi-tenant architecture"
+            "Multi-tenant architecture",
+            "V2: Links Management System",
+            "V2: Push Notifications",
+            "V2: Advanced Storage Management", 
+            "V2: Record Relations",
+            "V2: Job Scheduler",
+            "V2: Incoming Webhooks"
         ]
     }
 
@@ -353,7 +383,15 @@ def custom_openapi():
         },
         "v2": {
             "status": "available" if HAS_V2_APP else "unavailable",
-            "description": "Domain-driven architecture with enhanced features"
+            "description": "Domain-driven architecture with enhanced features",
+            "new_domains": [
+                "Links Management (/apps/{app_id}/links)",
+                "Push Notifications (/apps/{app_id}/push)", 
+                "Storage Management (/storage)",
+                "Relations (/apps/{app_id}/relations)",
+                "Scheduler (/scheduler)",
+                "Incoming Webhooks (/incoming)"
+            ] if HAS_V2_APP else []
         }
     }
     
