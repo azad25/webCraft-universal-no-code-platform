@@ -59,6 +59,14 @@
 
 ## 📸 Screenshots
 
+**🛠️ Visual Builder**
+
+![Builder UI](screenshots/builder.png)
+
+**🛠️ Dashboard**
+
+![Dashboard UI](screenshots/dashboard.png)
+
 **🏠 Landing Page**
 
 ![Home Page](screenshots/home.png)
@@ -67,9 +75,6 @@
 
 ![Login Page](screenshots/login.png)
 
-**🛠️ Visual Builder**
-
-![Builder UI](screenshots/builder.png)
 
 ---
 

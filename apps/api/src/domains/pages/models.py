@@ -29,6 +29,7 @@ class Page(Base):
     # Settings
     is_homepage = Column(Boolean, default=False)
     is_published = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
     password_protected = Column(Boolean, default=False)
     password_hash = Column(String(255), nullable=True)
     

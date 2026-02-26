@@ -1,7 +1,5 @@
 import { Metadata } from 'next'
 import { LiveEditor } from '@/components/editor/live-editor'
-import { EditorProvider } from '@/contexts/editor-context'
-import { WebSocketProvider } from '@/contexts/websocket-context'
 
 interface EditorPageProps {
   params: Promise<{
@@ -16,14 +14,10 @@ export const metadata: Metadata = {
 
 export default async function EditorPage({ params }: EditorPageProps) {
   const { appId } = await params
-  
+
   return (
-    <WebSocketProvider>
-      <EditorProvider appId={appId}>
-        <div className="h-screen overflow-hidden">
-          <LiveEditor appId={appId} />
-        </div>
-      </EditorProvider>
-    </WebSocketProvider>
+    <div className="h-screen overflow-hidden">
+      <LiveEditor appId={appId} />
+    </div>
   )
 }

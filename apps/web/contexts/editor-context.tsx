@@ -52,13 +52,13 @@ interface EditorContextValue {
   pages: any[]
   currentPage: any | null
   appData: any | null
-  
+
   // Page actions
   switchToPage: (pageId: string) => void
   createPage: (pageData: any) => Promise<void>
   updatePageInfo: (pageId: string, updates: any) => Promise<void>
   deletePage: (pageId: string) => Promise<void>
-  
+
   // Element actions
   addElement: (element: Omit<Element, 'id'>) => void
   updateElement: (id: string, updates: Partial<Element>) => void
@@ -68,24 +68,24 @@ interface EditorContextValue {
   moveElementDown: (id: string) => void
   reorderElement: (id: string, newIndex: number) => void
   addElementAfter: (id: string) => void
-  
+
   // Selection
   selectElement: (element: Element | null) => void
   setHoveredElement: (element: Element | null) => void
   selectSubElement: (path: string, type: string) => void // Add sub-element selection
-  
+
   // Clipboard
   copy: () => void
   cut: () => void
   paste: () => void
-  
+
   // History
   undo: () => void
   redo: () => void
-  
+
   // Canvas
   setZoom: (zoom: number) => void
-  
+
   // Save
   saveApp: () => Promise<void>
   savePage: () => Promise<void>
@@ -102,7 +102,7 @@ interface EditorProviderProps {
 export function EditorProvider({ children, appId, initialData }: EditorProviderProps) {
   const { sendMessage, isConnected } = useWebSocket()
   const [isLoading, setIsLoading] = useState(!initialData && !!appId)
-  
+
   const [state, setState] = useState<EditorState>({
     elements: [],
     selectedElementId: null,
@@ -137,23 +137,23 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     const loadAppData = async () => {
       try {
         console.log('🔄 Loading app data for:', appId)
-        
+
         // Load app data
         console.log('📡 Fetching app data...')
         const appResponse = await apiClient.get(`/apps/${appId}`)
         const appData = appResponse.data
         console.log('📦 Loaded app data:', appData)
-        
+
         // Load pages data
         console.log('📡 Fetching pages data...')
         const pagesResponse = await apiClient.get(`/apps/${appId}/pages`)
         const pagesData = pagesResponse.data
         const pages = pagesData.pages || []
         console.log('📄 Loaded pages:', pages.length, pages)
-        
+
         if (pages.length === 0) {
           console.warn('⚠️ No pages found for app, creating default page')
-          
+
           // Create a default homepage
           const defaultPageData = {
             title: 'Home',
@@ -164,12 +164,12 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
             meta_title: appData.name || 'Home',
             meta_description: appData.description || `Welcome to ${appData.name || 'your app'}`
           }
-          
+
           console.log('🔄 Creating default page:', defaultPageData)
           const createResponse = await apiClient.post(`/apps/${appId}/pages`, defaultPageData)
           const newPage = createResponse.data
           console.log('✅ Created default page:', newPage)
-          
+
           setState(prev => ({
             ...prev,
             elements: [],
@@ -187,20 +187,20 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
             homepage = pages[0]
             console.log('⚠️ No homepage found, using first page as homepage')
           }
-          
+
           if (!homepage) {
             console.error('❌ No pages available to load')
             throw new Error('No pages found in app')
           }
-          
+
           console.log('🏠 Auto-selecting page:', homepage.title, homepage.id)
-          
+
           // Load the homepage content
           console.log('📡 Fetching page content...')
           const pageResponse = await apiClient.get(`/apps/${appId}/pages/${homepage.id}`)
           const pageData = pageResponse.data
           console.log('📄 Loaded page content:', pageData)
-          
+
           // Handle both V1 and V2 API response formats
           let elements = []
           if (Array.isArray(pageData?.content)) {
@@ -213,9 +213,9 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
             // Alternative format: elements at root level
             elements = pageData.elements
           }
-          
+
           console.log('🧩 Page elements:', elements.length, elements)
-          
+
           setState(prev => ({
             ...prev,
             elements,
@@ -227,7 +227,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
             appData
           }))
         }
-        
+
         setIsLoading(false)
         console.log('✅ App data loaded successfully')
       } catch (error) {
@@ -237,7 +237,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
           status: error?.status,
           response: error?.response?.data
         })
-        
+
         // Try to create a default page if pages loading failed
         try {
           console.log('🔄 Attempting to create default page as fallback...')
@@ -250,11 +250,11 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
             meta_title: 'Home',
             meta_description: 'Welcome to your app'
           }
-          
+
           const createResponse = await apiClient.post(`/apps/${appId}/pages`, defaultPageData)
           const newPage = createResponse.data
           console.log('✅ Created fallback page:', newPage)
-          
+
           setState(prev => ({
             ...prev,
             elements: [],
@@ -268,7 +268,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
         } catch (fallbackError) {
           console.error('❌ Failed to create fallback page:', fallbackError)
         }
-        
+
         setIsLoading(false)
       }
     }
@@ -277,12 +277,12 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   }, [appId, initialData])
 
   // Derived state
-  const selectedElement = useMemo(() => 
+  const selectedElement = useMemo(() =>
     state.elements.find(el => el.id === state.selectedElementId) || null,
     [state.elements, state.selectedElementId]
   )
-  
-  const hoveredElement = useMemo(() => 
+
+  const hoveredElement = useMemo(() =>
     state.elements.find(el => el.id === state.hoveredElementId) || null,
     [state.elements, state.hoveredElementId]
   )
@@ -290,15 +290,23 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const canUndo = state.historyIndex > 0
   const canRedo = state.historyIndex < state.history.length - 1
 
-  // Push to history
+  // Push to history (capped at 50 entries to prevent memory bloat)
+  const MAX_HISTORY = 50
   const pushHistory = useCallback((elements: Element[]) => {
-    setState(prev => ({
-      ...prev,
-      elements,
-      history: [...prev.history.slice(0, prev.historyIndex + 1), elements],
-      historyIndex: prev.historyIndex + 1,
-      isDirty: true
-    }))
+    setState(prev => {
+      const newHistory = [...prev.history.slice(0, prev.historyIndex + 1), elements]
+      // Cap history length
+      const trimmedHistory = newHistory.length > MAX_HISTORY
+        ? newHistory.slice(newHistory.length - MAX_HISTORY)
+        : newHistory
+      return {
+        ...prev,
+        elements,
+        history: trimmedHistory,
+        historyIndex: trimmedHistory.length - 1,
+        isDirty: true
+      }
+    })
   }, [])
 
   // Broadcast changes
@@ -314,7 +322,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
       alert('Please select a page before adding elements')
       return
     }
-    
+
     const newElement: Element = {
       ...element,
       id: uuidv4()
@@ -322,7 +330,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     const newElements = [...state.elements, newElement]
     pushHistory(newElements)
     broadcast('element.added', newElement)
-    
+
     // Auto-select new element
     setState(prev => ({ ...prev, selectedElementId: newElement.id }))
   }, [state.elements, state.currentPageId, pushHistory, broadcast])
@@ -333,7 +341,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
       alert('Please select a page before editing elements')
       return
     }
-    
+
     const newElements = state.elements.map(el =>
       el.id === id ? { ...el, ...updates } : el
     )
@@ -346,7 +354,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     const newElements = state.elements.filter(el => el.id !== id)
     pushHistory(newElements)
     broadcast('element.deleted', { id })
-    
+
     if (state.selectedElementId === id) {
       setState(prev => ({ ...prev, selectedElementId: null }))
     }
@@ -356,20 +364,20 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const duplicateElement = useCallback((id: string) => {
     const element = state.elements.find(el => el.id === id)
     if (!element) return
-    
+
     const newElement: Element = {
       ...element,
       id: uuidv4(),
       name: element.name ? `${element.name} (copy)` : undefined
     }
-    
+
     const index = state.elements.findIndex(el => el.id === id)
     const newElements = [
       ...state.elements.slice(0, index + 1),
       newElement,
       ...state.elements.slice(index + 1)
     ]
-    
+
     pushHistory(newElements)
     setState(prev => ({ ...prev, selectedElementId: newElement.id }))
   }, [state.elements, pushHistory])
@@ -378,9 +386,9 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const moveElementUp = useCallback((id: string) => {
     const index = state.elements.findIndex(el => el.id === id)
     if (index <= 0) return
-    
+
     const newElements = [...state.elements]
-    ;[newElements[index - 1], newElements[index]] = [newElements[index], newElements[index - 1]]
+      ;[newElements[index - 1], newElements[index]] = [newElements[index], newElements[index - 1]]
     pushHistory(newElements)
   }, [state.elements, pushHistory])
 
@@ -388,9 +396,9 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const moveElementDown = useCallback((id: string) => {
     const index = state.elements.findIndex(el => el.id === id)
     if (index === -1 || index >= state.elements.length - 1) return
-    
+
     const newElements = [...state.elements]
-    ;[newElements[index], newElements[index + 1]] = [newElements[index + 1], newElements[index]]
+      ;[newElements[index], newElements[index + 1]] = [newElements[index + 1], newElements[index]]
     pushHistory(newElements)
   }, [state.elements, pushHistory])
 
@@ -398,7 +406,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const reorderElement = useCallback((id: string, newIndex: number) => {
     const currentIndex = state.elements.findIndex(el => el.id === id)
     if (currentIndex === -1) return
-    
+
     const newElements = [...state.elements]
     const [removed] = newElements.splice(currentIndex, 1)
     newElements.splice(newIndex, 0, removed)
@@ -416,21 +424,21 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
       props: {},
       style: {}
     }
-    
+
     const newElements = [
       ...state.elements.slice(0, index + 1),
       newElement,
       ...state.elements.slice(index + 1)
     ]
-    
+
     pushHistory(newElements)
     setState(prev => ({ ...prev, selectedElementId: newElement.id }))
   }, [state.elements, pushHistory])
 
   // Selection
   const selectElement = useCallback((element: Element | null) => {
-    setState(prev => ({ 
-      ...prev, 
+    setState(prev => ({
+      ...prev,
       selectedElementId: element?.id || null,
       selectedSubElement: null // Clear sub-element selection when selecting main element
     }))
@@ -442,9 +450,9 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
 
   // Sub-element selection
   const selectSubElement = useCallback((path: string, type: string) => {
-    setState(prev => ({ 
-      ...prev, 
-      selectedSubElement: path ? { path, type } : null 
+    setState(prev => ({
+      ...prev,
+      selectedSubElement: path ? { path, type } : null
     }))
   }, [])
 
@@ -498,30 +506,38 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   }, [])
 
   // Page Management
-  const currentPage = useMemo(() => 
+  const currentPage = useMemo(() =>
     state.pages.find(p => p.id === state.currentPageId) || null,
     [state.pages, state.currentPageId]
   )
 
   const switchToPage = useCallback(async (pageId: string) => {
     if (pageId === state.currentPageId) return
-    
+
     try {
       console.log('🔄 Switching to page:', pageId)
-      
+
       // Save current page if dirty
       if (state.isDirty && state.currentPageId) {
         console.log('💾 Saving current page before switching...')
         await savePage()
       }
-      
+
       // Load the new page content
       const pageResponse = await apiClient.get(`/apps/${appId}/pages/${pageId}`)
       const pageData = pageResponse.data
       console.log('📄 Loaded page content:', pageData)
-      
-      const elements = pageData?.content?.elements || []
-      
+
+      // Handle both V1 and V2 API response formats (same as loadAppData)
+      let elements: Element[] = []
+      if (Array.isArray(pageData?.content)) {
+        elements = pageData.content
+      } else if (pageData?.content?.elements) {
+        elements = pageData.content.elements
+      } else if (pageData?.elements) {
+        elements = pageData.elements
+      }
+
       setState(prev => ({
         ...prev,
         elements,
@@ -531,7 +547,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
         currentPageId: pageId,
         selectedElementId: null // Clear selection when switching pages
       }))
-      
+
       console.log('✅ Switched to page successfully')
     } catch (error) {
       console.error('❌ Failed to switch page:', error)
@@ -542,20 +558,20 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const createPage = useCallback(async (pageData: any) => {
     try {
       console.log('🔄 Creating new page:', pageData)
-      
+
       const response = await apiClient.post(`/apps/${appId}/pages`, {
         ...pageData,
         content: { elements: [] }
       })
       const newPage = response.data
-      
+
       setState(prev => ({
         ...prev,
         pages: [...prev.pages, newPage]
       }))
-      
+
       console.log('✅ Page created successfully:', newPage.id)
-      
+
       // Switch to the new page
       await switchToPage(newPage.id)
     } catch (error) {
@@ -567,15 +583,15 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const updatePageInfo = useCallback(async (pageId: string, updates: any) => {
     try {
       console.log('🔄 Updating page info:', pageId, updates)
-      
+
       const response = await apiClient.put(`/apps/${appId}/pages/${pageId}`, updates)
       const updatedPage = response.data
-      
+
       setState(prev => ({
         ...prev,
         pages: prev.pages.map(p => p.id === pageId ? updatedPage : p)
       }))
-      
+
       console.log('✅ Page info updated successfully')
     } catch (error) {
       console.error('❌ Failed to update page info:', error)
@@ -586,22 +602,22 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
   const deletePage = useCallback(async (pageId: string) => {
     try {
       console.log('🔄 Deleting page:', pageId)
-      
+
       await apiClient.delete(`/apps/${appId}/pages/${pageId}`)
-      
+
       const remainingPages = state.pages.filter(p => p.id !== pageId)
-      
+
       setState(prev => ({
         ...prev,
         pages: remainingPages
       }))
-      
+
       // If we deleted the current page, switch to another page
       if (pageId === state.currentPageId && remainingPages.length > 0) {
         const nextPage = remainingPages.find(p => p.is_homepage) || remainingPages[0]
         await switchToPage(nextPage.id)
       }
-      
+
       console.log('✅ Page deleted successfully')
     } catch (error) {
       console.error('❌ Failed to delete page:', error)
@@ -611,17 +627,25 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
 
   // Save current page
   const savePage = useCallback(async () => {
-    if (!state.currentPageId || !state.isDirty) return
-    
+    if (!state.currentPageId) {
+      console.warn('⚠️ Cannot save: no page selected')
+      return
+    }
+
+    if (!state.isDirty) {
+      console.log('ℹ️ No unsaved changes, skipping save')
+      return
+    }
+
     setState(prev => ({ ...prev, isSaving: true }))
-    
+
     try {
-      console.log('💾 Saving page content:', state.currentPageId)
-      
+      console.log('💾 Saving page content:', state.currentPageId, `(${state.elements.length} elements)`)
+
       await apiClient.put(`/apps/${appId}/pages/${state.currentPageId}/content`, {
         elements: state.elements
       })
-      
+
       setState(prev => ({ ...prev, isDirty: false }))
       console.log('✅ Page saved successfully')
     } catch (error) {
@@ -641,14 +665,14 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
       pagesCount: state.pages.length,
       elementsCount: state.elements.length
     })
-    
+
     if (!appId) {
       console.error('❌ No appId provided')
       return
     }
-    
+
     setState(prev => ({ ...prev, isSaving: true }))
-    
+
     try {
       // Step 1: Save current page content if dirty
       if (state.isDirty && state.currentPageId) {
@@ -659,7 +683,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
         })
         console.log('✅ Current page content saved')
       }
-      
+
       // Step 2: Save app-level data (metadata, theme, SEO, etc.)
       if (state.appData) {
         console.log('💾 Saving app metadata...')
@@ -675,25 +699,15 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
             currentVersion: (state.appData.config?.currentVersion || 0) + 1
           }
         }
-        
+
         await apiClient.put(`/apps/${appId}`, appUpdateData)
         console.log('✅ App metadata saved')
       }
-      
-      // Step 3: Ensure all pages are properly saved (validation)
-      console.log('🔍 Validating all pages are saved...')
-      for (const page of state.pages) {
-        try {
-          const pageResponse = await apiClient.get(`/apps/${appId}/pages/${page.id}`)
-          console.log(`✅ Page "${page.title}" validated`)
-        } catch (error) {
-          console.warn(`⚠️ Page "${page.title}" may have issues:`, error)
-        }
-      }
-      
-      setState(prev => ({ 
-        ...prev, 
-        isDirty: false, 
+
+
+      setState(prev => ({
+        ...prev,
+        isDirty: false,
         isSaving: false,
         appData: prev.appData ? {
           ...prev.appData,
@@ -703,9 +717,9 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
           }
         } : prev.appData
       }))
-      
+
       console.log('✅ Comprehensive app save completed successfully')
-      
+
       // Broadcast save completion
       broadcast('app.saved', {
         appId,
@@ -713,7 +727,7 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
         pagesCount: state.pages.length,
         currentPageId: state.currentPageId
       })
-      
+
     } catch (error: any) {
       console.error('❌ Failed to save app comprehensively:', {
         message: error?.message,
@@ -728,16 +742,16 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     }
   }, [appId, state.isDirty, state.elements, state.currentPageId, state.pages, state.appData, broadcast])
 
-  // Auto-save
+  // Auto-save (use lightweight savePage, not saveApp)
   useEffect(() => {
     if (!state.isDirty) return
-    
+
     const timer = setTimeout(() => {
-      saveApp()
+      savePage().catch(err => console.error('Auto-save failed:', err))
     }, 5000)
-    
+
     return () => clearTimeout(timer)
-  }, [state.isDirty, saveApp])
+  }, [state.isDirty, savePage])
 
   const value: EditorContextValue = {
     elements: state.elements,
@@ -755,13 +769,13 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     pages: state.pages,
     currentPage,
     appData: state.appData,
-    
+
     // Page actions
     switchToPage,
     createPage,
     updatePageInfo,
     deletePage,
-    
+
     // Element actions
     addElement,
     updateElement,
@@ -771,18 +785,18 @@ export function EditorProvider({ children, appId, initialData }: EditorProviderP
     moveElementDown,
     reorderElement,
     addElementAfter,
-    
+
     selectElement,
     setHoveredElement,
     selectSubElement, // Add sub-element selection
-    
+
     copy,
     cut,
     paste,
-    
+
     undo,
     redo,
-    
+
     setZoom,
     saveApp,
     savePage

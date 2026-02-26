@@ -8,10 +8,18 @@ from src.core.database import get_db
 from src.core.security import get_current_user
 from src.domains.apps.models import App
 from src.domains.auth.schemas import UserResponse
+from pydantic import BaseModel
+
 from .service import PagesService
 from .schemas import PageCreate, PageUpdate
 
 router = APIRouter(prefix="/apps/{app_id}/pages")
+
+
+class PageContentUpdate(BaseModel):
+    """Body model for page content update endpoint"""
+    elements: list = []
+    lastModified: Optional[str] = None
 
 
 async def get_app_or_404(app_id: uuid.UUID, user_id: str, db: Session) -> App:
@@ -129,13 +137,15 @@ async def duplicate_page(
 async def update_page_content(
     app_id: uuid.UUID = Path(...),
     page_id: uuid.UUID = Path(...),
-    content: Dict[str, Any] = {},
+    body: PageContentUpdate = None,
     current_user: UserResponse = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Update only page content (for editor auto-save)"""
     await get_app_or_404(app_id, str(current_user.id), db)
     service = PagesService(db)
+    # Store content in canonical format: {elements: [...]}
+    content = {"elements": body.elements if body else []}
     result = await service.update_content(str(app_id), str(page_id), content)
     if not result:
         raise HTTPException(status_code=404, detail="Page not found")
